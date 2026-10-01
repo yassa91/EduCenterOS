@@ -21,12 +21,12 @@ var reservedSections = new[] { "ConnectionStrings", "IdentityAccess", "Platform:
 if (reservedSections.Any(section => builder.Configuration.GetSection(section).Exists()))
     throw new InvalidOperationException("Configuration.UnexpectedCriticalSection: runtime secrets require an explicit bootstrap source.");
 
+var hostOptions = LocalHostOptions.BindSafely(builder.Configuration);
 builder.Services.AddOptions<LocalHostOptions>()
-    .BindConfiguration("Platform:Host", options => options.ErrorOnUnknownConfiguration = true)
+    .Configure(options => options.Port = hostOptions.Port)
     .Validate(options => options.Port is >= 1024 and <= 65535, "Platform:Host:Port must be between 1024 and 65535.")
     .ValidateOnStart();
 
-var hostOptions = builder.Configuration.GetSection("Platform:Host").Get<LocalHostOptions>() ?? new();
 builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, hostOptions.Port));
 
 builder.Logging.ClearProviders();
@@ -43,7 +43,12 @@ builder.Logging.AddFilter("Microsoft.AspNetCore.Server.Kestrel", LogLevel.None);
 builder.Logging.AddFilter("Microsoft.Extensions.Diagnostics.HealthChecks", LogLevel.None);
 builder.Logging.AddFilter("System.Net.Http", LogLevel.None);
 
-builder.Services.AddHealthChecks();
+builder.Services.AddSingleton<IRuntimeSnapshotSource>(new EnvironmentSnapshotSource(environment));
+builder.Services.AddOptions<DatabaseProbeOptions>()
+    .Configure<IRuntimeSnapshotSource>((options, source) => options.ConnectionString = source.Read().ConnectionString)
+    .Validate(options => options.TimeoutSeconds is > 0 and <= 10, "Database probe timeout must be between 1 and 10 seconds.")
+    .ValidateOnStart();
+builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
 
 var app = builder.Build();
 app.UseMiddleware<CorrelationMiddleware>();

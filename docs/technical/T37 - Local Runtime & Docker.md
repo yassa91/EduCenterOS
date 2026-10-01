@@ -85,6 +85,20 @@ S01-T06: full required tests محليًا وCI، وعدم dependence على real
 
 عدم توفر Infisical account/project/dev access يسجل كاعتمادية لـT05؛ لا ادعاء provider integration لم تختبر. لا production operational readiness ضمن هذا القرار.
 
+## S01 implementation contract
+
+- `infra/runtime.json` تثبت PostgreSQL `18.6-bookworm` مع digest وInfisical CLI `0.43.120`. الحزم pinned في `Directory.Packages.props` والـlock files؛ test runner يستمر VSTest.
+- `scripts/dev.py trust` تحفظ endpoint/project/dev/path non-secret خارج repo في user-owned `~/.config/EduCenterOS/infisical-trust.json`؛ لا `.infisical.json` تمنح ثقة ضمنية.
+- `provision` تضيف foundation keys إذا path فارغة فقط؛ existing complete setup لا يعاد توليدها أو overwrite. Partial/unknown/duplicate keys تفشل.
+- shared dev path تحمل `POSTGRES_ADMIN_PASSWORD` و`POSTGRES_RUNTIME_PASSWORD` و`ConnectionStrings__RuntimeProbeDatabase`. أول قيمتين تخصان provisioning؛ API تحصل الأخيرة فقط.
+- Secret delivery للـAPI عبر single JSON environment snapshot `EDUCENTEROS_RUNTIME_SNAPSHOT` من sanitized launcher. Schema version = 1؛ environment/source/exact key set وduplicates تتحقق قبل startup. Development source = `Infisical` وTesting = `Synthetic`؛ لا fallback أو merging من default config providers.
+- Snapshot source adapter داخل Host تعطي startup-bound typed DB probe options؛ Testing تستبدل adapter فقط مع نفس parser وproduction health registration. لا real-secret fetch في TestServer.
+- Native API port `5100` وdev DB port `55432`، كلاهما على loopback. Runtime role `educenteros_runtime_probe` ليست superuser؛ admin login للprovisioning فقط.
+- Compose password mount في ignored private `.local/dev-runtime/admin-password`، بصلاحيات محدودة ولعمر container فقط. `database-start` تعمل fresh Infisical fetch وتتحقق من تطابق mount؛ الملف ليس cache/fallback. `database-stop` تحذف container والـmount وتحافظ على data volume.
+- Guard fixture تستخدم Docker-owned container ID وactual DB/user/major identity وrun-specific marker قبل manifest-table cleanup. `test_support` metadata للاختبارات فقط، وليست Module schema أو Business Migration.
+- DDL الخاصة بتجهيز roles/verification tables تقع في local/test infrastructure فقط؛ لا Business raw-SQL persistence layer أو shared DbContext.
+- Infrastructure safety tests تدخل مع fixture في T05 لأن صحة cleanup شرط قبول لها؛ بقية HTTP/Unit/Architecture/CI verification تدخل T06.
+
 ## مراجع التنفيذ
 
 - [Microsoft: global.json and SDK selection](https://learn.microsoft.com/en-us/dotnet/core/tools/global-json).
