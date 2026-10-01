@@ -108,3 +108,9 @@ S01-T06: full required tests محليًا وCI، وعدم dependence على real
 - [Infisical: CLI JSON export example](https://infisical.com/blog/secure-secrets-management-for-cursor-cloud-agents).
 
 المراجع تشرح الأدوات؛ عزل المصادر والـownership والـlauncher والـgates هنا قراراتنا وتحتاج evidence تنفيذ فعلية.
+
+## S01-T06 verification launcher
+
+`python3 scripts/verify.py` يثبت Testing ويستبعد runtime/provider environment الموروثة، وينفذ locked restore وRelease build وrequired suites. acquisition تسبق الاختبارات: PostgreSQL وResource Reaper مثبتتان بالنسخة وdigest في `infra/runtime.json`؛ reaper الفعلية `testcontainers/ryuk:0.14.0` وفق [official configuration](https://dotnet.testcontainers.org/custom_configuration/). لا تعطيل automatic resource cleanup، وcontainer readiness timeout دقيقة.
+
+Testing API تستخدم production entry point/registration، مع adapter واحدة لـ`IRuntimeSnapshotSource` تحمل immutable synthetic snapshot من الـfixture. الـfactory تمسح host defaults التي تحولها WebApplicationFactory داخليًا إلى command-line arguments؛ تبقى environment validation ورفض runtime args في التطبيق كما هما. لا security-off flag أو Infisical fallback.

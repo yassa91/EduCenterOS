@@ -85,3 +85,9 @@ S01-T06 لا تغلق قبل run فعلية على PR للنسخة النهائ�
 - [GitHub: Secure use reference](https://docs.github.com/en/actions/reference/security/secure-use).
 
 هذه الاختيارات تحدد baseline صغيرة للمشروع. SAST/SCA automation التفصيلية وdeployment workflows تضاف عند دخولها النطاق، دون تغيير عقود T35/T36.
+
+## S01-T06 implementation
+
+workflow تطبق full-SHA pins الموثقة في `.github/workflows/ci.yml`. `scripts/verify.py` تنفذ مراحل الفحص وتحتفظ بكل raw output محليًا في run directory منفردة؛ أي process failure تبقى gate failure. لكل suite يراجع التقرير actual results/counters، non-zero discovery، وعدم وجود failed/skipped outcomes.
+
+بدل نشر TRX الخام، ينشر JSON projection allowlisted فقط: suite، counters، static method names بعد حذف theory inputs، وoutcomes. يستبعد stdout/error text/paths/attachments؛ malformed أو inconsistent reports تفشل. ستة report-guard risk tests تثبت zero discovery وfailed/skipped cases وcounter inconsistency وعدم تسريب arbitrary diagnostic values. CI لا ترفع raw reports أو logs.
