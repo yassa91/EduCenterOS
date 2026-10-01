@@ -16,5 +16,6 @@ public static partial class ModuleRegistration
         Features.RequestPhoneVerification.Endpoint.Map(group, errorResult, transportError);
         Features.ResendPhoneVerification.Endpoint.Map(group, errorResult, transportError);
         Features.VerifyPhone.Endpoint.Map(group, errorResult, transportError);
+        Features.RegisterAccount.Endpoint.Map(routes, errorResult, transportError);
     }
 }

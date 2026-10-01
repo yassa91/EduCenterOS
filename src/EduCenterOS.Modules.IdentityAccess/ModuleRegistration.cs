@@ -1,3 +1,6 @@
+using EduCenterOS.Modules.IdentityAccess.Domain;
+using Microsoft.AspNetCore.Identity;
+using EduCenterOS.Modules.IdentityAccess.Features.RegisterAccount;
 using EduCenterOS.Modules.IdentityAccess.Features.RequestPhoneVerification;
 using EduCenterOS.Modules.IdentityAccess.Features.ResendPhoneVerification;
 using EduCenterOS.Modules.IdentityAccess.Features.VerifyPhone;
@@ -33,6 +36,13 @@ public static partial class ModuleRegistration
         services.AddScoped<RequestPhoneVerificationHandler>();
         services.AddScoped<ResendPhoneVerificationHandler>();
         services.AddScoped<VerifyPhoneHandler>();
+        services.AddScoped<RegisterAccountHandler>();
+        services.AddOptions<PasswordHasherOptions>().Configure<IdentityAccessRuntimeSettings>((options, settings) =>
+        {
+            options.CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3;
+            options.IterationCount = settings.Policy.PasswordIterations;
+        });
+        services.AddScoped<IPasswordHasher<UserAccount>, PasswordHasher<UserAccount>>();
         services.AddHostedService<RegistrationRuntimeGuard>();
         services.AddHostedService<RegistrationStateCleanup>();
         services.AddHealthChecks().AddCheck<IdentityDatabaseHealthCheck>("identity_access", tags: ["ready"]);

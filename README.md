@@ -1,6 +1,6 @@
 # EduCenterOS
 
-Backend foundation for education center management. Sprint S01 provides the local API host, safe runtime configuration, PostgreSQL, isolated tests and CI. S02 is in progress: IdentityAccess persistence, security configuration and local OTP delivery are active; request/resend/verify endpoints are active; account creation follows in S02-T06. Frontend and production deployment remain outside this sprint.
+Backend foundation for education center management. Sprint S01 provides the local API host, safe runtime configuration, PostgreSQL, isolated tests and CI. S02 is in progress: IdentityAccess persistence, security configuration and local OTP delivery are active; the full request/resend/verify/register account flow is active. Frontend and production deployment remain outside this sprint.
 
 ## Prerequisites
 
@@ -75,7 +75,7 @@ This stops the development container and removes the temporary password mount wh
 
 ## Local OTP delivery (S02 runtime foundation)
 
-The approved Development sender writes temporary messages to `.local/otp/<challengeId>.json`. The application creates owner-only directories (0700) and files (0600), rejects symbolic links and a second host sharing the mailbox, and deletes messages after verification/invalidation/expiry and graceful shutdown. There is no OTP-read API or raw OTP log. Request/resend/verify routes are active; see [the contract](docs/contracts/S02-registration.md). Each issue response supplies a challenge ID; open its message file locally and submit its code to Verify. A successful Verify deletes the file and returns a temporary proof once. Real SMS is outside this sprint.
+The approved Development sender writes temporary messages to `.local/otp/<challengeId>.json`. The application creates owner-only directories (0700) and files (0600), rejects symbolic links and a second host sharing the mailbox, and deletes messages after verification/invalidation/expiry and graceful shutdown. There is no OTP-read API or raw OTP log. Request/resend/verify routes are active; see [the contract](docs/contracts/S02-registration.md). Each issue response supplies a challenge ID; open its message file locally and submit its code to Verify. A successful Verify deletes the file and returns a temporary proof once. Use that proof and challenge ID in `POST /api/v1/accounts` with `fullName`, `password` and optional `emailAddress`; the phone comes from the verified challenge. Registration returns account/person IDs and consumes the proof atomically. It does not log in or grant institution access. Real SMS is outside this sprint.
 
 `infra/registration-policy.json` contains the reviewed local numeric baselines; the launcher captures all fields in the immutable startup snapshot. Invalid/missing fields or keys fail startup. A persisted key fingerprint blocks changing the partition key in a way that resets durable target quotas; do not delete that binding to bypass policy. Rotation needs a reviewed transition. Staging/Production remain disabled.
 
