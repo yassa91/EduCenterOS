@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace EduCenterOS.Api.Infrastructure;
+namespace EduCenterOS.Api.Health;
 
 internal static class HealthResponse
 {

@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
-using EduCenterOS.Api.Infrastructure;
+using EduCenterOS.Api.Runtime;
 using EduCenterOS.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

@@ -1,7 +1,8 @@
+using EduCenterOS.Api.Middleware;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EduCenterOS.Api.Infrastructure;
+namespace EduCenterOS.Api.ErrorHandling;
 
 internal static class ApiProblems
 {

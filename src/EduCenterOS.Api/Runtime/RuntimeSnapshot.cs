@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Npgsql;
 
-namespace EduCenterOS.Api.Infrastructure;
+namespace EduCenterOS.Api.Runtime;
 
 internal sealed class RuntimeSnapshot
 {

@@ -1,4 +1,4 @@
-using EduCenterOS.Api.Infrastructure;
+using EduCenterOS.Api.Options;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
