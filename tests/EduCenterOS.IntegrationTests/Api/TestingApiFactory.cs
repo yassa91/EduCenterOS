@@ -1,3 +1,7 @@
+using EduCenterOS.BuildingBlocks.Time;
+using EduCenterOS.IntegrationTests.IdentityAccess;
+using EduCenterOS.Modules.IdentityAccess.Infrastructure.Delivery;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using EduCenterOS.Api.Runtime;
@@ -11,9 +15,11 @@ using Microsoft.Extensions.Hosting;
 
 namespace EduCenterOS.IntegrationTests.Api;
 
-internal sealed class TestingApiFactory(OwnedPostgresFixture database) : WebApplicationFactory<Program>
+internal sealed class TestingApiFactory(OwnedPostgresFixture database, ControlledClock? clock = null, IInterceptor? interceptor = null) : WebApplicationFactory<Program>
 {
     internal SafeLogCapture Logs { get; } = new();
+    internal TestOtpSender Sender { get; } = new();
+    internal ControlledClock Clock { get; } = clock ?? new(DateTimeOffset.UtcNow);
 
     protected override IHost CreateHost(IHostBuilder builder)
     {
@@ -32,6 +38,9 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database) : WebAppl
             services.RemoveAll<IRuntimeSnapshotSource>();
             services.AddSingleton<IRuntimeSnapshotSource>(new SyntheticSnapshotSource(database));
             services.AddSingleton<ILoggerProvider>(Logs);
+            services.RemoveAll<IOtpSender>(); services.AddSingleton<IOtpSender>(Sender);
+            services.RemoveAll<IClock>(); services.AddSingleton<IClock>(Clock);
+            if (interceptor is not null) services.AddSingleton<IInterceptor>(interceptor);
         });
     }
 

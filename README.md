@@ -1,6 +1,6 @@
 # EduCenterOS
 
-Backend foundation for education center management. Sprint S01 provides the local API host, safe runtime configuration, PostgreSQL, isolated tests and CI. S02 is in progress: IdentityAccess persistence, security configuration and local OTP delivery are active; registration endpoints follow in S02-T05/T06. Frontend and production deployment remain outside this sprint.
+Backend foundation for education center management. Sprint S01 provides the local API host, safe runtime configuration, PostgreSQL, isolated tests and CI. S02 is in progress: IdentityAccess persistence, security configuration and local OTP delivery are active; request/resend/verify endpoints are active; account creation follows in S02-T06. Frontend and production deployment remain outside this sprint.
 
 ## Prerequisites
 
@@ -63,7 +63,7 @@ curl --noproxy '*' -i http://127.0.0.1:5100/health/live
 curl --noproxy '*' -i http://127.0.0.1:5100/health/ready
 ```
 
-Both support GET/HEAD. Liveness checks the host; readiness checks both named database connections with bounded probes. Responses contain `Healthy` (200) or `Unhealthy` (503), a server-generated correlation ID and `Cache-Control: no-store`. Unmatched routes and unsupported methods use safe ProblemDetails. Health routes are excluded from the public API description; business endpoint/OpenAPI delivery is pending S02-T05/T06.
+Both support GET/HEAD. Liveness checks the host; readiness checks both named database connections with bounded probes. Responses contain `Healthy` (200) or `Unhealthy` (503), a server-generated correlation ID and `Cache-Control: no-store`. Unmatched routes and unsupported methods use safe ProblemDetails. Health routes are excluded from the public API description; the current business OpenAPI document is available at `/openapi/v1.json`; it describes only implemented routes.
 
 Stop the API with Ctrl+C, then:
 
@@ -75,7 +75,7 @@ This stops the development container and removes the temporary password mount wh
 
 ## Local OTP delivery (S02 runtime foundation)
 
-The approved Development sender writes temporary messages to `.local/otp/<challengeId>.json`. The application creates owner-only directories (0700) and files (0600), rejects symbolic links and a second host sharing the mailbox, and deletes messages after verification/invalidation/expiry and graceful shutdown. There is no OTP-read API or raw OTP log. S02-T05 activates the request/verify routes; real SMS is outside this sprint.
+The approved Development sender writes temporary messages to `.local/otp/<challengeId>.json`. The application creates owner-only directories (0700) and files (0600), rejects symbolic links and a second host sharing the mailbox, and deletes messages after verification/invalidation/expiry and graceful shutdown. There is no OTP-read API or raw OTP log. Request/resend/verify routes are active; see [the contract](docs/contracts/S02-registration.md). Each issue response supplies a challenge ID; open its message file locally and submit its code to Verify. A successful Verify deletes the file and returns a temporary proof once. Real SMS is outside this sprint.
 
 `infra/registration-policy.json` contains the reviewed local numeric baselines; the launcher captures all fields in the immutable startup snapshot. Invalid/missing fields or keys fail startup. A persisted key fingerprint blocks changing the partition key in a way that resets durable target quotas; do not delete that binding to bypass policy. Rotation needs a reviewed transition. Staging/Production remain disabled.
 

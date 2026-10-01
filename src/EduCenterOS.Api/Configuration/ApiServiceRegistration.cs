@@ -32,6 +32,7 @@ internal static class ApiServiceRegistration
         builder.Logging.AddFilter("Npgsql", LogLevel.None);
         builder.Logging.AddFilter("Microsoft.Extensions.Hosting", LogLevel.None);
 
+        builder.Services.AddOpenApi();
         builder.Services.AddSingleton<IRuntimeSnapshotSource>(new EnvironmentSnapshotSource(environment));
         builder.Services.AddOptions<DatabaseProbeOptions>()
             .Configure<IRuntimeSnapshotSource>((options, source) => options.ConnectionString = source.Read().ConnectionString)

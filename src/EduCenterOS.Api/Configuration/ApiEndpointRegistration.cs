@@ -7,6 +7,8 @@ internal static class ApiEndpointRegistration
 {
     internal static void MapApiEndpoints(this WebApplication app)
     {
+        app.MapApplicationModules();
+        app.MapOpenApi();
         app.MapHealthChecks("/health/live", new HealthCheckOptions
         {
             Predicate = _ => false,
