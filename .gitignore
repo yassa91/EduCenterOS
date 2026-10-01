@@ -12,6 +12,8 @@ artifacts/
 TestResults/
 *.log
 *.tmp
+__pycache__/
+*.py[cod]
 
 # Runtime secrets and local-only bootstrap material
 .env
