@@ -141,8 +141,8 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
         await command.ExecuteNonQueryAsync();
     }
 
-    public Task StopAsync() => container.StopAsync();
-    public Task StartAsync() => container.StartAsync();
+    public Task PauseAsync() => container.PauseAsync();
+    public Task UnpauseAsync() => container.UnpauseAsync();
 
     public async ValueTask DisposeAsync()
     {
