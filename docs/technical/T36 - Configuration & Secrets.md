@@ -691,3 +691,10 @@ Data Protection لها persistent environment-isolated shared repository وexpli
 - [.NET AesGcm authenticated encryption primitive](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.aesgcm?view=net-10.0)
 - [Infisical Universal Auth and token lifetime controls](https://infisical.com/docs/documentation/platform/identities/universal-auth)
 - [Infisical project configuration and endpoint/environment selection](https://infisical.com/docs/cli/project-config)
+
+
+## S02 active local inventory
+
+S02 uses snapshot schema 2 with the RuntimeProbeDatabase and IdentityAccessDatabase connections, versioned `IdentityAccess__Otp__HashKeys__v1`, current version, and independent `Platform__RateLimiting__PartitionDigestKey`. All numeric registration policy fields are captured explicitly from `infra/registration-policy.json` by the trusted launcher, without ambient overrides. Only active keys are required; no JWT/MFA keys are provisioned.
+
+The separate `/backend-api/identity-access` dev bootstrap bundle includes runtime/migration passwords and named connections. Migration secrets are excluded from API snapshots and argv. The dedicated migrator validates actual dev database/user/PostgreSQL/schema ownership before DDL. `rate_key_binding` stores only the digest-key fingerprint to reject unsafe replacement that would reset persistent budgets; key transition is explicit, with no silent reset.

@@ -20,16 +20,35 @@ public sealed class RegistrationPersistenceTests(OwnedPostgresFixture database) 
         context.Accounts.Add(new UserAccount(Guid.CreateVersion7(), personId, phone, email, "synthetic-hash", Now, Now));
     }
     [Fact]
+    public async Task UpgradeFromInitialMigration_PreservesExistingAccountsAndBudgets()
+    {
+        await using var owned = new OwnedPostgresFixture(); await owned.InitializeAsync();
+        await using var connection = new NpgsqlConnection(owned.AdminConnectionString); await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await owned.MigrateIdentityAsync(connection, "20261001150837_InitialRegistration");
+        var personId = Guid.CreateVersion7(); var digest = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+        await using (var initial = new IdentityAccessDbContext(IdentityAccessDbContext.Options(owned.AdminConnectionString)))
+        {
+            AddAccount(initial, personId, "+201012345678"); var target = new VerificationTarget(digest); target.ReserveIssue(Now,900,3,60);
+            initial.Targets.Add(target); await initial.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+        await owned.MigrateIdentityAsync(connection);
+        await using var upgraded = new IdentityAccessDbContext(IdentityAccessDbContext.Options(owned.ModuleConnectionString));
+        Assert.Equal(personId, (await upgraded.Accounts.SingleAsync(TestContext.Current.CancellationToken)).PersonIdentityId);
+        Assert.Equal(Now, Assert.Single((await upgraded.Targets.SingleAsync(TestContext.Current.CancellationToken)).IssuesUtc));
+        Assert.Equal(2, (await upgraded.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken)).Count());
+        Assert.False(upgraded.Database.HasPendingModelChanges());
+    }
+    [Fact]
     public async Task FreshMigrations_CreateOwnedHistoryAndNoPendingModelChanges()
     {
         await Prepare(); await using var context = Runtime();
-        Assert.Single(await context.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(2, (await context.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken)).Count());
         Assert.Empty(await context.Database.GetPendingMigrationsAsync(TestContext.Current.CancellationToken));
         Assert.False(context.Database.HasPendingModelChanges());
         await using var connection = new NpgsqlConnection(database.AdminConnectionString); await connection.OpenAsync(TestContext.Current.CancellationToken);
         await database.EnsureOwnedAsync(connection);
         await using var command = new NpgsqlCommand("SELECT count(*)::integer FROM pg_tables WHERE schemaname='identity_access'", connection);
-        Assert.Equal(5, await command.ExecuteScalarAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(6, await command.ExecuteScalarAsync(TestContext.Current.CancellationToken));
     }
     [Fact]
     public async Task InvalidLease_PreventsMigrationsAndResetEffects()

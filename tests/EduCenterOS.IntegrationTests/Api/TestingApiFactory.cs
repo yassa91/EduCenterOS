@@ -17,6 +17,7 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database) : WebAppl
 
     protected override IHost CreateHost(IHostBuilder builder)
     {
+        database.PrepareIdentityAsync().GetAwaiter().GetResult();
         // The factory serializes its host defaults as entry-point arguments. Clear that adapter
         // input: the application retains its own explicit environment/configuration validation.
         builder.ConfigureHostConfiguration(configuration => configuration.Sources.Clear());
@@ -38,10 +39,19 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database) : WebAppl
     {
         private readonly RuntimeSnapshot snapshot = RuntimeSnapshot.Parse(JsonSerializer.Serialize(new
         {
-            schemaVersion = 1,
+            schemaVersion = 2,
             environment = "Testing",
             source = "Synthetic",
-            secrets = new Dictionary<string, string> { ["ConnectionStrings__RuntimeProbeDatabase"] = database.RuntimeConnectionString }
+            securityPolicy = System.Text.Json.JsonSerializer.Deserialize<object>(File.ReadAllText(Path.Combine(OwnedPostgresFixture.FindRoot(), "infra/registration-policy.json"))),
+            developmentMailboxDirectory = (string?)null,
+            secrets = new Dictionary<string, string>
+            {
+                ["ConnectionStrings__RuntimeProbeDatabase"] = database.RuntimeConnectionString,
+                ["ConnectionStrings__IdentityAccessDatabase"] = database.ModuleConnectionString,
+                ["IdentityAccess__Otp__HashKeys__v1"] = Convert.ToBase64String(database.OtpKey),
+                ["IdentityAccess__Otp__CurrentHashKeyVersion"] = "v1",
+                ["Platform__RateLimiting__PartitionDigestKey"] = Convert.ToBase64String(database.PartitionKey)
+            }
         }), "Testing");
 
         public RuntimeSnapshot Read() => snapshot;

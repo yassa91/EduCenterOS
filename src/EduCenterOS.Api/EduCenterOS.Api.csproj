@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <ProjectReference Include="../EduCenterOS.Modules.IdentityAccess/EduCenterOS.Modules.IdentityAccess.csproj" />
     <PackageReference Include="Npgsql" />
   </ItemGroup>
 </Project>

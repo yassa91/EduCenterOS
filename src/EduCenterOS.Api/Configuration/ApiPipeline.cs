@@ -9,6 +9,8 @@ internal static class ApiPipeline
     {
         app.UseMiddleware<CorrelationMiddleware>();
         app.UseMiddleware<ErrorBoundaryMiddleware>();
+        app.UseRouting();
+        app.UseRateLimiter();
         app.UseStatusCodePages(context => ApiProblems.WriteStatusAsync(context.HttpContext));
     }
 }

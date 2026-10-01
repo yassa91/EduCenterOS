@@ -1,0 +1,16 @@
+{
+  "codeLifetimeSeconds": 300,
+  "proofLifetimeSeconds": 300,
+  "maximumFailedAttempts": 5,
+  "minimumResendSeconds": 60,
+  "rollingWindowSeconds": 900,
+  "targetIssuePermits": 3,
+  "targetVerifyPermits": 10,
+  "passwordMinimumLength": 12,
+  "passwordMaximumLength": 128,
+  "passwordIterations": 210000,
+  "bucketCount": 4096,
+  "anonymousIpPermits": 120,
+  "issueIpPermits": 20,
+  "verifyIpPermits": 30
+}

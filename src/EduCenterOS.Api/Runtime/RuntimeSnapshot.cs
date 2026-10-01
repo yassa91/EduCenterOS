@@ -1,3 +1,4 @@
+using EduCenterOS.Modules.IdentityAccess.Contracts;
 using System.Text;
 using System.Text.Json;
 using Npgsql;
@@ -6,7 +7,10 @@ namespace EduCenterOS.Api.Runtime;
 
 internal sealed class RuntimeSnapshot
 {
-    private RuntimeSnapshot(string connectionString) => ConnectionString = connectionString;
+    private RuntimeSnapshot(string connectionString, IdentityAccessRuntimeSettings identityAccess)
+    { ConnectionString = connectionString; IdentityAccess = identityAccess; }
+
+    internal IdentityAccessRuntimeSettings IdentityAccess { get; }
 
     internal string ConnectionString { get; }
 
@@ -20,8 +24,8 @@ internal sealed class RuntimeSnapshot
             using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 8 });
             RejectDuplicateProperties(document.RootElement);
             var root = document.RootElement;
-            RequireKeys(root, ["schemaVersion", "environment", "source", "secrets"]);
-            if (root.GetProperty("schemaVersion").GetInt32() != 1 || root.GetProperty("environment").GetString() != environment)
+            RequireKeys(root, ["schemaVersion", "environment", "source", "secrets", "securityPolicy", "developmentMailboxDirectory"]);
+            if (root.GetProperty("schemaVersion").GetInt32() != 2 || root.GetProperty("environment").GetString() != environment)
                 throw new InvalidOperationException();
 
             var expectedSource = environment switch
@@ -34,7 +38,11 @@ internal sealed class RuntimeSnapshot
                 throw new InvalidOperationException();
 
             var secrets = root.GetProperty("secrets");
-            RequireKeys(secrets, ["ConnectionStrings__RuntimeProbeDatabase"]);
+            var keyNames = secrets.EnumerateObject().Select(property => property.Name).ToArray();
+            var otpKeys = keyNames.Where(key => key.StartsWith("IdentityAccess__Otp__HashKeys__", StringComparison.Ordinal)).ToArray();
+            if (otpKeys.Length is < 1 or > 4) throw new InvalidOperationException();
+            RequireKeys(secrets, ["ConnectionStrings__RuntimeProbeDatabase", "ConnectionStrings__IdentityAccessDatabase",
+                "IdentityAccess__Otp__CurrentHashKeyVersion", "Platform__RateLimiting__PartitionDigestKey", .. otpKeys]);
             var value = secrets.GetProperty("ConnectionStrings__RuntimeProbeDatabase").GetString();
             var connection = new NpgsqlConnectionStringBuilder(value);
             if (connection.Host is not ("127.0.0.1" or "localhost") || connection.Port is < 1 or > 65535
@@ -43,7 +51,15 @@ internal sealed class RuntimeSnapshot
                 || (environment == "Testing" && !(connection.Database?.EndsWith("_tests", StringComparison.Ordinal) ?? false)))
                 throw new InvalidOperationException();
 
-            return new RuntimeSnapshot(connection.ConnectionString);
+            var moduleConnection = new NpgsqlConnectionStringBuilder(secrets.GetProperty("ConnectionStrings__IdentityAccessDatabase").GetString());
+            if (moduleConnection.Host != connection.Host || moduleConnection.Port != connection.Port || moduleConnection.Database != connection.Database)
+                throw new InvalidOperationException();
+            var identityAccess = IdentityAccessRuntimeSettings.FromSnapshot(moduleConnection.ConnectionString,
+                otpKeys.ToDictionary(key => key["IdentityAccess__Otp__HashKeys__".Length..], key => secrets.GetProperty(key).GetString()!),
+                secrets.GetProperty("IdentityAccess__Otp__CurrentHashKeyVersion").GetString()!,
+                secrets.GetProperty("Platform__RateLimiting__PartitionDigestKey").GetString()!, root.GetProperty("securityPolicy").GetRawText(),
+                environment, root.GetProperty("developmentMailboxDirectory").ValueKind == JsonValueKind.Null ? null : root.GetProperty("developmentMailboxDirectory").GetString());
+            return new RuntimeSnapshot(connection.ConnectionString, identityAccess);
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException or ArgumentException or FormatException or OverflowException)
         {
