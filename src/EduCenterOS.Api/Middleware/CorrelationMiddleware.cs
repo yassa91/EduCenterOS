@@ -1,4 +1,4 @@
-namespace EduCenterOS.Api.Infrastructure;
+namespace EduCenterOS.Api.Middleware;
 
 internal sealed class CorrelationMiddleware(RequestDelegate next, ILogger<CorrelationMiddleware> logger)
 {

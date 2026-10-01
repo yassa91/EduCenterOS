@@ -1,4 +1,5 @@
-namespace EduCenterOS.Api.Infrastructure;
+using EduCenterOS.Api.ErrorHandling;
+namespace EduCenterOS.Api.Middleware;
 
 internal sealed class ErrorBoundaryMiddleware(RequestDelegate next, ILogger<ErrorBoundaryMiddleware> logger)
 {

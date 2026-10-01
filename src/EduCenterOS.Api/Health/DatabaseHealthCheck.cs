@@ -1,14 +1,9 @@
+using EduCenterOS.Api.Options;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
-namespace EduCenterOS.Api.Infrastructure;
-
-internal sealed class DatabaseProbeOptions
-{
-    public string ConnectionString { get; set; } = string.Empty;
-    public int TimeoutSeconds { get; init; } = 3;
-}
+namespace EduCenterOS.Api.Health;
 
 internal sealed class DatabaseHealthCheck(IOptions<DatabaseProbeOptions> options, ILogger<DatabaseHealthCheck> logger) : IHealthCheck
 {

@@ -1,4 +1,4 @@
-namespace EduCenterOS.Api.Infrastructure;
+namespace EduCenterOS.Api.Runtime;
 
 internal static class RuntimeEnvironment
 {

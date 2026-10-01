@@ -1,4 +1,4 @@
-using EduCenterOS.Api.Infrastructure;
+using EduCenterOS.Api.Runtime;
 using Xunit;
 
 namespace EduCenterOS.UnitTests;

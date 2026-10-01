@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
-using EduCenterOS.Api.Infrastructure;
+using EduCenterOS.Api.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
