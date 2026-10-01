@@ -7,7 +7,7 @@ internal sealed class PersonMapping : IEntityTypeConfiguration<PersonIdentity>
 {
     public void Configure(EntityTypeBuilder<PersonIdentity> entity)
     {
-        entity.ToTable("person_identities", table => table.HasCheckConstraint("ck_person_name", "length(full_name) BETWEEN 2 AND 200"));
+        entity.ToTable("person_identities", table => table.HasCheckConstraint("ck_person_name", "(length(full_name) + length(regexp_replace(full_name, U&'[^\\+010000-\\+10FFFF]', '', 'g'))) BETWEEN 2 AND 200"));
         entity.HasKey(value => value.Id); entity.Property(value => value.Id).ValueGeneratedNever();
         entity.Property(value => value.FullName).HasMaxLength(200).IsRequired();
     }

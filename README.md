@@ -73,9 +73,29 @@ python3 scripts/dev.py database-stop
 
 This stops the development container and removes the temporary password mount while preserving the named data volume. Avoid manual volume deletion unless you intentionally want to erase development data.
 
-## Local OTP delivery (S02 runtime foundation)
+## Phone verification and account registration (S02)
 
 The approved Development sender writes temporary messages to `.local/otp/<challengeId>.json`. The application creates owner-only directories (0700) and files (0600), rejects symbolic links and a second host sharing the mailbox, and deletes messages after verification/invalidation/expiry and graceful shutdown. There is no OTP-read API or raw OTP log. Request/resend/verify routes are active; see [the contract](docs/contracts/S02-registration.md). Each issue response supplies a challenge ID; open its message file locally and submit its code to Verify. A successful Verify deletes the file and returns a temporary proof once. Use that proof and challenge ID in `POST /api/v1/accounts` with `fullName`, `password` and optional `emailAddress`; the phone comes from the verified challenge. Registration returns account/person IDs and consumes the proof atomically. It does not log in or grant institution access. Real SMS is outside this sprint.
+
+The flow below can be exercised in a local HTTP client against `http://127.0.0.1:5100`. Use the request-body editor for credentials and disable saved request/response history and body logging. Placeholders below are not real codes or credentials; do not put a password or proof in a URL, shell command argument, Git, screenshots or shared logs.
+
+1. POST `/api/v1/phone-verifications`, body `{"phoneNumber":"01012345678"}`. Read `challengeId` from the 200 response, then open `.local/otp/<challengeId>.json` locally to obtain its temporary `code`. No SMS is sent.
+2. POST `/api/v1/phone-verifications/<challengeId>/verify`, body `{"code":"<six ASCII digits from the local file>"}`. A 200 response supplies `verificationProof` and `expiresAtUtc`; the message file is deleted. Keep the proof only long enough to complete this flow.
+3. POST `/api/v1/accounts` with the body below. Supply the challenge ID from step 1 and proof from step 2; choose a 12–128 UTF-16 unit password without control characters. Omit/null `emailAddress` when not needed.
+
+```json
+{
+  "challengeId": "<challenge UUID>",
+  "verificationProof": "<temporary proof>",
+  "fullName": "اسم المستخدم",
+  "password": "<your password>",
+  "emailAddress": null
+}
+```
+
+A 201 response returns only `userAccountId`, `personIdentityId`, and `createdAtUtc`. There is no login token or account GET URL. Reusing a consumed/expired/wrong proof returns 422; a verified duplicate contact returns a generic 409. Invalid fields return 400 with `errors` keyed by `body.<field>`. Respect 429 and any `Retry-After` supplied; a 500 does not establish whether a commit happened and must not trigger blind replay.
+
+To replace a code/proof, wait at least the issue response's `resendAvailableAtUtc`, then POST `/api/v1/phone-verifications/<challengeId>/resend` with `{}`. Use the **new** ID/file; the old code and unused proof become invalid. Codes/proofs each last 300 seconds; expiry is inclusive. Three issues and ten verification attempts per phone in a persistent 900-second window are the local baseline; resend/restart does not reset these budgets. Graceful stop, invalidation and expiry also remove mailbox messages.
 
 `infra/registration-policy.json` contains the reviewed local numeric baselines; the launcher captures all fields in the immutable startup snapshot. Invalid/missing fields or keys fail startup. A persisted key fingerprint blocks changing the partition key in a way that resets durable target quotas; do not delete that binding to bypass policy. Rotation needs a reviewed transition. Staging/Production remain disabled.
 

@@ -19,7 +19,7 @@ internal static class Endpoint
                 return result.IsSuccess ? Results.Ok(result.Value) : errorResult(result.Error);
             }, transportError);
         }).Accepts<VerifyPhoneRequest>("application/json").Produces<VerifyPhoneResponse>()
-            .WithName("VerifyPhone").WithSummary("Verify code and issue one temporary proof")
+            .WithName("PhoneVerifications_Verify").WithSummary("Verify code and issue one temporary proof")
             .WithDescription("AnonymousSecurity. AnonymousIngress + OtpVerify. Proof secret is returned once; no account/login created.")
             .WithMetadata(new SecurityEndpointMetadata("OtpVerify")).RequireRateLimiting("OtpVerify")
             .ProducesProblem(400).ProducesProblem(406).ProducesProblem(413).ProducesProblem(415).ProducesProblem(422).ProducesProblem(429).ProducesProblem(500).ProducesProblem(503);

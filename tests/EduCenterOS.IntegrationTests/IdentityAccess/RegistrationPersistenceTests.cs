@@ -35,20 +35,31 @@ public sealed class RegistrationPersistenceTests(OwnedPostgresFixture database) 
         await using var upgraded = new IdentityAccessDbContext(IdentityAccessDbContext.Options(owned.ModuleConnectionString));
         Assert.Equal(personId, (await upgraded.Accounts.SingleAsync(TestContext.Current.CancellationToken)).PersonIdentityId);
         Assert.Equal(Now, Assert.Single((await upgraded.Targets.SingleAsync(TestContext.Current.CancellationToken)).IssuesUtc));
-        Assert.Equal(2, (await upgraded.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken)).Count());
+        Assert.Equal(3, (await upgraded.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken)).Count());
         Assert.False(upgraded.Database.HasPendingModelChanges());
     }
     [Fact]
     public async Task FreshMigrations_CreateOwnedHistoryAndNoPendingModelChanges()
     {
         await Prepare(); await using var context = Runtime();
-        Assert.Equal(2, (await context.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken)).Count());
+        Assert.Equal(3, (await context.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken)).Count());
         Assert.Empty(await context.Database.GetPendingMigrationsAsync(TestContext.Current.CancellationToken));
         Assert.False(context.Database.HasPendingModelChanges());
         await using var connection = new NpgsqlConnection(database.AdminConnectionString); await connection.OpenAsync(TestContext.Current.CancellationToken);
         await database.EnsureOwnedAsync(connection);
         await using var command = new NpgsqlCommand("SELECT count(*)::integer FROM pg_tables WHERE schemaname='identity_access'", connection);
         Assert.Equal(6, await command.ExecuteScalarAsync(TestContext.Current.CancellationToken));
+    }
+    [Theory]
+    [InlineData(1,false,false)] [InlineData(100,true,true)] [InlineData(101,true,false)]
+    public async Task PersonNameConstraint_UsesUtf16LengthIncludingSupplementaryCharacters(int count,bool supplementary,bool allowed)
+    {
+        await Prepare();await using var connection=new NpgsqlConnection(database.ModuleConnectionString);await connection.OpenAsync(TestContext.Current.CancellationToken);
+        var name=string.Concat(Enumerable.Repeat(supplementary?"😀":"x",count));
+        await using var command=new NpgsqlCommand("INSERT INTO identity_access.person_identities(id,full_name,created_at_utc) VALUES (@id,@name,@now)",connection);
+        command.Parameters.AddWithValue("id",Guid.CreateVersion7());command.Parameters.AddWithValue("name",name);command.Parameters.AddWithValue("now",Now);
+        if(allowed)Assert.Equal(1,await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken));
+        else Assert.Equal(PostgresErrorCodes.CheckViolation,(await Assert.ThrowsAsync<PostgresException>(()=>command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken))).SqlState);
     }
     [Fact]
     public async Task InvalidLease_PreventsMigrationsAndResetEffects()

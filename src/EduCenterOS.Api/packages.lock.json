@@ -40,8 +40,10 @@
         "type": "Project",
         "dependencies": {
           "EduCenterOS.BuildingBlocks": "[1.0.0, )",
+          "Microsoft.AspNetCore.OpenApi": "[10.0.7, )",
           "Microsoft.EntityFrameworkCore": "[10.0.7, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.7, )",
+          "Microsoft.OpenApi": "[2.7.5, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )"
         }
       },
