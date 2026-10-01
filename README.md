@@ -81,7 +81,7 @@ The flow below can be exercised in a local HTTP client against `http://127.0.0.1
 
 1. POST `/api/v1/phone-verifications`, body `{"phoneNumber":"01012345678"}`. Read `challengeId` from the 200 response, then open `.local/otp/<challengeId>.json` locally to obtain its temporary `code`. No SMS is sent.
 2. POST `/api/v1/phone-verifications/<challengeId>/verify`, body `{"code":"<six ASCII digits from the local file>"}`. A 200 response supplies `verificationProof` and `expiresAtUtc`; the message file is deleted. Keep the proof only long enough to complete this flow.
-3. POST `/api/v1/accounts` with the body below. Supply the challenge ID from step 1 and proof from step 2; choose a 12–128 character password without control characters. Omit/null `emailAddress` when not needed.
+3. POST `/api/v1/accounts` with the body below. Supply the challenge ID from step 1 and proof from step 2; choose a 12–128 UTF-16 unit password without control characters. Omit/null `emailAddress` when not needed.
 
 ```json
 {

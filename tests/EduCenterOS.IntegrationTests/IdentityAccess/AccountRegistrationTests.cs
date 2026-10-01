@@ -50,6 +50,15 @@ public sealed class AccountRegistrationTests(OwnedPostgresFixture database) : IC
         {Assert.DoesNotContain(sensitive,text,StringComparison.Ordinal);Assert.DoesNotContain(factory.Logs.Events,entry=>entry.Message.Contains(sensitive,StringComparison.Ordinal));}
         using var replay=await Register(client,proof,email);Assert.Equal((HttpStatusCode)422,replay.StatusCode);
     }
+    [Fact]
+    public async Task UnicodeNameAndPassword_HonorUtf16BoundsWithoutNormalization()
+    {
+        await Prepare();await using var factory=new TestingApiFactory(database,new ControlledClock(Now));using var client=factory.CreateClient();var proof=await Verify(client,factory);
+        var password=string.Concat(Enumerable.Repeat("😀",6));Assert.Equal(12,password.Length);
+        using var response=await client.PostAsJsonAsync("/api/v1/accounts",new{challengeId=proof.Id,verificationProof=proof.Token,fullName="😀",password},TestContext.Current.CancellationToken);Assert.Equal(HttpStatusCode.Created,response.StatusCode);
+        await using var context=Context();var account=await context.Accounts.SingleAsync(TestContext.Current.CancellationToken);Assert.Equal("😀",(await context.People.SingleAsync(TestContext.Current.CancellationToken)).FullName);
+        using var scope=factory.Services.CreateScope();Assert.Equal(PasswordVerificationResult.Success,scope.ServiceProvider.GetRequiredService<IPasswordHasher<UserAccount>>().VerifyHashedPassword(account,account.PasswordHash,password));
+    }
     [Theory] [InlineData(299,true)] [InlineData(300,false)] [InlineData(301,false)]
     public async Task ProofExpiry_UsesExactAuthoritativeBoundary(int seconds,bool allowed)
     {

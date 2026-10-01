@@ -31,8 +31,9 @@ public static partial class ModuleRegistration
                 var policy = context.ApplicationServices.GetRequiredService<IdentityAccessRuntimeSettings>().Policy;
                 Strict(schema);
                 schema.Properties!["verificationProof"] = Text(43,43,"Canonical unpadded Base64url of 32 bytes, bound to this challenge; consumed once.", "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$");
-                schema.Properties!["fullName"] = Text(2,200,"Trim and NFC; 2–200 UTF-16 units; no control characters.");
-                var password = Text(policy.PasswordMinimumLength,policy.PasswordMaximumLength,"No trim/normalization; UTF-16 bounds; no control characters."); password.Format="password"; password.WriteOnly=true; schema.Properties!["password"]=password;
+                var name = Text(1,200,"Trim and NFC; 2–200 UTF-16 units; no control characters. JSON Schema counts Unicode code points; UTF-16 limits are authoritative.");
+                Utf16Bounds(name,2,200); schema.Properties!["fullName"]=name;
+                var password = Text((policy.PasswordMinimumLength+1)/2,policy.PasswordMaximumLength,"No trim/normalization; configured UTF-16 bounds are authoritative; JSON Schema counts Unicode code points. No control characters."); Utf16Bounds(password,policy.PasswordMinimumLength,policy.PasswordMaximumLength); password.Format="password"; password.WriteOnly=true; schema.Properties!["password"]=password;
                 var email = Text(3,254,"Optional/null; trim/lowercase ASCII dotted-domain email; local part at most 64; remains unverified."); email.Type=JsonSchemaType.String|JsonSchemaType.Null; schema.Properties!["emailAddress"]=email;
                 schema.Properties!["challengeId"] = new OpenApiSchema { Type=JsonSchemaType.String, Format="uuid", Description="Nonempty challenge UUID returned by Request. Phone is read from the verified challenge." };
             }
@@ -69,6 +70,12 @@ public static partial class ModuleRegistration
     }
     private static OpenApiSchema Text(int min,int max,string description,string? pattern=null) => new()
     { Type=JsonSchemaType.String,MinLength=min,MaxLength=max,Description=description,Pattern=pattern };
+    private static void Utf16Bounds(OpenApiSchema schema,int minimum,int maximum)
+    {
+        schema.Extensions ??= new Dictionary<string,IOpenApiExtension>();
+        schema.Extensions["x-min-length-utf16"]=new JsonNodeExtension(JsonValue.Create(minimum));
+        schema.Extensions["x-max-length-utf16"]=new JsonNodeExtension(JsonValue.Create(maximum));
+    }
     private static void Strict(OpenApiSchema schema)
     {
         schema.AdditionalPropertiesAllowed=false;
