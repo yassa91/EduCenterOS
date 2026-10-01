@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Explicit local bootstrap. Secret command output is captured and never printed."""
+import base64
 import argparse
 import json
 import os
@@ -15,6 +16,10 @@ ROOT = Path(__file__).resolve().parents[1]
 TRUST = Path.home() / ".config/EduCenterOS/infisical-trust.json"
 LOCAL = ROOT / ".local/dev-runtime"
 MANIFEST = json.loads((ROOT / "infra/runtime.json").read_text())
+IDENTITY_PATH = "/backend-api/identity-access"
+IDENTITY_REQUIRED = {"POSTGRES_IDENTITY_RUNTIME_PASSWORD", "POSTGRES_IDENTITY_MIGRATION_PASSWORD",
+                     "ConnectionStrings__IdentityAccessDatabase", "ConnectionStrings__IdentityAccessMigrationDatabase",
+                     "IdentityAccess__Otp__HashKeys__v1", "IdentityAccess__Otp__CurrentHashKeyVersion", "Platform__RateLimiting__PartitionDigestKey"}
 REQUIRED = {"POSTGRES_ADMIN_PASSWORD", "POSTGRES_RUNTIME_PASSWORD", "ConnectionStrings__RuntimeProbeDatabase"}
 
 
@@ -81,8 +86,10 @@ def decode_export(text):
     return result
 
 
-def export():
-    return decode_export(cli(["export", "--path=/backend-api/shared", "--format=json", "--expand=false",
+def export(path="/backend-api/shared"):
+    if path not in ("/backend-api/shared", IDENTITY_PATH):
+        raise RuntimeError("InvalidSecretPath")
+    return decode_export(cli(["export", "--path=" + path, "--format=json", "--expand=false",
                               "--include-imports=false", "--secret-overriding=false"]))
 
 
@@ -123,6 +130,88 @@ def provision():
         cli(["secrets", "set", "--path=/backend-api/shared", "--type=shared", "--file=" + str(file)])
     bundle()
     print("Development foundation secrets provisioned in Infisical; values were not displayed.")
+
+
+def identity_connection(password, migration=False):
+    role = "educenteros_identity_migration" if migration else "educenteros_identity_runtime"
+    return ("Host=127.0.0.1;Port=55432;Database=educenteros_dev;Username=" + role + ";Password="
+            + password + ";Timeout=3;Command Timeout=5;Include Error Detail=false")
+
+
+def identity_bundle():
+    values = export(IDENTITY_PATH)
+    if set(values) != IDENTITY_REQUIRED:
+        raise RuntimeError("IncompleteIdentitySnapshot: run provision-identity before activation")
+    for key in ("POSTGRES_IDENTITY_RUNTIME_PASSWORD", "POSTGRES_IDENTITY_MIGRATION_PASSWORD"):
+        if not re.fullmatch(r"[A-Za-z0-9_-]{32,128}", values[key]):
+            raise RuntimeError("InvalidIdentityCredentialFormat")
+    for key in ("IdentityAccess__Otp__HashKeys__v1", "Platform__RateLimiting__PartitionDigestKey"):
+        try:
+            material = base64.b64decode(values[key], validate=True)
+        except ValueError:
+            raise RuntimeError("InvalidIdentityKeyFormat") from None
+        if len(material) != 32 or base64.b64encode(material).decode() != values[key]:
+            raise RuntimeError("InvalidIdentityKeyFormat")
+    if values["IdentityAccess__Otp__CurrentHashKeyVersion"] != "v1" or values["IdentityAccess__Otp__HashKeys__v1"] == values["Platform__RateLimiting__PartitionDigestKey"]:
+        raise RuntimeError("InvalidIdentityKeyInventory")
+    if values["ConnectionStrings__IdentityAccessDatabase"] != identity_connection(values["POSTGRES_IDENTITY_RUNTIME_PASSWORD"]) or values["ConnectionStrings__IdentityAccessMigrationDatabase"] != identity_connection(values["POSTGRES_IDENTITY_MIGRATION_PASSWORD"], True):
+        raise RuntimeError("IdentityConnectionMismatch")
+    return values
+
+
+def provision_identity():
+    bundle()  # Preserve and validate the existing S01 foundation; never overwrite it.
+    raw = json.loads(cli(["secrets", "folders", "get", "--path=/backend-api", "--output=json"]))
+    folders = raw.get("folders", []) if isinstance(raw, dict) else raw
+    if "identity-access" not in [item.get("name", item.get("folderName")) for item in folders]:
+        cli(["secrets", "folders", "create", "--path=/backend-api", "--name=identity-access", "--output=json"])
+    if export(IDENTITY_PATH):
+        identity_bundle()
+        print("IdentityAccess secrets already complete; no existing values changed.")
+        return
+    values = {"POSTGRES_IDENTITY_RUNTIME_PASSWORD": secrets.token_urlsafe(48),
+              "POSTGRES_IDENTITY_MIGRATION_PASSWORD": secrets.token_urlsafe(48),
+              "IdentityAccess__Otp__HashKeys__v1": base64.b64encode(secrets.token_bytes(32)).decode(),
+              "IdentityAccess__Otp__CurrentHashKeyVersion": "v1",
+              "Platform__RateLimiting__PartitionDigestKey": base64.b64encode(secrets.token_bytes(32)).decode()}
+    values["ConnectionStrings__IdentityAccessDatabase"] = identity_connection(values["POSTGRES_IDENTITY_RUNTIME_PASSWORD"])
+    values["ConnectionStrings__IdentityAccessMigrationDatabase"] = identity_connection(values["POSTGRES_IDENTITY_MIGRATION_PASSWORD"], True)
+    with tempfile.TemporaryDirectory(prefix="educenteros-identity-") as directory:
+        file = Path(directory) / "identity.env"
+        descriptor = os.open(file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(descriptor, "w") as handle:
+            handle.write("\n".join(key + "=" + json.dumps(value) for key, value in values.items()) + "\n")
+        cli(["secrets", "set", "--path=" + IDENTITY_PATH, "--type=shared", "--file=" + str(file)])
+    identity_bundle()
+    print("IdentityAccess secrets provisioned separately; no secret values displayed.")
+
+
+def migrate_identity():
+    bundle()
+    values = identity_bundle()
+    identity = compose(["exec", "-T", "postgres", "psql", "-U", "educenteros_admin", "-d", "educenteros_dev", "-At", "-c",
+                        "SELECT current_database() || ':' || current_user || ':' || (current_setting('server_version_num')::integer / 10000)::text"])
+    if identity.strip() != "educenteros_dev:educenteros_admin:18":
+        raise RuntimeError("MigrationBootstrapTargetMismatch")
+    runtime_password = values["POSTGRES_IDENTITY_RUNTIME_PASSWORD"]
+    migration_password = values["POSTGRES_IDENTITY_MIGRATION_PASSWORD"]
+    sql = ("DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='educenteros_identity_migration') THEN "
+           "CREATE ROLE educenteros_identity_migration LOGIN PASSWORD '" + migration_password + "'; END IF; "
+           "IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='educenteros_identity_runtime') THEN "
+           "CREATE ROLE educenteros_identity_runtime LOGIN PASSWORD '" + runtime_password + "'; END IF; END $$;\n"
+           "CREATE SCHEMA IF NOT EXISTS identity_access AUTHORIZATION educenteros_identity_migration;\n"
+           "GRANT CONNECT ON DATABASE educenteros_dev TO educenteros_identity_migration, educenteros_identity_runtime;\n")
+    compose(["exec", "-T", "postgres", "psql", "-U", "educenteros_admin", "-d", "educenteros_dev", "-v", "ON_ERROR_STOP=1"], input_text=sql)
+    environment = clean_environment()
+    environment["EDUCENTEROS_MIGRATION_SNAPSHOT"] = json.dumps({"schemaVersion": 1, "environment": "Development", "source": "Infisical",
+                                                              "connectionString": values["ConnectionStrings__IdentityAccessMigrationDatabase"]})
+    command(["dotnet", "run", "--project", str(ROOT / "tools/EduCenterOS.Migrator"), "-c", "Release", "--no-build"], environment=environment, timeout=60)
+    grants = ("GRANT USAGE ON SCHEMA identity_access TO educenteros_identity_runtime;\n"
+              "GRANT SELECT, INSERT, UPDATE, DELETE ON identity_access.person_identities, identity_access.user_accounts, "
+              "identity_access.otp_challenges, identity_access.verification_targets, identity_access.rate_key_binding TO educenteros_identity_runtime;\n"
+              "GRANT SELECT ON identity_access.__ef_migrations_history TO educenteros_identity_runtime;\n")
+    compose(["exec", "-T", "postgres", "psql", "-U", "educenteros_admin", "-d", "educenteros_dev", "-v", "ON_ERROR_STOP=1"], input_text=grants)
+    print("IdentityAccess migrations and restricted runtime grants completed; credentials stayed outside API/arguments.")
 
 
 def compose(arguments, *, input_text=None):
@@ -167,8 +256,11 @@ def database_stop():
 
 def run():
     values = bundle()
-    snapshot = {"schemaVersion": 1, "environment": "Development", "source": "Infisical",
-                "secrets": {"ConnectionStrings__RuntimeProbeDatabase": values["ConnectionStrings__RuntimeProbeDatabase"]}}
+    identity = identity_bundle()
+    runtime_secrets = {"ConnectionStrings__RuntimeProbeDatabase": values["ConnectionStrings__RuntimeProbeDatabase"]}
+    runtime_secrets.update({key: value for key, value in identity.items() if key.startswith("IdentityAccess__") or key == "Platform__RateLimiting__PartitionDigestKey" or key == "ConnectionStrings__IdentityAccessDatabase"})
+    snapshot = {"schemaVersion": 2, "environment": "Development", "source": "Infisical", "secrets": runtime_secrets,
+                "securityPolicy": json.loads((ROOT / "infra/registration-policy.json").read_text()), "developmentMailboxDirectory": str(ROOT / ".local/otp")}
     environment = clean_environment()
     environment.update({"DOTNET_ENVIRONMENT": "Development", "ASPNETCORE_ENVIRONMENT": "Development",
                         "EDUCENTEROS_RUNTIME_SNAPSHOT": json.dumps(snapshot)})
@@ -179,7 +271,7 @@ def run():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["trust", "provision", "database-start", "database-stop", "run"])
+    parser.add_argument("action", choices=["trust", "provision", "database-start", "database-stop", "provision-identity", "identity-migrate", "run"])
     parser.add_argument("--endpoint")
     parser.add_argument("--project-id")
     args = parser.parse_args()
@@ -198,7 +290,7 @@ def main():
         trusted_settings()
         print("Explicit development target trusted outside the repository.")
     else:
-        {"provision": provision, "database-start": database_start, "database-stop": database_stop, "run": run}[args.action]()
+        {"provision": provision, "database-start": database_start, "database-stop": database_stop, "provision-identity": provision_identity, "identity-migrate": migrate_identity, "run": run}[args.action]()
 
 
 if __name__ == "__main__":

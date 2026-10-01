@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using Npgsql;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
 using Xunit;
@@ -12,6 +14,8 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
     private readonly Guid lease = Guid.NewGuid();
     private readonly string runtimePassword = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     private readonly string modulePassword = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+    internal byte[] OtpKey { get; } = RandomNumberGenerator.GetBytes(32);
+    internal byte[] PartitionKey { get; } = RandomNumberGenerator.GetBytes(32);
     private readonly PostgreSqlContainer container;
     private string? ownedContainerId;
     public string DatabaseName { get; } = $"educenteros_{Guid.NewGuid():N}_tests";
@@ -54,17 +58,22 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
         Username = "educenteros_identity_runtime", Password = modulePassword
     }.ConnectionString;
 
-    internal async Task MigrateIdentityAsync(NpgsqlConnection connection)
+    internal async Task MigrateIdentityAsync(NpgsqlConnection connection, string? initialMigration = null)
     {
         await EnsureOwnedAsync(connection);
         await using var context = new IdentityAccessDbContext(IdentityAccessDbContext.Options(AdminConnectionString));
+        if (initialMigration is not null)
+        {
+            if (initialMigration != "20261001150837_InitialRegistration") throw new InvalidOperationException("TestSafety.UnreviewedMigrationTarget");
+            await context.GetService<IMigrator>().MigrateAsync(initialMigration); return;
+        }
         await context.Database.MigrateAsync();
         await using var grant = new NpgsqlCommand($"""
             DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'educenteros_identity_runtime') THEN
             CREATE ROLE educenteros_identity_runtime LOGIN PASSWORD '{modulePassword}'; END IF; END $$;
             GRANT USAGE ON SCHEMA identity_access TO educenteros_identity_runtime;
             GRANT SELECT, INSERT, UPDATE, DELETE ON identity_access.person_identities, identity_access.user_accounts,
-                identity_access.otp_challenges, identity_access.verification_targets TO educenteros_identity_runtime;
+                identity_access.otp_challenges, identity_access.verification_targets, identity_access.rate_key_binding TO educenteros_identity_runtime;
             GRANT SELECT ON identity_access.__ef_migrations_history TO educenteros_identity_runtime;
             """, connection);
         await grant.ExecuteNonQueryAsync();

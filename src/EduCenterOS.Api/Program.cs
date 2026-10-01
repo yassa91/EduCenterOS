@@ -6,6 +6,7 @@ public partial class Program
     {
         var builder = ApiConfiguration.CreateBuilder(args);
         builder.AddApiServices();
+        builder.AddApplicationModules();
 
         var app = builder.Build();
         app.UseApiPipeline();

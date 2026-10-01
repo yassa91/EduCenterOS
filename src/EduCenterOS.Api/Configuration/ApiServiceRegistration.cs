@@ -28,6 +28,9 @@ internal static class ApiServiceRegistration
         builder.Logging.AddFilter("Microsoft.AspNetCore.Server.Kestrel", LogLevel.None);
         builder.Logging.AddFilter("Microsoft.Extensions.Diagnostics.HealthChecks", LogLevel.None);
         builder.Logging.AddFilter("System.Net.Http", LogLevel.None);
+        builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
+        builder.Logging.AddFilter("Npgsql", LogLevel.None);
+        builder.Logging.AddFilter("Microsoft.Extensions.Hosting", LogLevel.None);
 
         builder.Services.AddSingleton<IRuntimeSnapshotSource>(new EnvironmentSnapshotSource(environment));
         builder.Services.AddOptions<DatabaseProbeOptions>()
