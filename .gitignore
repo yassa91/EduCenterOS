@@ -1,0 +1,23 @@
+# Local machine and editors
+.DS_Store
+.idea/
+.vs/
+*.user
+*.suo
+
+# Build, test and temporary outputs
+**/bin/
+**/obj/
+artifacts/
+TestResults/
+*.log
+*.tmp
+
+# Runtime secrets and local-only bootstrap material
+.env
+.env.*
+.local/
+**/secrets/
+*.key
+*.pfx
+*.p12
