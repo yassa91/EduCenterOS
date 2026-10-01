@@ -9,7 +9,7 @@ internal sealed class CorrelationMiddleware(RequestDelegate next, ILogger<Correl
         var correlationId = Guid.NewGuid().ToString("N");
 
         context.Items[ItemKey] = correlationId;
-        
+
         context.Response.OnStarting(() =>
         {
             context.Response.Headers["X-Correlation-Id"] = correlationId;

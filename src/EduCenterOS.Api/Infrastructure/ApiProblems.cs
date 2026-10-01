@@ -8,7 +8,7 @@ internal static class ApiProblems
     internal static Task WriteStatusAsync(HttpContext context, int? statusOverride = null)
     {
         var status = statusOverride ?? context.Response.StatusCode;
-        
+
         var (suffix, title, code, detail) = status switch
         {
             400 => ("validation", "Validation failed", "Validation.Failed", "The request is invalid."),
