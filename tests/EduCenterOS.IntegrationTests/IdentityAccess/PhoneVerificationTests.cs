@@ -145,14 +145,14 @@ public sealed class PhoneVerificationTests(OwnedPostgresFixture database) : ICla
         Assert.Equal(ChallengeStatus.Invalidated,(await context.Challenges.SingleAsync(value=>value.Id==id,TestContext.Current.CancellationToken)).Status);
     }
     [Fact]
-    public async Task OpenApi_DescribesOnlyTheThreeActivePhoneOperations()
+    public async Task OpenApi_DescribesTheActiveAnonymousOperations()
     {
         await Prepare();await using var factory=new TestingApiFactory(database,new ControlledClock(Now));using var client=factory.CreateClient();
         using var response=await client.GetAsync("/openapi/v1.json",TestContext.Current.CancellationToken);Assert.Equal(HttpStatusCode.OK,response.StatusCode);
         using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
-        var paths=document.RootElement.GetProperty("paths");Assert.Equal(3,paths.EnumerateObject().Count());
+        var paths=document.RootElement.GetProperty("paths");Assert.Equal(4,paths.EnumerateObject().Count());
         foreach(var path in paths.EnumerateObject())
-        {Assert.StartsWith(Root,path.Name);Assert.Equal("post",Assert.Single(path.Value.EnumerateObject()).Name);Assert.Contains("AnonymousSecurity",path.Value.GetProperty("post").GetProperty("description").GetString(),StringComparison.Ordinal);}
+        {Assert.True(path.Name.StartsWith(Root,StringComparison.Ordinal) || path.Name=="/api/v1/accounts");Assert.Equal("post",Assert.Single(path.Value.EnumerateObject()).Name);Assert.Contains("AnonymousSecurity",path.Value.GetProperty("post").GetProperty("description").GetString(),StringComparison.Ordinal);}
     }
     [Fact]
     public async Task OverlappingVerify_ReturnsOnlyOneProof()
