@@ -30,7 +30,7 @@ public sealed class IdentityAccessRuntimeSettings
             if (otpKeys.Count is < 1 or > 4 || !otpKeys.ContainsKey(currentVersion)
                 || otpKeys.Keys.Select(key => key.ToUpperInvariant()).Distinct().Count() != otpKeys.Count) throw new InvalidOperationException();
             var material = otpKeys.ToDictionary(pair => pair.Key, pair => DecodeKey(pair.Value), StringComparer.Ordinal);
-            if (material.Keys.Any(version => !Regex.IsMatch(version, "^[A-Za-z0-9_-]{1,32}$", RegexOptions.CultureInvariant))) throw new InvalidOperationException();
+            if (material.Keys.Any(version => !Regex.IsMatch(version, @"^[A-Za-z0-9_-]{1,32}\z", RegexOptions.CultureInvariant))) throw new InvalidOperationException();
             var partition = DecodeKey(partitionKey);
             if (material.Values.Any(key => System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(key, partition))) throw new InvalidOperationException();
             if (environment == "Testing" && mailboxDirectory is not null) throw new InvalidOperationException();

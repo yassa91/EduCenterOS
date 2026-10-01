@@ -26,7 +26,7 @@ internal static partial class RegistrationInputs
     }
     internal static Result<string> Email(string input)
     {
-        if (input.Length > 254) return Result<string>.Failure(RegistrationErrors.Field("emailAddress"));
+        if (input.Length > 254 || input.Any(char.IsControl)) return Result<string>.Failure(RegistrationErrors.Field("emailAddress"));
         var email = input.Trim().ToLowerInvariant();
         var at = email.IndexOf('@');
         return email.Length is >= 3 and <= 254 && at is >= 1 and <= 64 && EmailPattern().IsMatch(email)

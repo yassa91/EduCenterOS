@@ -19,7 +19,7 @@ internal static class Endpoint
                 return result.IsSuccess ? Results.Ok(result.Value) : errorResult(result.Error);
             }, transportError);
         }).Accepts<ResendPhoneVerificationRequest>("application/json").Produces<PhoneVerificationResponse>()
-            .WithName("ResendPhoneVerification").WithSummary("Replace a registration verification challenge")
+            .WithName("PhoneVerifications_Resend").WithSummary("Replace a registration verification challenge")
             .WithDescription("AnonymousSecurity. AnonymousIngress + OtpIssue. Replaces old code/proof; rolling quotas persist.")
             .WithMetadata(new SecurityEndpointMetadata("OtpIssue")).RequireRateLimiting("OtpIssue")
             .ProducesProblem(400).ProducesProblem(406).ProducesProblem(413).ProducesProblem(415).ProducesProblem(422).ProducesProblem(429).ProducesProblem(500).ProducesProblem(503);

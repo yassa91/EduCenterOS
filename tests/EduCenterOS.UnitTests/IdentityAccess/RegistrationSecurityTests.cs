@@ -71,4 +71,10 @@ public sealed class RegistrationSecurityTests
         for (var i=0; i<10000; i++) Assert.InRange(crypto.Bucket("signal-"+i), 0, 4095);
         Assert.Equal(crypto.Bucket("missing"), crypto.Bucket("missing"));
     }
+    [Fact]
+    public void HashKeyVersion_RejectsTrailingNewlineAsInvalidToken()
+    {
+        var key=Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        Assert.Throws<InvalidOperationException>(()=>Settings(keys:new(){["v1\n"]=key},version:"v1\n"));
+    }
 }

@@ -15,9 +15,9 @@ internal static class Endpoint
             var result = await handler.HandleAsync(request.PhoneNumber, context.RequestAborted);
             return result.IsSuccess ? Results.Ok(result.Value) : errorResult(result.Error);
         }, transportError)).Accepts<PhoneVerificationRequest>("application/json").Produces<PhoneVerificationResponse>()
-            .WithName("RequestPhoneVerification").WithSummary("Request registration phone verification")
+            .WithName("PhoneVerifications_Request").WithSummary("Request registration phone verification")
             .WithDescription("AnonymousSecurity. AnonymousIngress + OtpIssue. No code or account existence disclosure.")
             .WithMetadata(new SecurityEndpointMetadata("OtpIssue")).RequireRateLimiting("OtpIssue")
-            .ProducesProblem(400).ProducesProblem(406).ProducesProblem(413).ProducesProblem(415).ProducesProblem(429).ProducesProblem(500).ProducesProblem(503);
+            .ProducesProblem(400).ProducesProblem(406).ProducesProblem(413).ProducesProblem(415).ProducesProblem(422).ProducesProblem(429).ProducesProblem(500).ProducesProblem(503);
     }
 }

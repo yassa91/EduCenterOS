@@ -105,9 +105,13 @@ public sealed class RegistrationDomainTests
         Assert.Throws<ArgumentException>(() => new UserAccount(accountId, personId, "01012345678", null, "test-hash", Now, Now));
         Assert.Throws<ArgumentException>(() => Challenge().CanVerify(Now.ToOffset(TimeSpan.FromHours(2))));
     }
+    [Theory]
+    [InlineData("user@example.com\n")] [InlineData("\tuser@example.com")] [InlineData("user@example.com\0")]
+    public void EmailControlCharacters_AreRejectedBeforeTrim(string input)=>Assert.False(RegistrationInputs.Email(input).IsSuccess);
 }
 
 internal sealed class TestClock(DateTimeOffset now) : IClock
 {
     public DateTimeOffset UtcNow { get; set; } = now;
+
 }
