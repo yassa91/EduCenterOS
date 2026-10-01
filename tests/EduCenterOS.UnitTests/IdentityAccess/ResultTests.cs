@@ -26,7 +26,7 @@ public sealed class ResultTests
         Assert.Equal("field00", error.ValidationIssues[0].MemberPath);
         Assert.Throws<NotSupportedException>(() => ((IList<ValidationIssue>)error.ValidationIssues).Clear());
         Assert.Throws<ArgumentException>(() => Error.Validation([]));
-        var distinct = Error.Validation([new("name", "Input.Invalid", "Invalid field."), new("name", "Input.Invalid", "Invalid field.")]);
+        var distinct = Error.Validation([new("name", "Input.Invalid", "Invalid field."), new("name", "Input.Invalid", "Different safe description.")]);
         Assert.Single(distinct.ValidationIssues); Assert.False(distinct.ValidationIssuesTruncated);
     }
 }

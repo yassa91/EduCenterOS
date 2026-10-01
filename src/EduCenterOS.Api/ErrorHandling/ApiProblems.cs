@@ -28,6 +28,8 @@ internal static class ApiProblems
         return WriteAsync(context, status, suffix, title, code, detail, null);
     }
 
+    internal static IResult FromStatus(int status) => new StatusResponse(status);
+
     internal static IResult FromError(Error error) => new ErrorResponse(error);
 
     internal static Task WriteErrorAsync(HttpContext context, Error error)
@@ -71,7 +73,8 @@ internal static class ApiProblems
             var members = new[] { "phoneNumber", "code", "verificationProof", "challengeId", "fullName", "password", "emailAddress" };
             if (error.ValidationIssues.Any(issue => !members.Contains(issue.MemberPath, StringComparer.Ordinal) || issue.Code != "IdentityAccess.Input.Invalid"))
                 return WriteStatusAsync(context, 500);
-            problem.Extensions["errors"] = error.ValidationIssues.Select(issue => new { location = "body." + issue.MemberPath, code = issue.Code, description = issue.Description }).ToArray();
+            problem.Extensions["errors"] = error.ValidationIssues.GroupBy(issue => "body." + issue.MemberPath, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.Select(issue => new { code = issue.Code, description = issue.Description }).ToArray(), StringComparer.Ordinal);
             problem.Extensions["errorsTruncated"] = error.ValidationIssuesTruncated;
         }
         problem.Extensions["code"] = code;
@@ -82,6 +85,11 @@ internal static class ApiProblems
         return HttpMethods.IsHead(context.Request.Method)
             ? Task.CompletedTask
             : context.Response.WriteAsJsonAsync(problem, options: null, contentType: "application/problem+json", cancellationToken: context.RequestAborted);
+    }
+
+    private sealed class StatusResponse(int status) : IResult
+    {
+        public Task ExecuteAsync(HttpContext context) => WriteStatusAsync(context, status);
     }
 
     private sealed class ErrorResponse(Error error) : IResult

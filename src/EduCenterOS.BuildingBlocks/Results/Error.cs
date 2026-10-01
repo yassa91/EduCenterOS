@@ -32,7 +32,7 @@ public sealed class Error
     public static Error Validation(IEnumerable<ValidationIssue> issues)
     {
         ArgumentNullException.ThrowIfNull(issues);
-        var distinct = issues.Distinct().Take(51).ToArray();
+        var distinct = issues.DistinctBy(issue => (issue.MemberPath, issue.Code)).Take(51).ToArray();
         if (distinct.Length == 0 || distinct.Any(issue => string.IsNullOrWhiteSpace(issue.MemberPath)
             || issue.MemberPath.Length > 128 || string.IsNullOrWhiteSpace(issue.Code) || issue.Code.Length > 128
             || string.IsNullOrWhiteSpace(issue.Description) || issue.Description.Length > 500))

@@ -5,6 +5,9 @@ namespace EduCenterOS.Api.Configuration;
 
 internal static class ApplicationModuleRegistration
 {
+    internal static void MapApplicationModules(this WebApplication app)
+        => app.MapIdentityAccess(ApiProblems.FromError, ApiProblems.FromStatus);
+
     internal static void AddApplicationModules(this WebApplicationBuilder builder)
     {
         builder.Services.AddSingleton(provider => provider.GetRequiredService<IRuntimeSnapshotSource>().Read().IdentityAccess);

@@ -107,7 +107,8 @@ public sealed class HostContractTests : IClassFixture<OwnedPostgresFixture>
     {
         using var factory = new TestingApiFactory(database);
         _ = factory.CreateClient();
-        var endpoints = factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>().ToArray();
+        var endpoints = factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
+            .Where(endpoint => endpoint.RoutePattern.RawText?.TrimStart('/').StartsWith("health/", StringComparison.Ordinal) == true).ToArray();
         Assert.Equal(2, endpoints.Length);
         foreach (var endpoint in endpoints)
         {

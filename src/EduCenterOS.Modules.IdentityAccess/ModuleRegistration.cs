@@ -1,3 +1,7 @@
+using EduCenterOS.Modules.IdentityAccess.Features.RequestPhoneVerification;
+using EduCenterOS.Modules.IdentityAccess.Features.ResendPhoneVerification;
+using EduCenterOS.Modules.IdentityAccess.Features.VerifyPhone;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.AspNetCore.Builder;
 using System.Threading.RateLimiting;
 using EduCenterOS.BuildingBlocks.Results;
@@ -23,7 +27,12 @@ public static partial class ModuleRegistration
         services.AddSingleton<IClock, SystemClock>(); services.AddSingleton<RegistrationCryptography>();
         services.AddDbContextFactory<IdentityAccessDbContext>((provider, options) =>
             options.UseNpgsql(provider.GetRequiredService<IdentityAccessRuntimeSettings>().ConnectionString,
-                postgres => postgres.MigrationsHistoryTable("__ef_migrations_history", "identity_access").CommandTimeout(5)));
+                postgres => postgres.MigrationsHistoryTable("__ef_migrations_history", "identity_access").CommandTimeout(5))
+                .AddInterceptors(provider.GetServices<IInterceptor>()));
+        services.AddScoped<RegistrationTransactions>();
+        services.AddScoped<RequestPhoneVerificationHandler>();
+        services.AddScoped<ResendPhoneVerificationHandler>();
+        services.AddScoped<VerifyPhoneHandler>();
         services.AddHostedService<RegistrationRuntimeGuard>();
         services.AddHostedService<RegistrationStateCleanup>();
         services.AddHealthChecks().AddCheck<IdentityDatabaseHealthCheck>("identity_access", tags: ["ready"]);
