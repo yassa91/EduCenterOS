@@ -669,6 +669,8 @@ Never stored raw
 Never logged raw
 ```
 
+> استثناء تسليم Development المعتمد في S02: رسالة OTP مؤقتة في صندوق محلي `.local/otp/<challengeId>.json` لمالك عملية التطوير فقط (0700/0600)، بعمر الكود وحذفها عند الإبطال/التحقق/الانتهاء والتوقف. لا OTP raw في قاعدة البيانات أو logs أو artifacts أو باقي البيئات. هذا delivery adapter، وليس تخزين credential دائمًا. التفاصيل في [عقد S02](../contracts/S02-registration.md).
+
 قاعدة البيانات تخزن:
 
 ```text
