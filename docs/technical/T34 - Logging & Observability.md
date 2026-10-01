@@ -78,6 +78,8 @@ S01-T06 تثبت: server correlation حتى مع client header ضارة، تطا
 
 Framework/provider categories التي يمكنها عرض exception details تراجع في S01-T04، وتفلتر أو تستبدل الرسائل الحساسة؛ رفع verbosity يحتاج مراجعة redaction مستقلة قبل الاعتماد.
 
+S01 baseline تعطل default logs الخاصة بـASP.NET diagnostics وKestrel وhealth-check service وSystem.Net.Http لأنها قد تحتوي exception/URL details. الـapplication error boundary تسجل sanitized failure code/type؛ لا raw exception object. هذه filters لا تغير فشل startup أو response outcome.
+
 ## 7. ما يؤجل حتى الحاجة
 
 OpenTelemetry exporters وremote log store وdashboards وalert routing وmetrics catalog وsampling/retention لا تضيفها S01. ضوابط عدم التسريب هنا تظل ملزمة لأي sink لاحقة.
