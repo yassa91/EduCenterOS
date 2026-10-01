@@ -1,6 +1,6 @@
 # EduCenterOS
 
-Backend foundation for education center management. Sprint S01 provides the local API host, safe runtime configuration, PostgreSQL, isolated tests and CI. S02 is in progress: IdentityAccess persistence, security configuration and local OTP delivery are active; the full request/resend/verify/register account flow is active. Frontend and production deployment remain outside this sprint.
+Backend foundation for education center management. Sprint S01 provides the local API host, safe runtime configuration, PostgreSQL, isolated tests and CI. S02 is complete: IdentityAccess persistence, security configuration and local OTP delivery are active; the full request/resend/verify/register account flow is active. Frontend and production deployment remain outside this sprint.
 
 ## Prerequisites
 
