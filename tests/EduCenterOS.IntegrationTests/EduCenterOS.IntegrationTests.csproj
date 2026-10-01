@@ -13,5 +13,6 @@
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="Npgsql" />
     <ProjectReference Include="../../src/EduCenterOS.Api/EduCenterOS.Api.csproj" />
+    <ProjectReference Include="../../src/EduCenterOS.Modules.IdentityAccess/EduCenterOS.Modules.IdentityAccess.csproj" />
   </ItemGroup>
 </Project>

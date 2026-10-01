@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using Npgsql;
+using Microsoft.EntityFrameworkCore;
+using EduCenterOS.Modules.IdentityAccess.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -9,6 +11,7 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
 {
     private readonly Guid lease = Guid.NewGuid();
     private readonly string runtimePassword = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+    private readonly string modulePassword = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     private readonly PostgreSqlContainer container;
     private string? ownedContainerId;
     public string DatabaseName { get; } = $"educenteros_{Guid.NewGuid():N}_tests";
@@ -45,6 +48,41 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
         Username = "educenteros_runtime_probe",
         Password = runtimePassword
     }.ConnectionString;
+
+    internal string ModuleConnectionString => new NpgsqlConnectionStringBuilder(AdminConnectionString)
+    {
+        Username = "educenteros_identity_runtime", Password = modulePassword
+    }.ConnectionString;
+
+    internal async Task MigrateIdentityAsync(NpgsqlConnection connection)
+    {
+        await EnsureOwnedAsync(connection);
+        await using var context = new IdentityAccessDbContext(IdentityAccessDbContext.Options(AdminConnectionString));
+        await context.Database.MigrateAsync();
+        await using var grant = new NpgsqlCommand($"""
+            DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'educenteros_identity_runtime') THEN
+            CREATE ROLE educenteros_identity_runtime LOGIN PASSWORD '{modulePassword}'; END IF; END $$;
+            GRANT USAGE ON SCHEMA identity_access TO educenteros_identity_runtime;
+            GRANT SELECT, INSERT, UPDATE, DELETE ON identity_access.person_identities, identity_access.user_accounts,
+                identity_access.otp_challenges, identity_access.verification_targets TO educenteros_identity_runtime;
+            GRANT SELECT ON identity_access.__ef_migrations_history TO educenteros_identity_runtime;
+            """, connection);
+        await grant.ExecuteNonQueryAsync();
+    }
+
+    internal async Task ResetIdentityAsync()
+    {
+        await using var connection = new NpgsqlConnection(AdminConnectionString);
+        await connection.OpenAsync(); await EnsureOwnedAsync(connection);
+        await using var command = new NpgsqlCommand("TRUNCATE identity_access.user_accounts, identity_access.person_identities, identity_access.otp_challenges, identity_access.verification_targets", connection);
+        await command.ExecuteNonQueryAsync();
+    }
+
+    internal async Task PrepareIdentityAsync()
+    {
+        await using var connection = new NpgsqlConnection(AdminConnectionString);
+        await connection.OpenAsync(); await MigrateIdentityAsync(connection);
+    }
 
     public async ValueTask InitializeAsync()
     {
