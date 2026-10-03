@@ -10,7 +10,6 @@
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
-    <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="Npgsql" />
     <ProjectReference Include="../../src/EduCenterOS.Api/EduCenterOS.Api.csproj" />
     <ProjectReference Include="../../src/EduCenterOS.Modules.IdentityAccess/EduCenterOS.Modules.IdentityAccess.csproj" />

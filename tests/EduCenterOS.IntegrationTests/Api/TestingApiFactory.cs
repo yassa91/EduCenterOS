@@ -36,7 +36,7 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<IRuntimeSnapshotSource>();
-            services.AddSingleton<IRuntimeSnapshotSource>(new SyntheticSnapshotSource(database));
+            services.AddSingleton<IRuntimeSnapshotSource>(new CloudTestSnapshotSource(database));
             services.AddSingleton<ILoggerProvider>(Logs);
             services.RemoveAll<IOtpSender>(); services.AddSingleton<IOtpSender>(Sender);
             services.RemoveAll<IClock>(); services.AddSingleton<IClock>(Clock);
@@ -44,13 +44,14 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
         });
     }
 
-    private sealed class SyntheticSnapshotSource(OwnedPostgresFixture database) : IRuntimeSnapshotSource
+    private sealed class CloudTestSnapshotSource(OwnedPostgresFixture database) : IRuntimeSnapshotSource
     {
         private readonly RuntimeSnapshot snapshot = RuntimeSnapshot.Parse(JsonSerializer.Serialize(new
         {
-            schemaVersion = 2,
+            schemaVersion = 3,
             environment = "Testing",
-            source = "Synthetic",
+            databaseTarget = new { projectReference = database.Target.ProjectReference, host = database.Target.Host, environment = database.Target.Environment, serverMajor = database.Target.ServerMajor },
+            source = "CloudTestFixture",
             securityPolicy = System.Text.Json.JsonSerializer.Deserialize<object>(File.ReadAllText(Path.Combine(OwnedPostgresFixture.FindRoot(), "infra/registration-policy.json"))),
             developmentMailboxDirectory = (string?)null,
             secrets = new Dictionary<string, string>

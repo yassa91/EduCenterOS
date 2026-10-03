@@ -4,74 +4,68 @@ Backend foundation for education center management. Sprint S01 provides the loca
 
 ## Prerequisites
 
-- .NET SDK from `global.json` (10.0.203, same feature-band patch roll-forward).
-- Python 3.11+ and Git.
-- Local Docker Engine/Desktop with Linux containers running. Verification provisions PostgreSQL 18 containers on loopback ports; it never resets a developer database.
-- For real development only: Infisical CLI 0.43.120 and access to the project's `dev` environment. Automated tests do not require Infisical or real runtime secrets.
+.NET SDK from `global.json`, Python 3.11+, Git, PostgreSQL client (`psql` 17+), Infisical CLI 0.43.120.
+No local database or Docker required. Development and Integration tests use two distinct Supabase
+projects; Unit and Architecture tests require no database credentials.
 
-Run commands from the repository root. Native startup and helper scripts support macOS/Linux; Windows can use a Linux development environment.
+## Supabase setup
 
-## Build and verify a fresh clone
-
-```sh
-git clone https://github.com/yassa91/EduCenterOS.git
-cd EduCenterOS
-python3 scripts/verify.py
-```
-
-The gate performs locked restore, Release build, pinned Docker image acquisition, then Unit, Integration and Architecture suites. It selects `Testing` explicitly, removes inherited runtime-secret configuration, and fails for zero discovery, failed/skipped tests or missing infrastructure. Unit and Architecture can run without Docker after restore/build:
-
-```sh
-dotnet restore EduCenterOS.sln --locked-mode
-dotnet build EduCenterOS.sln -c Release --no-restore
-dotnet test tests/EduCenterOS.UnitTests/EduCenterOS.UnitTests.csproj -c Release --no-build
-dotnet test tests/EduCenterOS.ArchitectureTests/EduCenterOS.ArchitectureTests.csproj -c Release --no-build
-```
-
-For a direct Integration run, set both environment selectors to `Testing` in that process:
-
-```sh
-DOTNET_ENVIRONMENT=Testing ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/EduCenterOS.IntegrationTests/EduCenterOS.IntegrationTests.csproj -c Release --no-build
-```
-
-TestServer verifies the in-process HTTP pipeline. The disposable database uses actual PostgreSQL 18 with random test-only credentials, a restricted runtime role and an ownership guard. It verifies fixture identity/lease before IdentityAccess migrations or reset. EF history is owned by the module; runtime tests use a restricted schema role.
-
-## Real development startup
-
-First authenticate on this machine; do not paste passwords, tokens or connection strings into Git or chat:
+See [T41](docs/technical/T41%20-%20Supabase%20Development%20%26%20Testing.md) for ownership, permissions and secrets.
+Current projects: Development `hwuqjxbcbpbsdbonpdpf`; Testing `fvrvmmkxtifxslwunlko`.
+Get the exact direct/session host and server major from each project's dashboard. Connections use
+5432 and certificate/hostname verification; transaction pooler 6543 is rejected.
 
 ```sh
 infisical login --domain=https://app.infisical.com/api
 python3 scripts/dev.py trust --endpoint https://app.infisical.com/api --project-id 4243f1e5-ad83-4044-9160-cf1819e70d90
-python3 scripts/dev.py provision
-python3 scripts/dev.py provision-identity
-python3 scripts/dev.py database-start
+python3 scripts/dev.py trust-database --environment Development --project-reference hwuqjxbcbpbsdbonpdpf --host aws-0-eu-west-1.pooler.supabase.com --server-major 17 --root-certificate "$HOME/.config/EduCenterOS/supabase-ca.crt"
+python3 scripts/dev.py trust-database --environment Testing --project-reference fvrvmmkxtifxslwunlko --host aws-1-eu-central-1.pooler.supabase.com --server-major 17 --root-certificate "$HOME/.config/EduCenterOS/supabase-ca.crt"
+```
+
+Download the public CA from the dashboard's Database Settings → SSL configuration → Download certificate,
+and save it at `~/.config/EduCenterOS/supabase-ca.crt` before trusting the targets. The reviewed public CA
+is also in `infra/supabase-ca.crt` for CI; its SHA256 is recorded in T41.
+
+Trusted non-secret locators live outside Git in `~/.config/EduCenterOS`. Add only the project's
+existing database password as `SUPABASE_DATABASE_PASSWORD` in each respective Infisical scope:
+`/backend-api/supabase-development` and `/backend-api/supabase-testing` (both in Infisical `dev`).
+Do not paste passwords into chat, Git or command arguments. Keep Supabase Data API disabled.
+
+```sh
+python3 scripts/dev.py provision-cloud --environment Development
+python3 scripts/dev.py provision-cloud --environment Testing
 dotnet restore EduCenterOS.sln --locked-mode
 dotnet build EduCenterOS.sln -c Release --no-restore
 python3 scripts/dev.py identity-migrate
 python3 scripts/dev.py run
 ```
 
-Choose the organization containing EduCenterOS during login. `trust` stores the non-secret locator outside Git at `~/.config/EduCenterOS/infisical-trust.json`. The launcher deliberately ignores repository `.infisical.json` defaults. `provision` creates `/backend-api/shared` and its three dev secrets only when empty; a complete existing bundle is validated, while partial or unexpected data fail without overwriting it. IdentityAccess gets a separate exact bundle at `/backend-api/identity-access`; `provision-identity` creates it only when empty and never changes S01 values. A fresh workstation with access to the existing project can use the same commands. `identity-migrate` validates the actual PostgreSQL 18 dev target and schema owner, uses a dedicated migration role in a separate process, then grants runtime table access. Migration credentials never reach the API and startup never runs migrations.
+The API binds to `127.0.0.1:5100`. Ctrl+C stops it; Supabase remains running.
+`/health/live` and `/health/ready` support GET/HEAD and return safe Healthy/Unhealthy status.
+Business API description: `/openapi/v1.json`. API startup does not apply migrations.
+Development OTP delivery remains the protected local mailbox described below.
 
-Docker binds PostgreSQL to `127.0.0.1:55432`. The native API binds to `127.0.0.1:5100`. The API receives a complete environment-bound snapshot freshly captured from Infisical; it has no implicit environment/user-secret/command-line connection-string fallback.
-
-In another terminal:
-
-```sh
-curl --noproxy '*' -i http://127.0.0.1:5100/health/live
-curl --noproxy '*' -i http://127.0.0.1:5100/health/ready
-```
-
-Both support GET/HEAD. Liveness checks the host; readiness checks both named database connections with bounded probes. Responses contain `Healthy` (200) or `Unhealthy` (503), a server-generated correlation ID and `Cache-Control: no-store`. Unmatched routes and unsupported methods use safe ProblemDetails. Health routes are excluded from the public API description; the current business OpenAPI document is available at `/openapi/v1.json`; it describes only implemented routes.
-
-Stop the API with Ctrl+C, then:
+## Verify
 
 ```sh
-python3 scripts/dev.py database-stop
+python3 scripts/verify.py
 ```
 
-This stops the development container and removes the temporary password mount while preserving the named data volume. Avoid manual volume deletion unless you intentionally want to erase development data.
+The gate runs locked restore, Release build, bootstrap/report guard tests and all three .NET suites.
+On a workstation it fetches restricted test credentials from Infisical. CI uses GitHub secret
+`EDUCENTEROS_TEST_DATABASE_SNAPSHOT`, derived from the trusted test bundle; never development,
+bootstrap/admin or migration credentials. Restore/build/Unit/Architecture receive no cloud credentials.
+Integration tests serialize access to the separately marked test project and clean only their
+reviewed schemas. Missing credentials/connection/ownership or skipped tests fail the gate.
+
+For database-independent verification after restore/build:
+
+```sh
+dotnet test tests/EduCenterOS.UnitTests/EduCenterOS.UnitTests.csproj -c Release --no-build
+dotnet test tests/EduCenterOS.ArchitectureTests/EduCenterOS.ArchitectureTests.csproj -c Release --no-build
+```
+
+The legacy local PostgreSQL volume is retained until cloud acceptance and explicit disposal.
 
 ## Phone verification and account registration (S02)
 
@@ -102,9 +96,9 @@ To replace a code/proof, wait at least the issue response's `resendAvailableAtUt
 ## Diagnostics and delivery
 
 - Missing/conflicting environment, invalid startup configuration or missing snapshot fail before readiness. Staging/Production require T39 and are currently disabled.
-- If dev bootstrap fails, check CLI version/login/project access and Docker availability. Scripts hide raw provider output and never print secret values. Do not bypass validation by copying a dev connection string into appsettings.
+- If dev bootstrap fails, check CLI version/login/project access and Supabase target/certificate availability. Scripts hide raw provider output and never print secret values. Do not bypass validation by copying a dev connection string into appsettings.
 - Each verification run has a unique ignored directory under `artifacts/test-results/`. Raw local logs/TRX are private diagnostics and may contain failed-test input; review them before sharing. CI uploads only an allowlisted JSON projection (static test names, outcomes and counts), without stdout, attachments, paths or failure text, for seven days.
 - CI `verify` runs on every PR into `main`, pushes to `main` and manual dispatch. A failure remains a failure; there are no automatic retries or required skips.
 - Each task uses a new branch from updated `main`, review and Squash Merge according to [T40](docs/technical/T40%20-%20Git%20%26%20GitHub%20Workflow.md). Automatic merge is delegated after acceptance, checks and review. The current private-repository plan blocks GitHub branch protection; these gates are enforced procedurally until server-side protection is available.
 
-The approved registration scope and current delivery evidence are in [S02](docs/sprints/S02.md) and [the registration contract](docs/contracts/S02-registration.md). Foundation evidence is in [S01](docs/sprints/S01.md). Runtime, tests and CI contracts are in [T37](docs/technical/T37%20-%20Local%20Runtime%20%26%20Docker.md), [T33](docs/technical/T33%20-%20Testing%20Stack.md) and [T38](docs/technical/T38%20-%20CI%20%26%20Verification.md).
+The approved registration scope and current delivery evidence are in [S02](docs/sprints/S02.md) and [the registration contract](docs/contracts/S02-registration.md). Foundation evidence is in [S01](docs/sprints/S01.md). Current cloud hosting is defined by [T41](docs/technical/T41%20-%20Supabase%20Development%20%26%20Testing.md). Historical runtime, tests and CI contracts are in [T37](docs/technical/T37%20-%20Local%20Runtime%20%26%20Docker.md), [T33](docs/technical/T33%20-%20Testing%20Stack.md) and [T38](docs/technical/T38%20-%20CI%20%26%20Verification.md).

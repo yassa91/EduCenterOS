@@ -21,7 +21,7 @@ public sealed class DatabaseSafetyTests(OwnedPostgresFixture database) : IClassF
     public async Task Reset_NonOwnedDatabaseIsRejectedBeforeChangingOwnedRows()
     {
         Assert.Equal(1, await database.SetSentinelAndCountAsync());
-        var target = new NpgsqlConnectionStringBuilder(database.AdminConnectionString) { Database = "postgres" };
+        var target = new NpgsqlConnectionStringBuilder(database.AdminConnectionString) { Username = new NpgsqlConnectionStringBuilder(database.RuntimeConnectionString).Username, Password = new NpgsqlConnectionStringBuilder(database.RuntimeConnectionString).Password };
         await using var connection = new NpgsqlConnection(target.ConnectionString);
         await connection.OpenAsync(TestContext.Current.CancellationToken);
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => database.ResetSentinelAsync(connection));
@@ -58,4 +58,26 @@ public sealed class DatabaseSafetyTests(OwnedPostgresFixture database) : IClassF
         Assert.Equal(0, await database.CountSentinelAsync());
         await database.EnsureOwnedAsync(connection);
     }
+    [Fact]
+    public async Task CompetingCloudLease_IsRejectedBeforeChangingOwnedRows()
+    {
+        Assert.Equal(1, await database.SetSentinelAndCountAsync());
+        await using var competitor = new OwnedPostgresFixture();
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => competitor.InitializeAsync().AsTask());
+        Assert.Equal("TestSafety.CloudProjectAlreadyInUse", error.Message);
+        Assert.Equal(1, await database.CountSentinelAsync());
+    }
+
+    [Fact]
+    public async Task TestOwner_CannotRewriteTheTrustedProjectMarker()
+    {
+        await using var connection = new NpgsqlConnection(database.AdminConnectionString);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await database.EnsureOwnedAsync(connection);
+        await using var command = new NpgsqlCommand("UPDATE educenteros_test_control.target SET environment='Development'", connection);
+        var error = await Assert.ThrowsAsync<PostgresException>(() => command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, error.SqlState);
+        await database.EnsureOwnedAsync(connection);
+    }
+
 }

@@ -27,7 +27,7 @@ public sealed class RuntimeSecurityTests(OwnedPostgresFixture database) : IClass
         var policy=System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(OwnedPostgresFixture.FindRoot(),"infra/registration-policy.json")))!;
         if(strictLimit) policy["issueIpPermits"]=1;
         return IdentityAccessRuntimeSettings.FromSnapshot(database.ModuleConnectionString,new Dictionary<string,string>{["v1"]=Convert.ToBase64String(database.OtpKey)},"v1",
-            Convert.ToBase64String(changedKey ? System.Security.Cryptography.RandomNumberGenerator.GetBytes(32) : database.PartitionKey),policy.ToJsonString(),"Testing",null);
+            Convert.ToBase64String(changedKey ? System.Security.Cryptography.RandomNumberGenerator.GetBytes(32) : database.PartitionKey),policy.ToJsonString(),database.Target,"Testing",null);
     }
     [Fact]
     public async Task Retention_RemovesExpiredSecurityStateAndKeepsCurrentBudgets()

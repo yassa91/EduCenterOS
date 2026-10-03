@@ -1,4 +1,6 @@
 using System.Net;
+using EduCenterOS.Api.Options;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 using EduCenterOS.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Http;
@@ -80,7 +82,10 @@ public sealed class HostContractTests : IClassFixture<OwnedPostgresFixture>
         await using var factory = new TestingApiFactory(database);
         using var client = factory.CreateClient();
         var password = new Npgsql.NpgsqlConnectionStringBuilder(database.RuntimeConnectionString).Password!;
-        await database.PauseAsync();
+        var options = factory.Services.GetRequiredService<IOptions<DatabaseProbeOptions>>().Value;
+        var original = options.ConnectionString;
+        // Inject a genuine refused TCP connection in this host only; never pause a shared cloud server.
+        options.ConnectionString = new Npgsql.NpgsqlConnectionStringBuilder(original) { Port = 1, Pooling = false }.ConnectionString;
         try
         {
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
@@ -96,7 +101,7 @@ public sealed class HostContractTests : IClassFixture<OwnedPostgresFixture>
         }
         finally
         {
-            await database.UnpauseAsync();
+            options.ConnectionString = original;
         }
         using var recovered = await client.GetAsync("/health/ready", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, recovered.StatusCode);

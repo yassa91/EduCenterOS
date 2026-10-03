@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Persistence;
-using Testcontainers.PostgreSql;
+using System.Text.Json;
+using EduCenterOS.Modules.IdentityAccess.Contracts;
 using Xunit;
 
 namespace EduCenterOS.IntegrationTests.Infrastructure;
@@ -12,51 +13,44 @@ namespace EduCenterOS.IntegrationTests.Infrastructure;
 public sealed class OwnedPostgresFixture : IAsyncLifetime
 {
     private readonly Guid lease = Guid.NewGuid();
-    private readonly string runtimePassword = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
-    private readonly string modulePassword = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     internal byte[] OtpKey { get; } = RandomNumberGenerator.GetBytes(32);
     internal byte[] PartitionKey { get; } = RandomNumberGenerator.GetBytes(32);
-    private readonly PostgreSqlContainer container;
-    private string? ownedContainerId;
-    public string DatabaseName { get; } = $"educenteros_{Guid.NewGuid():N}_tests";
+    private readonly string ownerConnectionString;
+    private readonly string probeConnectionString;
+    private readonly string moduleConnectionString;
+    private NpgsqlConnection? leaseConnection;
+    private int leaseBackendPid;
+    private const long LeaseLock = 68202910413001;
+    internal SupabaseDatabaseTarget Target { get; }
+    public string DatabaseName => "postgres";
 
     public OwnedPostgresFixture()
     {
-        var root = FindRoot();
-        using var manifest = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "infra/runtime.json")));
-        var image = manifest.RootElement.GetProperty("postgresImage").GetString()
-            ?? throw new InvalidOperationException("TestInfrastructure.ImageMissing");
-        container = new PostgreSqlBuilder(image)
-            .WithDatabase(DatabaseName)
-            .WithUsername("educenteros_tests_admin")
-            .WithPassword(Convert.ToHexString(RandomNumberGenerator.GetBytes(32)))
-            .WithLabel("educenteros-test-lease", lease.ToString("N"))
-            .WithCreateParameterModifier(parameters =>
-            {
-                var bindings = parameters.HostConfig?.PortBindings
-                    ?? throw new InvalidOperationException("TestInfrastructure.PortBindingsMissing");
-                foreach (var binding in bindings["5432/tcp"])
-                    binding.HostIP = "127.0.0.1";
-            })
-            .Build();
+        try
+        {
+            var raw = Environment.GetEnvironmentVariable("EDUCENTEROS_TEST_DATABASE_SNAPSHOT");
+            if (raw is null || raw.Length > 16384) throw new InvalidOperationException();
+            using var json = JsonDocument.Parse(raw);
+            var root = json.RootElement;
+            var names = root.EnumerateObject().Select(p => p.Name).ToArray();
+            if (names.Length != 4 || names.Distinct(StringComparer.OrdinalIgnoreCase).Count() != 4
+                || names.Except(new[] { "databaseTarget", "owner", "probe", "runtime" }).Any()) throw new InvalidOperationException();
+            var targetJson = root.GetProperty("databaseTarget");
+            var targetNames = targetJson.EnumerateObject().Select(p => p.Name).ToArray();
+            if (targetNames.Length != 4 || targetNames.Distinct(StringComparer.OrdinalIgnoreCase).Count() != 4
+                || targetNames.Except(new[] { "projectReference", "host", "environment", "serverMajor" }).Any()) throw new InvalidOperationException();
+            Target = JsonSerializer.Deserialize<SupabaseDatabaseTarget>(targetJson.GetRawText(),
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }) ?? throw new InvalidOperationException();
+            ownerConnectionString = Target.Validate(root.GetProperty("owner").GetString()!, "Testing", "owner").ConnectionString;
+            probeConnectionString = Target.Validate(root.GetProperty("probe").GetString()!, "Testing", "probe").ConnectionString;
+            moduleConnectionString = Target.Validate(root.GetProperty("runtime").GetString()!, "Testing", "runtime").ConnectionString;
+        }
+        catch (Exception) { throw new InvalidOperationException("TestSafety.TrustedCloudSnapshotRequired"); }
     }
 
-    public string AdminConnectionString => new NpgsqlConnectionStringBuilder(container.GetConnectionString())
-    {
-        Host = "127.0.0.1",
-        IncludeErrorDetail = false
-    }.ConnectionString;
-
-    public string RuntimeConnectionString => new NpgsqlConnectionStringBuilder(AdminConnectionString)
-    {
-        Username = "educenteros_runtime_probe",
-        Password = runtimePassword
-    }.ConnectionString;
-
-    internal string ModuleConnectionString => new NpgsqlConnectionStringBuilder(AdminConnectionString)
-    {
-        Username = "educenteros_identity_runtime", Password = modulePassword
-    }.ConnectionString;
+    public string AdminConnectionString => ownerConnectionString;
+    public string RuntimeConnectionString => probeConnectionString;
+    internal string ModuleConnectionString => moduleConnectionString;
 
     internal async Task MigrateIdentityAsync(NpgsqlConnection connection, string? initialMigration = null)
     {
@@ -68,13 +62,14 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
             await context.GetService<IMigrator>().MigrateAsync(initialMigration); return;
         }
         await context.Database.MigrateAsync();
+        var runtime = Target.Role("runtime");
         await using var grant = new NpgsqlCommand($"""
-            DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'educenteros_identity_runtime') THEN
-            CREATE ROLE educenteros_identity_runtime LOGIN PASSWORD '{modulePassword}'; END IF; END $$;
-            GRANT USAGE ON SCHEMA identity_access TO educenteros_identity_runtime;
+            REVOKE ALL ON SCHEMA identity_access FROM PUBLIC, anon, authenticated, service_role;
+            REVOKE ALL ON ALL TABLES IN SCHEMA identity_access FROM PUBLIC, anon, authenticated, service_role;
+            GRANT USAGE ON SCHEMA identity_access TO {runtime};
             GRANT SELECT, INSERT, UPDATE, DELETE ON identity_access.person_identities, identity_access.user_accounts,
-                identity_access.otp_challenges, identity_access.verification_targets, identity_access.rate_key_binding TO educenteros_identity_runtime;
-            GRANT SELECT ON identity_access.__ef_migrations_history TO educenteros_identity_runtime;
+                identity_access.otp_challenges, identity_access.verification_targets, identity_access.rate_key_binding TO {runtime};
+            GRANT SELECT ON identity_access.__ef_migrations_history TO {runtime};
             """, connection);
         await grant.ExecuteNonQueryAsync();
     }
@@ -97,33 +92,32 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
     {
         try
         {
-            await container.StartAsync();
-            ownedContainerId = container.Id;
-            await using var connection = new NpgsqlConnection(AdminConnectionString);
-            await connection.OpenAsync();
-            await VerifyIdentityAsync(connection);
+            leaseConnection = new NpgsqlConnection(new NpgsqlConnectionStringBuilder(AdminConnectionString) { Pooling = false }.ConnectionString);
+            await leaseConnection.OpenAsync();
+            await VerifyIdentityAsync(leaseConnection);
+            await using (var claim = new NpgsqlCommand("SELECT pg_try_advisory_lock(@key), pg_backend_pid()", leaseConnection))
+            {
+                claim.Parameters.AddWithValue("key", LeaseLock);
+                await using var reader = await claim.ExecuteReaderAsync();
+                if (!await reader.ReadAsync() || !reader.GetBoolean(0)) throw new InvalidOperationException("TestSafety.CloudProjectAlreadyInUse");
+                leaseBackendPid = reader.GetInt32(1);
+            }
+            await VerifyLeaseSessionAsync(leaseConnection);
             await using var command = new NpgsqlCommand("""
+                DROP SCHEMA IF EXISTS identity_access CASCADE;
+                DROP SCHEMA IF EXISTS test_support CASCADE;
                 CREATE SCHEMA test_support;
+                REVOKE ALL ON SCHEMA test_support FROM PUBLIC, anon, authenticated, service_role;
                 CREATE TABLE test_support.run_ownership (lease uuid NOT NULL);
                 CREATE TABLE test_support.sentinel (value integer NOT NULL);
                 INSERT INTO test_support.run_ownership VALUES (@lease);
-                """, connection);
+                """, leaseConnection);
             command.Parameters.AddWithValue("lease", lease);
             await command.ExecuteNonQueryAsync();
-            await using var role = new NpgsqlCommand(
-                $"CREATE ROLE educenteros_runtime_probe LOGIN PASSWORD '{runtimePassword}'; GRANT CONNECT ON DATABASE \"{DatabaseName}\" TO educenteros_runtime_probe;", connection);
-            await role.ExecuteNonQueryAsync();
         }
-        catch (Exception originalFailure)
+        catch
         {
-            try
-            {
-                await container.DisposeAsync();
-            }
-            catch (Exception cleanupFailure)
-            {
-                throw new AggregateException("TestInfrastructure.ProvisioningAndCleanupFailed", originalFailure, cleanupFailure);
-            }
+            await ReleaseLeaseAsync();
             throw;
         }
     }
@@ -132,24 +126,49 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
     {
         var target = new NpgsqlConnectionStringBuilder(connection.ConnectionString);
         var expected = new NpgsqlConnectionStringBuilder(AdminConnectionString);
-        if (ownedContainerId is null || container.Id != ownedContainerId || target.Host != expected.Host
-            || target.Port != expected.Port || target.Database != DatabaseName || target.Username != expected.Username
-            || !DatabaseName.EndsWith("_tests", StringComparison.Ordinal))
+        if (target.Host != expected.Host || target.Port != expected.Port || target.Database != DatabaseName
+            || target.Username != expected.Username || target.SslMode != SslMode.VerifyFull)
             throw new InvalidOperationException("TestSafety.TargetNotOwned");
-
-        await using var command = new NpgsqlCommand("SELECT current_database(), current_user, current_setting('server_version_num')::integer", connection);
+        await using var command = new NpgsqlCommand("""
+            SELECT current_database(), current_user, current_setting('server_version_num')::integer,
+                (SELECT rolsuper OR rolcreatedb OR rolcreaterole OR rolbypassrls FROM pg_roles WHERE rolname=current_user),
+                (SELECT count(*) FROM educenteros_test_control.target WHERE project_reference=@project AND environment='Testing'),
+                (SELECT count(*) FROM educenteros_test_control.target)
+            """, connection);
+        command.Parameters.AddWithValue("project", Target.ProjectReference);
         await using var reader = await command.ExecuteReaderAsync();
-        if (!await reader.ReadAsync() || reader.GetString(0) != DatabaseName || reader.GetString(1) != expected.Username || reader.GetInt32(2) / 10000 != 18)
+        if (!await reader.ReadAsync() || reader.GetString(0) != DatabaseName || reader.GetString(1) != Target.Role("owner")
+            || reader.GetInt32(2) / 10000 != Target.ServerMajor || reader.GetBoolean(3) || reader.GetInt64(4) != 1 || reader.GetInt64(5) != 1)
             throw new InvalidOperationException("TestSafety.ActualIdentityMismatch");
+    }
+
+    private async Task VerifyLeaseSessionAsync(NpgsqlConnection connection)
+    {
+        if (leaseConnection?.State != System.Data.ConnectionState.Open || leaseBackendPid == 0)
+            throw new InvalidOperationException("TestSafety.LeaseSessionLost");
+        await using var command = new NpgsqlCommand("""
+            SELECT EXISTS(SELECT FROM pg_locks WHERE locktype='advisory' AND pid=@pid AND granted
+                AND classid=(@key >> 32)::oid AND objid=(@key & 4294967295)::oid AND objsubid=1)
+            """, connection);
+        command.Parameters.AddWithValue("pid", leaseBackendPid); command.Parameters.AddWithValue("key", LeaseLock);
+        if (await command.ExecuteScalarAsync() is not true) throw new InvalidOperationException("TestSafety.LeaseSessionLost");
     }
 
     public async Task EnsureOwnedAsync(NpgsqlConnection connection)
     {
         await VerifyIdentityAsync(connection);
+        await VerifyLeaseSessionAsync(connection);
         await using var command = new NpgsqlCommand("SELECT lease FROM test_support.run_ownership", connection);
-        var actual = await command.ExecuteScalarAsync();
-        if (actual is not Guid marker || marker != lease)
+        if (await command.ExecuteScalarAsync() is not Guid marker || marker != lease)
             throw new InvalidOperationException("TestSafety.LeaseMismatch");
+    }
+
+    internal async Task ResetMigrationSchemaAsync()
+    {
+        await using var connection = new NpgsqlConnection(AdminConnectionString); await connection.OpenAsync();
+        await EnsureOwnedAsync(connection);
+        await using var command = new NpgsqlCommand("DROP SCHEMA IF EXISTS identity_access CASCADE", connection);
+        await command.ExecuteNonQueryAsync();
     }
 
     public async Task ResetSentinelAsync(NpgsqlConnection connection)
@@ -188,15 +207,32 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
         await command.ExecuteNonQueryAsync();
     }
 
-    public Task PauseAsync() => container.PauseAsync();
-    public Task UnpauseAsync() => container.UnpauseAsync();
-
     public async ValueTask DisposeAsync()
     {
-        if (ownedContainerId is not null && container.Id != ownedContainerId)
-            throw new InvalidOperationException("TestSafety.ContainerIdentityMismatch");
-        // Docker disposal targets this fixture-owned ID; no shared-server SQL cleanup.
-        await container.DisposeAsync();
+        if (leaseConnection is null) return;
+        try
+        {
+            await EnsureOwnedAsync(leaseConnection);
+            await using var command = new NpgsqlCommand("DROP SCHEMA IF EXISTS identity_access CASCADE; DROP SCHEMA test_support CASCADE", leaseConnection);
+            await command.ExecuteNonQueryAsync();
+        }
+        finally { await ReleaseLeaseAsync(); }
+    }
+
+    private async Task ReleaseLeaseAsync()
+    {
+        if (leaseConnection is null) return;
+        try
+        {
+            // Explicit release is needed even when a session pooler keeps its backend connection.
+            if (leaseBackendPid != 0 && leaseConnection.State == System.Data.ConnectionState.Open)
+            {
+                await using var release = new NpgsqlCommand("SELECT pg_advisory_unlock(@key)", leaseConnection);
+                release.Parameters.AddWithValue("key", LeaseLock);
+                await release.ExecuteScalarAsync();
+            }
+        }
+        finally { await leaseConnection.DisposeAsync(); leaseConnection = null; leaseBackendPid = 0; }
     }
 
     internal static string FindRoot()

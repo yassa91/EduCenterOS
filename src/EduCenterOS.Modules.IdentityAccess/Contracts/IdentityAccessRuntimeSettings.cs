@@ -17,16 +17,11 @@ public sealed class IdentityAccessRuntimeSettings
     internal string? MailboxDirectory { get; private init; }
 
     public static IdentityAccessRuntimeSettings FromSnapshot(string connectionString, IReadOnlyDictionary<string, string> otpKeys,
-        string currentVersion, string partitionKey, string policyJson, string environment, string? mailboxDirectory)
+        string currentVersion, string partitionKey, string policyJson, SupabaseDatabaseTarget target, string environment, string? mailboxDirectory)
     {
         try
         {
-            var connection = new NpgsqlConnectionStringBuilder(connectionString);
-            if (connection.Host is not ("127.0.0.1" or "localhost") || connection.Port is < 1 or > 65535
-                || connection.Username != "educenteros_identity_runtime" || string.IsNullOrEmpty(connection.Password)
-                || connection.IncludeErrorDetail || (environment == "Development" && connection.Database != "educenteros_dev")
-                || (environment == "Testing" && !(connection.Database?.EndsWith("_tests", StringComparison.Ordinal) ?? false))
-                || environment is not ("Development" or "Testing")) throw new InvalidOperationException();
+            var connection = target.Validate(connectionString, environment, "runtime");
             if (otpKeys.Count is < 1 or > 4 || !otpKeys.ContainsKey(currentVersion)
                 || otpKeys.Keys.Select(key => key.ToUpperInvariant()).Distinct().Count() != otpKeys.Count) throw new InvalidOperationException();
             var material = otpKeys.ToDictionary(pair => pair.Key, pair => DecodeKey(pair.Value), StringComparer.Ordinal);

@@ -1,5 +1,7 @@
 # T38 - CI & Verification
 
+> **2026-10-03 — Cloud test override:** [T41](T41%20-%20Supabase%20Development%20%26%20Testing.md) removes Docker/Testcontainers acquisition and supplies only restricted Testing-project credentials to the integration step. Infisical remains authoritative; CI uses a derived test-only GitHub secret. Earlier synthetic/container provisioning contracts below are historical where they conflict.
+
 ## القرار وحالته
 
 ```text
