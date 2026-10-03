@@ -1,6 +1,6 @@
 # T41 — Supabase Development & Testing
 
-Owner-authorized on 2026-10-03. DB01 implementation/remote acceptance in progress.
+Owner-authorized on 2026-10-03. Delivery and remote verification are recorded in [DB01](../changes/DB01.md) and [PR #15](https://github.com/yassa91/EduCenterOS/pull/15).
 This replaces T37's local PostgreSQL, Docker and Testcontainers provisioning contracts for active development and tests.
 Historical S01/S02 acceptance describes the system at those dates.
 
@@ -92,7 +92,8 @@ Active code has no Compose startup, PostgreSQL container, Testcontainers or Dock
 After remote migrations, health, registration flow, all suites and CI pass, stop only the owned
 `educenteros-dev` local service. Preserve the old volume as rollback until the owner requests its deletion.
 The API and protected Development OTP mailbox continue running locally; database storage is cloud.
-The separate uncommitted macOS launcher must also be updated before using it for cloud startup.
+The workstation's separate uncommitted macOS launcher was adapted to Supabase startup,
+with its existing Swagger/UI changes preserved outside this database PR.
 
 ## Primary references
 

@@ -17,4 +17,8 @@ Review scope: cloud connection policy, bootstrap/migrations, cloud test cleanup,
 
 Evidence: initial full cloud gate 102/92/5 with zero failed/skipped; Python guards 11.
 Native Supabase flow returned 200/200/201 and SQL-confirmed persistence; OTP removed on verify.
-A later provenance clarification changed Testing source to CloudTestFixture; final PR-head CI must cover it.
+Testing provenance is CloudTestFixture. Review additionally added explicit advisory-lock release
+before returning a pooled backend, competing-fixture exclusion and immutable project-marker tests.
+All six focused cloud safety checks passed. Exact final-head full CI evidence is recorded in
+[PR #15](https://github.com/yassa91/EduCenterOS/pull/15). The integrated workstation passed Unit,
+Architecture and launcher checks, and Swagger/readiness returned 200 after local DB retirement.

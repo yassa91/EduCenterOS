@@ -117,8 +117,7 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
         }
         catch
         {
-            if (leaseConnection is not null) await leaseConnection.DisposeAsync();
-            leaseConnection = null;
+            await ReleaseLeaseAsync();
             throw;
         }
     }
@@ -217,7 +216,23 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
             await using var command = new NpgsqlCommand("DROP SCHEMA IF EXISTS identity_access CASCADE; DROP SCHEMA test_support CASCADE", leaseConnection);
             await command.ExecuteNonQueryAsync();
         }
-        finally { await leaseConnection.DisposeAsync(); leaseConnection = null; }
+        finally { await ReleaseLeaseAsync(); }
+    }
+
+    private async Task ReleaseLeaseAsync()
+    {
+        if (leaseConnection is null) return;
+        try
+        {
+            // Explicit release is needed even when a session pooler keeps its backend connection.
+            if (leaseBackendPid != 0 && leaseConnection.State == System.Data.ConnectionState.Open)
+            {
+                await using var release = new NpgsqlCommand("SELECT pg_advisory_unlock(@key)", leaseConnection);
+                release.Parameters.AddWithValue("key", LeaseLock);
+                await release.ExecuteScalarAsync();
+            }
+        }
+        finally { await leaseConnection.DisposeAsync(); leaseConnection = null; leaseBackendPid = 0; }
     }
 
     internal static string FindRoot()
