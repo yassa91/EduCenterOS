@@ -24,14 +24,14 @@ internal sealed class RuntimeSnapshot
             using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 8 });
             RejectDuplicateProperties(document.RootElement);
             var root = document.RootElement;
-            RequireKeys(root, ["schemaVersion", "environment", "source", "secrets", "securityPolicy", "developmentMailboxDirectory"]);
-            if (root.GetProperty("schemaVersion").GetInt32() != 2 || root.GetProperty("environment").GetString() != environment)
+            RequireKeys(root, ["schemaVersion", "environment", "source", "secrets", "securityPolicy", "developmentMailboxDirectory", "databaseTarget"]);
+            if (root.GetProperty("schemaVersion").GetInt32() != 3 || root.GetProperty("environment").GetString() != environment)
                 throw new InvalidOperationException();
 
             var expectedSource = environment switch
             {
                 "Development" => "Infisical",
-                "Testing" => "Synthetic",
+                "Testing" => "CloudTestFixture",
                 _ => throw new InvalidOperationException()
             };
             if (root.GetProperty("source").GetString() != expectedSource)
@@ -43,13 +43,11 @@ internal sealed class RuntimeSnapshot
             if (otpKeys.Length is < 1 or > 4) throw new InvalidOperationException();
             RequireKeys(secrets, ["ConnectionStrings__RuntimeProbeDatabase", "ConnectionStrings__IdentityAccessDatabase",
                 "IdentityAccess__Otp__CurrentHashKeyVersion", "Platform__RateLimiting__PartitionDigestKey", .. otpKeys]);
-            var value = secrets.GetProperty("ConnectionStrings__RuntimeProbeDatabase").GetString();
-            var connection = new NpgsqlConnectionStringBuilder(value);
-            if (connection.Host is not ("127.0.0.1" or "localhost") || connection.Port is < 1 or > 65535
-                || connection.Username != "educenteros_runtime_probe" || string.IsNullOrEmpty(connection.Password)
-                || (environment == "Development" && connection.Database != "educenteros_dev")
-                || (environment == "Testing" && !(connection.Database?.EndsWith("_tests", StringComparison.Ordinal) ?? false)))
-                throw new InvalidOperationException();
+            var targetJson = root.GetProperty("databaseTarget");
+            RequireKeys(targetJson, ["projectReference", "host", "environment", "serverMajor"]);
+            var target = JsonSerializer.Deserialize<SupabaseDatabaseTarget>(targetJson.GetRawText(),
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }) ?? throw new InvalidOperationException();
+            var connection = target.Validate(secrets.GetProperty("ConnectionStrings__RuntimeProbeDatabase").GetString()!, environment, "probe");
 
             var moduleConnection = new NpgsqlConnectionStringBuilder(secrets.GetProperty("ConnectionStrings__IdentityAccessDatabase").GetString());
             if (moduleConnection.Host != connection.Host || moduleConnection.Port != connection.Port || moduleConnection.Database != connection.Database)
@@ -58,7 +56,7 @@ internal sealed class RuntimeSnapshot
                 otpKeys.ToDictionary(key => key["IdentityAccess__Otp__HashKeys__".Length..], key => secrets.GetProperty(key).GetString()!),
                 secrets.GetProperty("IdentityAccess__Otp__CurrentHashKeyVersion").GetString()!,
                 secrets.GetProperty("Platform__RateLimiting__PartitionDigestKey").GetString()!, root.GetProperty("securityPolicy").GetRawText(),
-                environment, root.GetProperty("developmentMailboxDirectory").ValueKind == JsonValueKind.Null ? null : root.GetProperty("developmentMailboxDirectory").GetString());
+                target, environment, root.GetProperty("developmentMailboxDirectory").ValueKind == JsonValueKind.Null ? null : root.GetProperty("developmentMailboxDirectory").GetString());
             return new RuntimeSnapshot(connection.ConnectionString, identityAccess);
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException or ArgumentException or FormatException or OverflowException)

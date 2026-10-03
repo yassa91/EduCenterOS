@@ -21,7 +21,7 @@ public sealed class DatabaseSafetyTests(OwnedPostgresFixture database) : IClassF
     public async Task Reset_NonOwnedDatabaseIsRejectedBeforeChangingOwnedRows()
     {
         Assert.Equal(1, await database.SetSentinelAndCountAsync());
-        var target = new NpgsqlConnectionStringBuilder(database.AdminConnectionString) { Database = "postgres" };
+        var target = new NpgsqlConnectionStringBuilder(database.AdminConnectionString) { Username = new NpgsqlConnectionStringBuilder(database.RuntimeConnectionString).Username, Password = new NpgsqlConnectionStringBuilder(database.RuntimeConnectionString).Password };
         await using var connection = new NpgsqlConnection(target.ConnectionString);
         await connection.OpenAsync(TestContext.Current.CancellationToken);
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => database.ResetSentinelAsync(connection));

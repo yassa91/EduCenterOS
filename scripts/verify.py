@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Release gate without runtime secrets; publish only an allowlisted result projection."""
+"""Release gate: isolated cloud integration tests and allowlisted result evidence."""
 import json
 import os
 from pathlib import Path
@@ -47,11 +47,8 @@ def main():
     safe = run / "safe"
     safe.mkdir(mode=0o700)
     env = {key: os.environ[key] for key in ("PATH", "HOME", "USER", "TMPDIR", "DOTNET_ROOT") if key in os.environ}
-    manifest = json.loads((ROOT / "infra/runtime.json").read_text())
     env.update(DOTNET_ENVIRONMENT="Testing", ASPNETCORE_ENVIRONMENT="Testing",
-               DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1",
-               TESTCONTAINERS_RYUK_CONTAINER_IMAGE=manifest["resourceReaperImage"],
-               TESTCONTAINERS_RYUK_DISABLED="false", TESTCONTAINERS_WAIT_STRATEGY_TIMEOUT="00:01:00")
+               DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1")
 
     def command(args, filename, timeout):
         # Child output stays private: even a failing test must not dump arbitrary inputs into CI logs.
@@ -66,21 +63,35 @@ def main():
         ("report-guard", [sys.executable, "-m", "unittest", "discover", "-s", "tests/verification"], 30),
         ("restore", ["dotnet", "restore", "EduCenterOS.sln", "--locked-mode"], 300),
         ("build", ["dotnet", "build", "EduCenterOS.sln", "-c", "Release", "--no-restore"], 180),
-        ("docker", ["docker", "info", "--format", "{{.ServerVersion}}"], 30),
-        ("postgres-image", ["docker", "pull", manifest["postgresImage"]], 180),
-        ("reaper-image", ["docker", "pull", manifest["resourceReaperImage"]], 180),
     ):
         if not command(args, stage + ".log", timeout):
             print(f"Verification failed during {stage}. Private diagnostics: {run.relative_to(ROOT)}")
             return 1
         print(f"{stage}: passed", flush=True)
 
+    # A hosted CI runner receives only restricted test-project credentials from a GitHub secret.
+    # On a developer machine fetch the test scope from Infisical; never pass it to restore/build/unit tests.
+    snapshot = os.environ.get("EDUCENTEROS_TEST_DATABASE_SNAPSHOT")
+    if snapshot is None:
+        import dev
+        snapshot = dev.test_snapshot()
+    else:
+        if not snapshot or len(snapshot) > 16384: raise ValueError("Verification.InvalidCloudSnapshot")
+        document = json.loads(snapshot)
+        for key in ("owner", "probe", "runtime"):
+            connection = document[key]
+            certificate = ";Root Certificate=__EDUCENTEROS_SUPABASE_CA__"
+            if certificate not in connection: raise ValueError("Verification.CICertificateBindingMissing")
+            document[key] = connection.replace(certificate, ";Root Certificate=" + str(ROOT / "infra/supabase-ca.crt"))
+        snapshot = json.dumps(document)
     success = True
     for suite in SUITES:
+        if suite == "Integration": env["EDUCENTEROS_TEST_DATABASE_SNAPSHOT"] = snapshot
+        else: env.pop("EDUCENTEROS_TEST_DATABASE_SNAPSHOT", None)
         project = f"tests/EduCenterOS.{suite}Tests/EduCenterOS.{suite}Tests.csproj"
         destination = run / suite
         completed = command(["dotnet", "test", project, "-c", "Release", "--no-build", "--no-restore",
-                             "--logger", "trx;LogFileName=results.trx", "--results-directory", str(destination)], suite + ".log", 180)
+                             "--logger", "trx;LogFileName=results.trx", "--results-directory", str(destination)], suite + ".log", 600)
         try:
             report = safe_report(destination / "results.trx", suite)
         except (OSError, ET.ParseError, ValueError, KeyError):
@@ -98,6 +109,6 @@ def main():
 if __name__ == "__main__":
     try:
         sys.exit(main())
-    except (OSError, subprocess.TimeoutExpired, ValueError, KeyError):
+    except (OSError, subprocess.TimeoutExpired, ValueError, KeyError, RuntimeError):
         print("Verification prerequisite or execution failed; no automatic retry or skip.")
         sys.exit(1)
