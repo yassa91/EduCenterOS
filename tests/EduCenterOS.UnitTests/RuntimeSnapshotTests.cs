@@ -12,18 +12,19 @@ public sealed class RuntimeSnapshotTests
 
     private static JsonObject Snapshot(string environment = "Testing") => new()
     {
-        ["schemaVersion"] = 2,
+        ["schemaVersion"] = 3,
+        ["databaseTarget"] = new JsonObject { ["projectReference"] = "abcdefghijklmnopqrst", ["host"] = "db.abcdefghijklmnopqrst.supabase.co", ["environment"] = environment, ["serverMajor"] = 17 },
         ["securityPolicy"] = System.Text.Json.JsonSerializer.SerializeToNode(new EduCenterOS.Modules.IdentityAccess.Infrastructure.Configuration.RegistrationSecurityOptions(), new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }),
         ["developmentMailboxDirectory"] = environment == "Development" ? Path.Combine(Root(), ".local/otp") : null,
         ["environment"] = environment,
-        ["source"] = environment == "Testing" ? "Synthetic" : "Infisical",
+        ["source"] = environment == "Testing" ? "CloudTestFixture" : "Infisical",
         ["secrets"] = new JsonObject
         {
-            ["ConnectionStrings__IdentityAccessDatabase"] = $"Host=127.0.0.1;Port=55432;Database={(environment == "Testing" ? "owned_tests" : "educenteros_dev")};Username=educenteros_identity_runtime;Password={Marker}",
+            ["ConnectionStrings__IdentityAccessDatabase"] = $"Host=db.abcdefghijklmnopqrst.supabase.co;Port=5432;Database=postgres;Username=educenteros_{(environment == "Testing" ? "test" : "dev")}_runtime;Password={Marker};SSL Mode=VerifyFull",
             ["IdentityAccess__Otp__HashKeys__v1"] = Convert.ToBase64String(new byte[32]),
             ["IdentityAccess__Otp__CurrentHashKeyVersion"] = "v1",
             ["Platform__RateLimiting__PartitionDigestKey"] = Convert.ToBase64String(Enumerable.Repeat((byte)1,32).ToArray()),
-            [SecretKey] = $"Host=127.0.0.1;Port=55432;Database={(environment == "Testing" ? "owned_tests" : "educenteros_dev")};Username=educenteros_runtime_probe;Password={Marker}"
+            [SecretKey] = $"Host=db.abcdefghijklmnopqrst.supabase.co;Port=5432;Database=postgres;Username=educenteros_{(environment == "Testing" ? "test" : "dev")}_probe;Password={Marker};SSL Mode=VerifyFull"
         }
     };
 
@@ -34,7 +35,7 @@ public sealed class RuntimeSnapshotTests
     {
         var parsed = RuntimeSnapshot.Parse(Snapshot(environment).ToJsonString(), environment);
         var connection = new NpgsqlConnectionStringBuilder(parsed.ConnectionString);
-        Assert.Equal("educenteros_runtime_probe", connection.Username);
+        Assert.Equal("educenteros_" + (environment == "Testing" ? "test" : "dev") + "_probe", connection.Username);
         Assert.True(connection.Password == Marker, "The credential must be preserved without displaying it.");
     }
 
@@ -87,7 +88,7 @@ public sealed class RuntimeSnapshotTests
 
     [Fact]
     public void Parse_DuplicateCaseVariantProperty_Rejects()
-        => AssertSafeRejection(Snapshot().ToJsonString().Replace("\"schemaVersion\":2", "\"schemaVersion\":2,\"SchemaVersion\":2", StringComparison.Ordinal));
+        => AssertSafeRejection(Snapshot().ToJsonString().Replace("\"schemaVersion\":3", "\"schemaVersion\":3,\"SchemaVersion\":3", StringComparison.Ordinal));
 
     [Fact]
     public void Parse_OversizedSnapshot_Rejects() => AssertSafeRejection(new string('x', 16385));

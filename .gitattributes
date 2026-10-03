@@ -7,3 +7,5 @@
 *.csproj text eol=lf
 *.props text eol=lf
 *.sln text eol=lf
+
+infra/supabase-ca.crt -text

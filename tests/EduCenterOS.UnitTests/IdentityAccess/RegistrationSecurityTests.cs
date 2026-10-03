@@ -11,9 +11,9 @@ public sealed class RegistrationSecurityTests
 {
     private static string Policy => System.Text.Json.JsonSerializer.Serialize(new RegistrationSecurityOptions(), new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
     private static IdentityAccessRuntimeSettings Settings(string? policy = null, Dictionary<string,string>? keys = null, string version = "v1", string? partition = null)
-        => IdentityAccessRuntimeSettings.FromSnapshot("Host=127.0.0.1;Database=security_tests;Username=educenteros_identity_runtime;Password=synthetic",
+        => IdentityAccessRuntimeSettings.FromSnapshot("Host=db.abcdefghijklmnopqrst.supabase.co;Database=postgres;Username=educenteros_test_runtime;Password=synthetic;SSL Mode=VerifyFull",
             keys ?? new() { ["v1"] = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)) }, version,
-            partition ?? Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)), policy ?? Policy, "Testing", null);
+            partition ?? Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)), policy ?? Policy, new SupabaseDatabaseTarget { ProjectReference="abcdefghijklmnopqrst", Host="db.abcdefghijklmnopqrst.supabase.co", Environment="Testing", ServerMajor=17 }, "Testing", null);
     [Theory]
     [InlineData("codeLifetimeSeconds")] [InlineData("proofLifetimeSeconds")] [InlineData("maximumFailedAttempts")]
     [InlineData("minimumResendSeconds")] [InlineData("rollingWindowSeconds")] [InlineData("targetIssuePermits")]

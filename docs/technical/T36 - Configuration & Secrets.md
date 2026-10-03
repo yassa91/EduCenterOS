@@ -1,5 +1,7 @@
 # T36 - Configuration & Secrets
 
+> **2026-10-03 — Current development/testing override:** [T41 — Supabase Development & Testing](T41%20-%20Supabase%20Development%20%26%20Testing.md) replaces local PostgreSQL/Docker/Testcontainers provisioning and the synthetic-only infrastructure credential rule. The owner requested two cloud projects and an empty development database. The following earlier decision/evidence remains historical where it conflicts with T41. Remote compatibility verification is required before DB01 is complete.
+
 ## الهدف وحالة القرار
 
 تثبيت عقد تحميل الإعدادات وإدارة الأسرار والمفاتيح في EduCenterOS، بحيث يكون مرجعًا للتنفيذ ولقرارات T37–T39، مع إبقاء Infisical خارج الـBusiness Modules.
