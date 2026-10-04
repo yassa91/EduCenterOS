@@ -28,6 +28,7 @@ internal sealed class AuthenticationAccountLockProbe : DbCommandInterceptor
 {
     internal bool Enabled { get; set; } = true;
     private int arrivals;
+    internal TaskCompletionSource<int> FirstBackendPid { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal TaskCompletionSource<int> SecondBackendPid { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal ConcurrentBag<Guid> Contexts { get; } = new();
 
@@ -43,7 +44,10 @@ internal sealed class AuthenticationAccountLockProbe : DbCommandInterceptor
             await using var pid = new NpgsqlCommand("SELECT pg_backend_pid()", (NpgsqlConnection)command.Connection!, (NpgsqlTransaction?)command.Transaction);
             var backend = (int)(await pid.ExecuteScalarAsync(cancellationToken))!;
 
-            if (Interlocked.Increment(ref arrivals) == 2) SecondBackendPid.TrySetResult(backend);
+            var arrival = Interlocked.Increment(ref arrivals);
+
+            if (arrival == 1) FirstBackendPid.TrySetResult(backend);
+            if (arrival == 2) SecondBackendPid.TrySetResult(backend);
         }
 
         return result;

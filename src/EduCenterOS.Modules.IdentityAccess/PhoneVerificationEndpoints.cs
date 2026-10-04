@@ -16,6 +16,10 @@ public static partial class ModuleRegistration
         Features.RegisterAccount.Endpoint.Map(routes, errorResult, transportError);
         Features.Login.Endpoint.Map(routes, errorResult, transportError);
         Features.Refresh.Endpoint.Map(routes, errorResult, transportError);
+        Features.ListSessions.Endpoint.Map(routes, errorResult, transportError);
+        Features.RevokeSession.Endpoint.Map(routes, errorResult, transportError);
+        Features.Logout.Endpoint.Map(routes, errorResult, transportError);
+        Features.LogoutAll.Endpoint.Map(routes, errorResult, transportError);
         Features.GetCurrentAccount.Endpoint.Map(routes, errorResult, transportError);
     }
 }
