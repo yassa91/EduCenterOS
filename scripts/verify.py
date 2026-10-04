@@ -92,8 +92,11 @@ def main():
         else: env.pop("EDUCENTEROS_TEST_DATABASE_SNAPSHOT", None)
         project = f"tests/EduCenterOS.{suite}Tests/EduCenterOS.{suite}Tests.csproj"
         destination = run / suite
+        # Real cloud integration coverage exceeded the former ten-minute bound in S03.
+        # Preserve the complete mandatory suite and a finite execution deadline.
+        suite_timeout = 1200 if suite == "Integration" else 600
         completed = command(["dotnet", "test", project, "-c", "Release", "--no-build", "--no-restore",
-                             "--logger", "trx;LogFileName=results.trx", "--results-directory", str(destination)], suite + ".log", 600)
+                             "--logger", "trx;LogFileName=results.trx", "--results-directory", str(destination)], suite + ".log", suite_timeout)
         try:
             report = safe_report(destination / "results.trx", suite)
         except (OSError, ET.ParseError, ValueError, KeyError):
