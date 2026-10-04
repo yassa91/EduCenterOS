@@ -46,6 +46,10 @@ public static partial class ModuleRegistration
         services.AddScoped<AuthenticationTransactions>();
         services.AddScoped<Features.Login.LoginHandler>();
         services.AddScoped<Features.Refresh.RefreshHandler>();
+        services.AddScoped<Features.ListSessions.ListSessionsHandler>();
+        services.AddScoped<Features.RevokeSession.RevokeSessionHandler>();
+        services.AddScoped<Features.Logout.LogoutHandler>();
+        services.AddScoped<Features.LogoutAll.LogoutAllHandler>();
         services.AddSingleton<LoginDummyPassword>();
         services.AddHostedService<AuthenticationBudgetCleanup>();
         services.AddScoped<RequestPhoneVerificationHandler>();

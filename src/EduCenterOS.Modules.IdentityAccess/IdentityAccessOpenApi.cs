@@ -1,5 +1,9 @@
 using System.Text.Json.Nodes;
 using EduCenterOS.Modules.IdentityAccess.Features.Login;
+using EduCenterOS.Modules.IdentityAccess.Features.ListSessions;
+using EduCenterOS.Modules.IdentityAccess.Features.Logout;
+using EduCenterOS.Modules.IdentityAccess.Features.LogoutAll;
+using EduCenterOS.Modules.IdentityAccess.Features.RevokeSession;
 using EduCenterOS.Modules.IdentityAccess.Features.Refresh;
 using EduCenterOS.Modules.IdentityAccess.Contracts;
 using EduCenterOS.Modules.IdentityAccess.Features.RegisterAccount;
@@ -45,7 +49,19 @@ public static partial class ModuleRegistration
                 Utf16Bounds(password, 1, 128);
                 schema.Properties!["password"] = password;
             }
-            else if (type == typeof(RefreshRequest)) Strict(schema);
+            else if (
+                type == typeof(RefreshRequest) ||
+                type == typeof(LogoutRequest) ||
+                type == typeof(LogoutAllRequest) ||
+                type == typeof(RevokeSessionRequest)
+            ) Strict(schema);
+            else if (type == typeof(SessionPagination))
+            {
+                schema.Properties!["type"] = Text(4, 4, "Page-based pagination.", "^page$");
+                schema.Properties!["page"] = new OpenApiSchema { Type = JsonSchemaType.Integer, Minimum = "1", Maximum = "2147483647" };
+                schema.Properties!["pageSize"] = new OpenApiSchema { Type = JsonSchemaType.Integer, Minimum = "1", Maximum = "100" };
+                schema.Description = "Defaults page=1/pageSize=20; owner-filtered count and bounded page are separate read snapshots and may drift during concurrent session changes.";
+            }
             else if (type == typeof(AccessResponse))
             {
                 schema.Properties!["accessToken"].Description = "Short-lived access JWT; browser memory only; never persist or log.";
@@ -125,6 +141,36 @@ public static partial class ModuleRegistration
                 });
             }
 
+            if (context.Description.RelativePath?.Contains("{sessionId}", StringComparison.Ordinal) == true)
+            {
+                operation.Parameters ??= [];
+                operation.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "sessionId",
+                    In = ParameterLocation.Path,
+                    Required = true,
+                    Description = "Nonempty lowercase canonical UUID of an owned session; missing and foreign targets share 404.",
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.String, Format = "uuid", Pattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" }
+                });
+            }
+
+            if (context.Description.RelativePath == "api/v1/auth/sessions")
+            {
+                operation.Parameters ??= [];
+                operation.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "page", In = ParameterLocation.Query,
+                    Description = "Single positive ASCII integer; default 1. Unknown/duplicate query fields are rejected.",
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.Integer, Minimum = "1", Maximum = "2147483647", Default = JsonValue.Create(1) }
+                });
+                operation.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "pageSize", In = ParameterLocation.Query,
+                    Description = "Single ASCII integer 1–100; default 20. History includes expired and revoked sessions; createdAtUtc/id descending.",
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.Integer, Minimum = "1", Maximum = "100", Default = JsonValue.Create(20) }
+                });
+            }
+
             if (operation.RequestBody is OpenApiRequestBody body) body.Required = true;
 
             foreach (var response in operation.Responses!.Values.OfType<OpenApiResponse>())
@@ -136,6 +182,13 @@ public static partial class ModuleRegistration
 
             if (metadata.BrowserProtected && operation.Responses.TryGetValue("200", out var success) && success is OpenApiResponse cookieResponse)
                 cookieResponse.Headers!["Set-Cookie"] = new OpenApiHeader { Description = "Secure HttpOnly SameSite=Strict refresh cookie; Path=/api/v1/auth; no Domain. Never returned in JSON.", Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
+
+            if (
+                metadata.BrowserProtected &&
+                operation.Responses.TryGetValue("204", out var noContent) &&
+                noContent is OpenApiResponse deletionResponse
+            )
+                deletionResponse.Headers!["Set-Cookie"] = new OpenApiHeader { Description = "Matching refresh-cookie deletion after confirmed success; target revoke clears only an identifiable cookie belonging to the target session.", Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
 
             if (operation.Responses.TryGetValue("401", out var unauthorized) && unauthorized is OpenApiResponse unauthorizedResponse)
                 unauthorizedResponse.Headers!["WWW-Authenticate"] = new OpenApiHeader { Description = "Bearer challenge without account details.", Schema = new OpenApiSchema { Type = JsonSchemaType.String, Pattern = "^Bearer$" } };
