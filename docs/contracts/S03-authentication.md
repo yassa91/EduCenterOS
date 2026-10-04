@@ -104,7 +104,7 @@ Framework-backed JWT issuance/validation: Microsoft.AspNetCore.Authentication.Jw
 
 MapInboundClaims=false, SaveToken=false, IncludeErrorDetails=false. Require signature, expiration, matching issuer/audience; no remote authority/discovery. Server validates Active account, session ownership/non-revocation/deadlines and JWT.sv==Session.SecurityVersionAtAuthentication==Account.SecurityVersion every protected request. No authentication-state caching. DB failure propagates as safe infrastructure failure, not authenticated access or invented bad-password result.
 
-Access expiration is bounded by min(now+600s, session idle, session absolute). JWT expiry uses seconds with explicit skew; server session deadlines use inclusive now>=deadline with no skew extension. GET requests never slide session lifetime; successful Refresh alone updates LastSeen/idle, clipped to absolute lifetime.
+Access expiration is bounded by min(now+600s, session idle, session absolute). JWT expiry uses seconds with explicit skew; server session deadlines use inclusive now>=deadline with no skew extension. GET requests never slide session lifetime; successful Refresh alone updates LastSeen/idle, clipped to absolute lifetime. Refresh rejects before consumption when the absolute deadline cannot support a positive whole-second cookie Max-Age; no zero-lifetime access/cookie grant is committed.
 
 ## Atomic state and races
 

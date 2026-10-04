@@ -26,13 +26,18 @@ internal sealed class AuthenticationAccountCommitGate : DbTransactionInterceptor
 
 internal sealed class AuthenticationAccountLockProbe : DbCommandInterceptor
 {
+    internal bool Enabled { get; set; } = true;
     private int arrivals;
     internal TaskCompletionSource<int> SecondBackendPid { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal ConcurrentBag<Guid> Contexts { get; } = new();
 
     public override async ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
     {
-        if (command.CommandText.Contains("identity_access.user_accounts", StringComparison.Ordinal) && command.CommandText.Contains("FOR UPDATE", StringComparison.Ordinal))
+        if (
+            Enabled &&
+            command.CommandText.Contains("identity_access.user_accounts", StringComparison.Ordinal) &&
+            command.CommandText.Contains("FOR UPDATE", StringComparison.Ordinal)
+        )
         {
             Contexts.Add(eventData.Context!.ContextId.InstanceId);
             await using var pid = new NpgsqlCommand("SELECT pg_backend_pid()", (NpgsqlConnection)command.Connection!, (NpgsqlTransaction?)command.Transaction);
