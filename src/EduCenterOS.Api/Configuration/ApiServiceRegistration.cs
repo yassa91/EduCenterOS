@@ -11,7 +11,11 @@ internal static class ApiServiceRegistration
         var environment = builder.Environment.EnvironmentName;
         var hostOptions = LocalHostOptions.BindSafely(builder.Configuration);
         builder.Services.AddOptions<LocalHostOptions>()
-            .Configure(options => options.Port = hostOptions.Port)
+            .Configure(options =>
+            {
+                options.Port = hostOptions.Port;
+                options.HttpsPort = hostOptions.HttpsPort;
+            })
             .Validate(options => options.Port is >= 1024 and <= 65535, "Platform:Host:Port must be between 1024 and 65535.")
             .ValidateOnStart();
         builder.Logging.ClearProviders();

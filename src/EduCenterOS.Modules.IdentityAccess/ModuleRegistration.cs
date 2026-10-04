@@ -31,6 +31,11 @@ public static partial class ModuleRegistration
 
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<RegistrationCryptography>();
+        services.AddSingleton<AuthenticationTokens>();
+        services.AddCors();
+        services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>().Configure<AuthenticationRuntimeSettings>((options, settings) =>
+            options.AddPolicy("AuthenticationBrowser", policy => policy.WithOrigins(settings.Policy.BrowserOrigin)
+                .WithMethods("GET", "POST").WithHeaders("Authorization", "Content-Type", "X-EduCenterOS-Auth").AllowCredentials()));
         services.AddDbContextFactory<IdentityAccessDbContext>((provider, options) =>
             options.UseNpgsql(provider.GetRequiredService<IdentityAccessRuntimeSettings>().ConnectionString,
                 postgres => postgres.MigrationsHistoryTable("__ef_migrations_history", "identity_access").CommandTimeout(5))
@@ -72,12 +77,14 @@ public static partial class ModuleRegistration
                 int? retry = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? Math.Max(1, (int)Math.Ceiling(wait.TotalSeconds)) : null;
                 await writeError(
                     context.HttpContext,
-                    new Error(
-                        "Infrastructure.RateLimitExceeded",
-                        ErrorCategory.RateLimited,
-                        "The request limit has been reached.",
-                        retry
-                    )
+                    context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<SecurityEndpointMetadata>()?.BrowserProtected == true
+                        ? AuthenticationErrors.Throttled(retry)
+                        : new Error(
+                            "Infrastructure.RateLimitExceeded",
+                            ErrorCategory.RateLimited,
+                            "The request limit has been reached.",
+                            retry
+                        )
                 );
             };
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, int>(context =>
@@ -87,6 +94,12 @@ public static partial class ModuleRegistration
             options.AddPolicy("AnonymousIngress", context => Partition(context, crypto, settings.Policy.AnonymousIpPermits, 60));
             options.AddPolicy("OtpIssue", context => Partition(context, crypto, settings.Policy.IssueIpPermits, 900));
             options.AddPolicy("OtpVerify", context => Partition(context, crypto, settings.Policy.VerifyIpPermits, 60));
+        });
+
+        services.AddOptions<RateLimiterOptions>().Configure<AuthenticationRuntimeSettings, RegistrationCryptography>((options, settings, crypto) =>
+        {
+            options.AddPolicy("AuthenticationSource", context => Partition(context, crypto, settings.Policy.SourcePermits, settings.Policy.SourceWindowSeconds));
+            options.AddPolicy("RefreshSource", context => Partition(context, crypto, settings.Policy.RefreshSourcePermits, settings.Policy.SourceWindowSeconds));
         });
 
         return services;

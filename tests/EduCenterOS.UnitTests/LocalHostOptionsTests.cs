@@ -23,6 +23,9 @@ public sealed class LocalHostOptionsTests
 
     [Theory]
     [InlineData("Port", "1023")]
+    [InlineData("HttpsPort", "1023")]
+    [InlineData("HttpsPort", "65536")]
+    [InlineData("HttpsPort", "5100")]
     [InlineData("Port", "65536")]
     [InlineData("Port", "diagnostic-sensitive-marker")]
     [InlineData("Unreviewed", "diagnostic-sensitive-marker")]

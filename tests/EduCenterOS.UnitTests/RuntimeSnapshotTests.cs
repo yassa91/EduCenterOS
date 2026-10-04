@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using System.Security.Cryptography;
 using EduCenterOS.Api.Runtime;
 using Npgsql;
 using Xunit;
@@ -10,12 +11,18 @@ public sealed class RuntimeSnapshotTests
     private const string SecretKey = "ConnectionStrings__RuntimeProbeDatabase";
     private const string Marker = "diagnostic-sensitive-marker";
 
+    private static readonly RSA SigningKey = RSA.Create(2048);
+
     private static JsonObject Snapshot(string environment = "Testing") => new()
     {
-        ["schemaVersion"] = 3,
+        ["schemaVersion"] = 4,
         ["databaseTarget"] = new JsonObject { ["projectReference"] = "abcdefghijklmnopqrst", ["host"] = "db.abcdefghijklmnopqrst.supabase.co", ["environment"] = environment, ["serverMajor"] = 17 },
         ["securityPolicy"] = System.Text.Json.JsonSerializer.SerializeToNode(
             new EduCenterOS.Modules.IdentityAccess.Infrastructure.Configuration.RegistrationSecurityOptions(),
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+        ),
+        ["authenticationPolicy"] = System.Text.Json.JsonSerializer.SerializeToNode(
+            new EduCenterOS.Modules.IdentityAccess.Infrastructure.Configuration.AuthenticationPolicy(),
             new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
         ),
         ["developmentMailboxDirectory"] = environment == "Development" ? Path.Combine(Root(), ".local/otp") : null,
@@ -24,6 +31,9 @@ public sealed class RuntimeSnapshotTests
         ["secrets"] = new JsonObject
         {
             ["ConnectionStrings__IdentityAccessDatabase"] = $"Host=db.abcdefghijklmnopqrst.supabase.co;Port=5432;Database=postgres;Username=educenteros_{(environment == "Testing" ? "test" : "dev")}_runtime;Password={Marker};SSL Mode=VerifyFull",
+            ["IdentityAccess__Jwt__PrivateKeyPem"] = SigningKey.ExportPkcs8PrivateKeyPem(),
+            ["IdentityAccess__Jwt__CurrentKeyId"] = "s03-test",
+            ["IdentityAccess__Jwt__ValidationPublicKeys__s03-test"] = SigningKey.ExportSubjectPublicKeyInfoPem(),
             ["IdentityAccess__Otp__HashKeys__v1"] = Convert.ToBase64String(new byte[32]),
             ["IdentityAccess__Otp__CurrentHashKeyVersion"] = "v1",
             ["Platform__RateLimiting__PartitionDigestKey"] = Convert.ToBase64String(Enumerable.Repeat((byte)1, 32).ToArray()),
@@ -46,6 +56,9 @@ public sealed class RuntimeSnapshotTests
     [InlineData("environment")]
     [InlineData("source")]
     [InlineData("schemaVersion")]
+    [InlineData("oldSchema")]
+    [InlineData("missingSigningKey")]
+    [InlineData("missingAuthPolicy")]
     [InlineData("extraRootKey")]
     [InlineData("extraSecret")]
     [InlineData("remoteHost")]
@@ -63,6 +76,9 @@ public sealed class RuntimeSnapshotTests
         {
             case "environment": value["environment"] = "Development"; break;
             case "source": value["source"] = "Infisical"; break;
+            case "oldSchema": value["schemaVersion"] = 3; break;
+            case "missingSigningKey": value["secrets"]!.AsObject().Remove("IdentityAccess__Jwt__PrivateKeyPem"); break;
+            case "missingAuthPolicy": value.Remove("authenticationPolicy"); break;
             case "schemaVersion": value["schemaVersion"] = 1; break;
             case "extraRootKey": value["unexpected"] = Marker; break;
             case "extraMigration": value["secrets"]!["ConnectionStrings__IdentityAccessMigrationDatabase"] = Marker; break;
@@ -91,10 +107,10 @@ public sealed class RuntimeSnapshotTests
 
     [Fact]
     public void Parse_DuplicateCaseVariantProperty_Rejects()
-        => AssertSafeRejection(Snapshot().ToJsonString().Replace("\"schemaVersion\":3", "\"schemaVersion\":3,\"SchemaVersion\":3", StringComparison.Ordinal));
+        => AssertSafeRejection(Snapshot().ToJsonString().Replace("\"schemaVersion\":4", "\"schemaVersion\":4,\"SchemaVersion\":4", StringComparison.Ordinal));
 
     [Fact]
-    public void Parse_OversizedSnapshot_Rejects() => AssertSafeRejection(new string('x', 16385));
+    public void Parse_OversizedSnapshot_Rejects() => AssertSafeRejection(new string('x', 65537));
 
     private static string Root()
     {

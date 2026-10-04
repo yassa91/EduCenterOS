@@ -7,29 +7,31 @@ namespace EduCenterOS.Api.Runtime;
 
 internal sealed class RuntimeSnapshot
 {
-    private RuntimeSnapshot(string connectionString, IdentityAccessRuntimeSettings identityAccess)
+    private RuntimeSnapshot(string connectionString, IdentityAccessRuntimeSettings identityAccess, AuthenticationRuntimeSettings authentication)
     {
         ConnectionString = connectionString;
         IdentityAccess = identityAccess;
+        Authentication = authentication;
     }
 
     internal IdentityAccessRuntimeSettings IdentityAccess { get; }
     internal string ConnectionString { get; }
+    internal AuthenticationRuntimeSettings Authentication { get; }
 
     internal static RuntimeSnapshot Parse(string? json, string environment)
     {
         try
         {
-            if (string.IsNullOrEmpty(json) || Encoding.UTF8.GetByteCount(json) > 16384)
+            if (string.IsNullOrEmpty(json) || Encoding.UTF8.GetByteCount(json) > 65536)
                 throw new InvalidOperationException();
 
             using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 8 });
             RejectDuplicateProperties(document.RootElement);
             var root = document.RootElement;
-            RequireKeys(root, ["schemaVersion", "environment", "source", "secrets", "securityPolicy", "developmentMailboxDirectory", "databaseTarget"]);
+            RequireKeys(root, ["schemaVersion", "environment", "source", "secrets", "securityPolicy", "authenticationPolicy", "developmentMailboxDirectory", "databaseTarget"]);
 
             if (
-                root.GetProperty("schemaVersion").GetInt32() != 3 ||
+                root.GetProperty("schemaVersion").GetInt32() != 4 ||
                 root.GetProperty("environment").GetString() != environment
             )
                 throw new InvalidOperationException();
@@ -48,12 +50,15 @@ internal sealed class RuntimeSnapshot
             var keyNames = secrets.EnumerateObject().Select(property => property.Name).ToArray();
             var otpKeys = keyNames.Where(key => key.StartsWith("IdentityAccess__Otp__HashKeys__", StringComparison.Ordinal)).ToArray();
 
-            if (otpKeys.Length is < 1 or > 4) throw new InvalidOperationException();
+            var jwtKeys = keyNames.Where(key => key.StartsWith("IdentityAccess__Jwt__ValidationPublicKeys__", StringComparison.Ordinal)).ToArray();
+
+            if (jwtKeys.Length is < 1 or > 4 || otpKeys.Length is < 1 or > 4) throw new InvalidOperationException();
 
             RequireKeys(
                 secrets,
                 ["ConnectionStrings__RuntimeProbeDatabase", "ConnectionStrings__IdentityAccessDatabase",
-                "IdentityAccess__Otp__CurrentHashKeyVersion", "Platform__RateLimiting__PartitionDigestKey", .. otpKeys]
+                "IdentityAccess__Otp__CurrentHashKeyVersion", "Platform__RateLimiting__PartitionDigestKey", "IdentityAccess__Jwt__PrivateKeyPem",
+                "IdentityAccess__Jwt__CurrentKeyId", .. otpKeys, .. jwtKeys]
             );
             var targetJson = root.GetProperty("databaseTarget");
             RequireKeys(targetJson, ["projectReference", "host", "environment", "serverMajor"]);
@@ -75,7 +80,12 @@ internal sealed class RuntimeSnapshot
                 secrets.GetProperty("Platform__RateLimiting__PartitionDigestKey").GetString()!, root.GetProperty("securityPolicy").GetRawText(),
                 target, environment, root.GetProperty("developmentMailboxDirectory").ValueKind == JsonValueKind.Null ? null : root.GetProperty("developmentMailboxDirectory").GetString());
 
-            return new RuntimeSnapshot(connection.ConnectionString, identityAccess);
+            var authentication = AuthenticationRuntimeSettings.FromSnapshot(root.GetProperty("authenticationPolicy").GetRawText(),
+                secrets.GetProperty("IdentityAccess__Jwt__PrivateKeyPem").GetString()!,
+                secrets.GetProperty("IdentityAccess__Jwt__CurrentKeyId").GetString()!,
+                jwtKeys.ToDictionary(key => key["IdentityAccess__Jwt__ValidationPublicKeys__".Length..], key => secrets.GetProperty(key).GetString()!));
+
+            return new RuntimeSnapshot(connection.ConnectionString, identityAccess, authentication);
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException or ArgumentException or FormatException or OverflowException)
         {

@@ -28,7 +28,12 @@ internal static class ApiConfiguration
             throw new InvalidOperationException("Configuration.UnexpectedCriticalSection: runtime secrets require an explicit bootstrap source.");
 
         var hostOptions = LocalHostOptions.BindSafely(builder.Configuration);
-        builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, hostOptions.Port));
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.Listen(IPAddress.Loopback, hostOptions.Port);
+
+            if (environment == "Development") options.ListenLocalhost(hostOptions.HttpsPort, listener => listener.UseHttps());
+        });
 
         return builder;
     }

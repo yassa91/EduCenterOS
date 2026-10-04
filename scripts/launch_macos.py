@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import signal
+import ssl
 import socket
 import subprocess
 import sys
@@ -17,6 +18,7 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[1]
 STOP = threading.Event()
 HTTP = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+HTTPS = None
 
 
 def emit(kind, **values):
@@ -33,6 +35,46 @@ def read_port():
     if type(port) is not int or not 1024 <= port <= 65535:
         raise RuntimeError("إعداد منفذ التطبيق غير صالح.")
     return port
+
+
+def read_https_port():
+    port = 5101
+    for name in ("appsettings.json", "appsettings.Development.json"):
+        path = ROOT / "src/EduCenterOS.Api" / name
+        if path.exists():
+            settings = json.loads(path.read_text())
+            port = settings.get("Platform", {}).get("Host", {}).get("HttpsPort", port)
+    if type(port) is not int or not 1024 <= port <= 65535 or port == read_port():
+        raise RuntimeError("إعداد منفذ الاتصال الآمن غير صالح.")
+    return port
+
+
+def trusted_https_opener():
+    # Check OS trust, then export only the public certificate for Python's TLS verifier.
+    # No --password/--no-password flag: dotnet exports no private key.
+    with tempfile.TemporaryDirectory(prefix="educenteros-tls-") as directory:
+        certificate = Path(directory) / "localhost.pem"
+        for arguments in (["dotnet", "dev-certs", "https", "--check", "--trust", "--quiet"],
+                          ["dotnet", "dev-certs", "https", "--export-path", str(certificate), "--format", "Pem", "--quiet"]):
+            result = subprocess.run(arguments, stdin=subprocess.DEVNULL, capture_output=True, timeout=30)
+            if result.returncode:
+                raise RuntimeError("شهادة HTTPS المحلية تحتاج إعداد الثقة الموضح في README.")
+        text = certificate.read_text()
+        if "PRIVATE KEY" in text or not text.startswith("-----BEGIN CERTIFICATE-----"):
+            raise RuntimeError("تعذر التحقق من شهادة HTTPS المحلية.")
+        context = ssl.create_default_context(cafile=str(certificate))
+    return urllib.request.build_opener(urllib.request.ProxyHandler({}), urllib.request.HTTPSHandler(context=context))
+
+
+def secure_api_ready(port):
+    try:
+        with HTTPS.open(f"https://localhost:{port}/health/ready", timeout=2) as response:
+            if response.read(1024) != b"Healthy": return False
+        with HTTPS.open(f"https://localhost:{port}/openapi/v1.json", timeout=2) as response:
+            document = json.loads(response.read(2 * 1024 * 1024))
+        return document.get("info", {}).get("title") == "EduCenterOS API" and "/api/v1/accounts" in document.get("paths", {})
+    except (OSError, ValueError, urllib.error.URLError):
+        return False
 
 
 def get_response(port, path):
@@ -105,15 +147,21 @@ def run_step(arguments, message, failure, timeout=180):
 
 
 def launch():
+    global HTTPS
     port = read_port()
-    url = f"http://127.0.0.1:{port}/swagger"
+    https_port = read_https_port()
+    HTTPS = trusted_https_opener()
+    url = f"https://localhost:{https_port}/swagger"
     if occupied(port):
         if not is_educenteros(port):
             raise RuntimeError("المنفذ مستخدم بواسطة برنامج آخر. لم يتم إيقافه أو تغييره.")
-        if get_response(port, "/health/ready") != b"Healthy":
+        if get_response(port, "/health/ready") != b"Healthy" or not secure_api_ready(https_port):
             raise RuntimeError("EduCenterOS يعمل بالفعل، لكن اتصال قاعدة البيانات غير جاهز.")
         emit("ready", message="التطبيق يعمل بالفعل. تم فتح Swagger.", url=url, owned=False)
         return
+
+    if occupied(https_port):
+        raise RuntimeError("منفذ HTTPS مستخدم بالفعل. لم يتم إيقاف البرنامج الذي يستخدمه.")
 
     for tool in ("dotnet", "psql", "infisical"):
         if shutil.which(tool) is None:
@@ -140,7 +188,7 @@ def launch():
                     raise InterruptedError()
                 if process.poll() is not None:
                     raise RuntimeError("تعذر تشغيل التطبيق. تحقق من إعدادات التطوير وتسجيل دخول Infisical.")
-                if is_educenteros(port) and get_response(port, "/health/ready") == b"Healthy":
+                if is_educenteros(port) and get_response(port, "/health/ready") == b"Healthy" and secure_api_ready(https_port):
                     break
                 if time.monotonic() >= deadline:
                     raise RuntimeError("التطبيق لم يصل إلى حالة الجاهزية في الوقت المحدد.")

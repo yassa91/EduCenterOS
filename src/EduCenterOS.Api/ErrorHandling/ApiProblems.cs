@@ -36,6 +36,10 @@ internal static class ApiProblems
         var registered = error.Code switch
         {
             "Validation.Failed" => error.Category == ErrorCategory.Validation,
+            "IdentityAccess.AuthenticationRejected" => error.Category == ErrorCategory.Authentication,
+            "IdentityAccess.BrowserRequestRejected" => error.Category == ErrorCategory.Authorization,
+            "IdentityAccess.SessionNotFound" => error.Category == ErrorCategory.NotFound,
+            "IdentityAccess.AuthenticationThrottled" => error.Category == ErrorCategory.RateLimited,
             "IdentityAccess.VerificationRejected" => error.Category == ErrorCategory.BusinessRule,
             "IdentityAccess.RegistrationRejected" => error.Category == ErrorCategory.Conflict,
             "Infrastructure.RateLimitExceeded" => error.Category == ErrorCategory.RateLimited,
@@ -47,6 +51,9 @@ internal static class ApiProblems
 
         var (status, suffix, title) = error.Category switch
         {
+            ErrorCategory.Authentication => (401, "authentication", "Authentication rejected"),
+            ErrorCategory.Authorization => (403, "authorization", "Request rejected"),
+            ErrorCategory.NotFound => (404, "not-found", "Resource not found"),
             ErrorCategory.Validation => (400, "validation", "Validation failed"),
             ErrorCategory.Conflict => (409, "conflict", "Request conflict"),
             ErrorCategory.BusinessRule => (422, "business-rule", "Business rule rejected"),
@@ -61,6 +68,8 @@ internal static class ApiProblems
     private static Task WriteAsync(HttpContext context, int status, string suffix, string title, string code, string detail, Error? error)
     {
         context.Response.StatusCode = status;
+
+        if (status == 401) context.Response.Headers.WWWAuthenticate = "Bearer";
         context.Response.ContentType = "application/problem+json";
         var problem = new ProblemDetails
         {
