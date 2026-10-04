@@ -9,6 +9,16 @@ internal static class ApiPipeline
     {
         app.UseMiddleware<CorrelationMiddleware>();
         app.UseMiddleware<ErrorBoundaryMiddleware>();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/openapi/v1.json", "EduCenterOS API v1");
+                options.DocumentTitle = "EduCenterOS API";
+            });
+        }
+
         app.UseRouting();
         app.UseRateLimiter();
         app.UseStatusCodePages(context => ApiProblems.WriteStatusAsync(context.HttpContext));

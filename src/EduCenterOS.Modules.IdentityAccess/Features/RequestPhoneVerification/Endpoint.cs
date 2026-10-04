@@ -4,15 +4,17 @@ using EduCenterOS.Modules.IdentityAccess.Infrastructure.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+
 namespace EduCenterOS.Modules.IdentityAccess.Features.RequestPhoneVerification;
 
 internal static class Endpoint
 {
-    internal static void Map(RouteGroupBuilder group, Func<Error,IResult> errorResult, Func<int,IResult> transportError)
+    internal static void Map(RouteGroupBuilder group, Func<Error, IResult> errorResult, Func<int, IResult> transportError)
     {
         group.MapPost("", (HttpContext context, RequestPhoneVerificationHandler handler) => StrictJsonBody.ReadAsync<PhoneVerificationRequest>(context, async request =>
         {
             var result = await handler.HandleAsync(request.PhoneNumber, context.RequestAborted);
+
             return result.IsSuccess ? Results.Ok(result.Value) : errorResult(result.Error);
         }, transportError)).Accepts<PhoneVerificationRequest>("application/json").Produces<PhoneVerificationResponse>()
             .WithName("PhoneVerifications_Request").WithSummary("Request registration phone verification")

@@ -2,6 +2,7 @@ using System.Xml.Linq;
 using EduCenterOS.BuildingBlocks.Time;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Persistence;
 using Xunit;
+
 namespace EduCenterOS.ArchitectureTests;
 
 public sealed class ModuleBoundariesTests
@@ -13,6 +14,7 @@ public sealed class ModuleBoundariesTests
             value.Name!.Contains("Modules", StringComparison.Ordinal) || value.Name.Contains("Api", StringComparison.Ordinal)
             || value.Name.Contains("AspNetCore", StringComparison.Ordinal) || value.Name.Contains("EntityFramework", StringComparison.Ordinal));
     }
+
     [Fact]
     public void IdentityPersistenceAndDomain_AreInternalAndDoNotDependOnHost()
     {

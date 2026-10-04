@@ -12,13 +12,12 @@ internal sealed class IdentityAccessDbContext(DbContextOptions<IdentityAccessDbC
     internal DbSet<VerificationTarget> Targets => Set<VerificationTarget>();
 
     internal static DbContextOptions<IdentityAccessDbContext> Options(string connectionString) => new DbContextOptionsBuilder<IdentityAccessDbContext>()
-    .UseNpgsql(connectionString, postgres => postgres.MigrationsHistoryTable("__ef_migrations_history", "identity_access").CommandTimeout(5))
-    .Options;
+        .UseNpgsql(connectionString, postgres => postgres.MigrationsHistoryTable("__ef_migrations_history", "identity_access").CommandTimeout(5))
+        .Options;
 
     protected override void OnModelCreating(ModelBuilder model)
     {
         model.HasDefaultSchema("identity_access");
-
         model.ApplyConfigurationsFromAssembly(typeof(IdentityAccessDbContext).Assembly);
 
         foreach (var entity in model.Model.GetEntityTypes())

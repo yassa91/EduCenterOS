@@ -27,6 +27,7 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
         // The factory serializes its host defaults as entry-point arguments. Clear that adapter
         // input: the application retains its own explicit environment/configuration validation.
         builder.ConfigureHostConfiguration(configuration => configuration.Sources.Clear());
+
         return base.CreateHost(builder);
     }
 
@@ -38,31 +39,37 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
             services.RemoveAll<IRuntimeSnapshotSource>();
             services.AddSingleton<IRuntimeSnapshotSource>(new CloudTestSnapshotSource(database));
             services.AddSingleton<ILoggerProvider>(Logs);
-            services.RemoveAll<IOtpSender>(); services.AddSingleton<IOtpSender>(Sender);
-            services.RemoveAll<IClock>(); services.AddSingleton<IClock>(Clock);
+            services.RemoveAll<IOtpSender>();
+            services.AddSingleton<IOtpSender>(Sender);
+            services.RemoveAll<IClock>();
+            services.AddSingleton<IClock>(Clock);
+
             if (interceptor is not null) services.AddSingleton<IInterceptor>(interceptor);
         });
     }
 
     private sealed class CloudTestSnapshotSource(OwnedPostgresFixture database) : IRuntimeSnapshotSource
     {
-        private readonly RuntimeSnapshot snapshot = RuntimeSnapshot.Parse(JsonSerializer.Serialize(new
-        {
-            schemaVersion = 3,
-            environment = "Testing",
-            databaseTarget = new { projectReference = database.Target.ProjectReference, host = database.Target.Host, environment = database.Target.Environment, serverMajor = database.Target.ServerMajor },
-            source = "CloudTestFixture",
-            securityPolicy = System.Text.Json.JsonSerializer.Deserialize<object>(File.ReadAllText(Path.Combine(OwnedPostgresFixture.FindRoot(), "infra/registration-policy.json"))),
-            developmentMailboxDirectory = (string?)null,
-            secrets = new Dictionary<string, string>
+        private readonly RuntimeSnapshot snapshot = RuntimeSnapshot.Parse(
+            JsonSerializer.Serialize(new
             {
-                ["ConnectionStrings__RuntimeProbeDatabase"] = database.RuntimeConnectionString,
-                ["ConnectionStrings__IdentityAccessDatabase"] = database.ModuleConnectionString,
-                ["IdentityAccess__Otp__HashKeys__v1"] = Convert.ToBase64String(database.OtpKey),
-                ["IdentityAccess__Otp__CurrentHashKeyVersion"] = "v1",
-                ["Platform__RateLimiting__PartitionDigestKey"] = Convert.ToBase64String(database.PartitionKey)
-            }
-        }), "Testing");
+                schemaVersion = 3,
+                environment = "Testing",
+                databaseTarget = new { projectReference = database.Target.ProjectReference, host = database.Target.Host, environment = database.Target.Environment, serverMajor = database.Target.ServerMajor },
+                source = "CloudTestFixture",
+                securityPolicy = System.Text.Json.JsonSerializer.Deserialize<object>(File.ReadAllText(Path.Combine(OwnedPostgresFixture.FindRoot(), "infra/registration-policy.json"))),
+                developmentMailboxDirectory = (string?)null,
+                secrets = new Dictionary<string, string>
+                {
+                    ["ConnectionStrings__RuntimeProbeDatabase"] = database.RuntimeConnectionString,
+                    ["ConnectionStrings__IdentityAccessDatabase"] = database.ModuleConnectionString,
+                    ["IdentityAccess__Otp__HashKeys__v1"] = Convert.ToBase64String(database.OtpKey),
+                    ["IdentityAccess__Otp__CurrentHashKeyVersion"] = "v1",
+                    ["Platform__RateLimiting__PartitionDigestKey"] = Convert.ToBase64String(database.PartitionKey)
+                }
+            }),
+            "Testing"
+        );
 
         public RuntimeSnapshot Read() => snapshot;
     }
@@ -71,13 +78,19 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
 internal sealed class SafeLogCapture : ILoggerProvider
 {
     internal ConcurrentQueue<(int EventId, string Message, Exception? Exception)> Events { get; } = new();
+
     public ILogger CreateLogger(string categoryName) => new CaptureLogger(this);
-    public void Dispose() { }
+
+    public void Dispose()
+    {
+    }
 
     private sealed class CaptureLogger(SafeLogCapture owner) : ILogger
     {
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
         public bool IsEnabled(LogLevel logLevel) => true;
+
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
             => owner.Events.Enqueue((eventId.Id, formatter(state, exception), exception));
     }

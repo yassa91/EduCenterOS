@@ -9,16 +9,21 @@ internal static class ApiEndpointRegistration
     {
         app.MapApplicationModules();
         app.MapOpenApi();
-        app.MapHealthChecks("/health/live", new HealthCheckOptions
-        {
-            Predicate = _ => false,
-            ResponseWriter = HealthResponse.WriteAsync
-        }).WithMetadata(new HttpMethodMetadata(["GET", "HEAD"])).ExcludeFromDescription();
-
-        app.MapHealthChecks("/health/ready", new HealthCheckOptions
-        {
-            Predicate = registration => registration.Tags.Contains("ready"),
-            ResponseWriter = HealthResponse.WriteAsync
-        }).WithMetadata(new HttpMethodMetadata(["GET", "HEAD"])).ExcludeFromDescription();
+        app.MapHealthChecks(
+            "/health/live",
+            new HealthCheckOptions
+            {
+                Predicate = _ => false,
+                ResponseWriter = HealthResponse.WriteAsync
+            }
+        ).WithMetadata(new HttpMethodMetadata(["GET", "HEAD"])).ExcludeFromDescription();
+        app.MapHealthChecks(
+            "/health/ready",
+            new HealthCheckOptions
+            {
+                Predicate = registration => registration.Tags.Contains("ready"),
+                ResponseWriter = HealthResponse.WriteAsync
+            }
+        ).WithMetadata(new HttpMethodMetadata(["GET", "HEAD"])).ExcludeFromDescription();
     }
 }

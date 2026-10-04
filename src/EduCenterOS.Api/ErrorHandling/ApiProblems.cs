@@ -10,7 +10,6 @@ internal static class ApiProblems
     internal static Task WriteStatusAsync(HttpContext context, int? statusOverride = null)
     {
         var status = statusOverride ?? context.Response.StatusCode;
-
         var (suffix, title, code, detail) = status switch
         {
             400 => ("validation", "Validation failed", "Validation.Failed", "The request is invalid."),
@@ -43,7 +42,9 @@ internal static class ApiProblems
             "Infrastructure.DeliveryUnavailable" or "Infrastructure.Busy" or "Infrastructure.Timeout" => error.Category == ErrorCategory.ServiceUnavailable,
             _ => false
         };
+
         if (!registered) return WriteStatusAsync(context, 500);
+
         var (status, suffix, title) = error.Category switch
         {
             ErrorCategory.Validation => (400, "validation", "Validation failed"),
@@ -53,6 +54,7 @@ internal static class ApiProblems
             ErrorCategory.ServiceUnavailable => (503, "service-unavailable", "Service unavailable"),
             _ => (500, "unexpected", "Unexpected error")
         };
+
         return WriteAsync(context, status, suffix, title, error.Code, error.Description, error);
     }
 
@@ -67,18 +69,26 @@ internal static class ApiProblems
             Status = status,
             Detail = detail
         };
+
         if (error?.RetryDelaySeconds is { } delay) context.Response.Headers.RetryAfter = delay.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
         if (error?.ValidationIssues.Count > 0)
         {
             var members = new[] { "phoneNumber", "code", "verificationProof", "challengeId", "fullName", "password", "emailAddress" };
-            if (error.ValidationIssues.Any(issue => !members.Contains(issue.MemberPath, StringComparer.Ordinal) || issue.Code != "IdentityAccess.Input.Invalid"))
+
+            if (
+                error.ValidationIssues.Any(issue => !members.Contains(issue.MemberPath, StringComparer.Ordinal) || issue.Code != "IdentityAccess.Input.Invalid")
+            )
                 return WriteStatusAsync(context, 500);
+
             problem.Extensions["errors"] = error.ValidationIssues.GroupBy(issue => "body." + issue.MemberPath, StringComparer.Ordinal)
                 .ToDictionary(group => group.Key, group => group.Select(issue => new { code = issue.Code, description = issue.Description }).ToArray(), StringComparer.Ordinal);
             problem.Extensions["errorsTruncated"] = error.ValidationIssuesTruncated;
         }
+
         problem.Extensions["code"] = code;
         problem.Extensions["correlationId"] = context.Items[CorrelationMiddleware.ItemKey];
+
         if (Activity.Current is { } activity)
             problem.Extensions["traceId"] = activity.TraceId.ToHexString();
 

@@ -32,6 +32,7 @@ public sealed class RuntimeEnvironmentTests
     {
         var previousDotnet = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
         var previousAspnet = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
         try
         {
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", dotnet);

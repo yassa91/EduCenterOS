@@ -1,23 +1,53 @@
 namespace EduCenterOS.Modules.IdentityAccess.Domain;
 
-internal enum AccountStatus { Active, Suspended, Closed }
+internal enum AccountStatus
+{
+    Active,
+    Suspended,
+    Closed
+}
 
 internal sealed class UserAccount
 {
-    private UserAccount() { }
-    internal UserAccount(Guid id, Guid personId, string phone, string? email, string passwordHash,
-        DateTimeOffset phoneVerifiedAt, DateTimeOffset now)
+    private UserAccount()
     {
-        RegistrationErrors.RequireUtc(now); RegistrationErrors.RequireUtc(phoneVerifiedAt);
-        var normalized = RegistrationInputs.Phone(phone);
-        if (id == Guid.Empty || personId == Guid.Empty || !normalized.IsSuccess || normalized.Value != phone
-            || (email is not null && (!RegistrationInputs.Email(email).IsSuccess || RegistrationInputs.Email(email).Value != email))
-            || string.IsNullOrWhiteSpace(passwordHash) || passwordHash.Length > 1024 || phoneVerifiedAt > now)
-            throw new ArgumentException("IdentityAccess.InvalidAccount");
-        Id = id; PersonIdentityId = personId; PhoneNumber = NormalizedPhoneNumber = phone;
-        EmailAddress = NormalizedEmailAddress = email; PasswordHash = passwordHash;
-        PhoneVerifiedAtUtc = phoneVerifiedAt; PasswordChangedAtUtc = CreatedAtUtc = now;
     }
+
+    internal UserAccount(
+        Guid id,
+        Guid personId,
+        string phone,
+        string? email,
+        string passwordHash,
+        DateTimeOffset phoneVerifiedAt,
+        DateTimeOffset now
+    )
+    {
+        RegistrationErrors.RequireUtc(now);
+        RegistrationErrors.RequireUtc(phoneVerifiedAt);
+        var normalized = RegistrationInputs.Phone(phone);
+
+        if (
+            id == Guid.Empty ||
+            personId == Guid.Empty ||
+            !normalized.IsSuccess ||
+            normalized.Value != phone ||
+            (email is not null && (!RegistrationInputs.Email(email).IsSuccess || RegistrationInputs.Email(email).Value != email)) ||
+            string.IsNullOrWhiteSpace(passwordHash) ||
+            passwordHash.Length > 1024 ||
+            phoneVerifiedAt > now
+        )
+            throw new ArgumentException("IdentityAccess.InvalidAccount");
+
+        Id = id;
+        PersonIdentityId = personId;
+        PhoneNumber = NormalizedPhoneNumber = phone;
+        EmailAddress = NormalizedEmailAddress = email;
+        PasswordHash = passwordHash;
+        PhoneVerifiedAtUtc = phoneVerifiedAt;
+        PasswordChangedAtUtc = CreatedAtUtc = now;
+    }
+
     public Guid Id { get; private set; }
     public Guid PersonIdentityId { get; private set; }
     public string PhoneNumber { get; private set; } = string.Empty;

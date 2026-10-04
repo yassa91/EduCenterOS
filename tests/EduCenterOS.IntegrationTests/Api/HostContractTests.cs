@@ -13,6 +13,7 @@ namespace EduCenterOS.IntegrationTests.Api;
 public sealed class HostContractTests : IClassFixture<OwnedPostgresFixture>
 {
     private readonly OwnedPostgresFixture database;
+
     public HostContractTests(OwnedPostgresFixture database) => this.database = database;
 
     [Theory]
@@ -57,6 +58,7 @@ public sealed class HostContractTests : IClassFixture<OwnedPostgresFixture>
         Assert.False(body.Contains("diagnostic-sensitive-marker", StringComparison.Ordinal));
         var unsafeLog = factory.Logs.Events.Any(entry => entry.Message.Contains("diagnostic-sensitive-marker", StringComparison.Ordinal));
         Assert.False(unsafeLog);
+
         if (status == 405)
         {
             Assert.Contains("GET", response.Content.Headers.Allow);
@@ -86,6 +88,7 @@ public sealed class HostContractTests : IClassFixture<OwnedPostgresFixture>
         var original = options.ConnectionString;
         // Inject a genuine refused TCP connection in this host only; never pause a shared cloud server.
         options.ConnectionString = new Npgsql.NpgsqlConnectionStringBuilder(original) { Port = 1, Pooling = false }.ConnectionString;
+
         try
         {
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
@@ -103,6 +106,7 @@ public sealed class HostContractTests : IClassFixture<OwnedPostgresFixture>
         {
             options.ConnectionString = original;
         }
+
         using var recovered = await client.GetAsync("/health/ready", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, recovered.StatusCode);
     }
@@ -115,6 +119,7 @@ public sealed class HostContractTests : IClassFixture<OwnedPostgresFixture>
         var endpoints = factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
             .Where(endpoint => endpoint.RoutePattern.RawText?.TrimStart('/').StartsWith("health/", StringComparison.Ordinal) == true).ToArray();
         Assert.Equal(2, endpoints.Length);
+
         foreach (var endpoint in endpoints)
         {
             Assert.StartsWith("/health/", "/" + endpoint.RoutePattern.RawText?.TrimStart('/'));

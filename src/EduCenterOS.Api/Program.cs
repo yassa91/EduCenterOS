@@ -7,13 +7,14 @@ public partial class Program
         var builder = ApiConfiguration.CreateBuilder(args);
         builder.AddApiServices();
         builder.AddApplicationModules();
-
         var app = builder.Build();
         app.UseApiPipeline();
         app.MapApiEndpoints();
-
-        app.Logger.LogInformation(new EventId(1000, "HostStarting"),
-            "Starting API host in {Environment}.", app.Environment.EnvironmentName);
+        app.Logger.LogInformation(
+            new EventId(1000, "HostStarting"),
+            "Starting API host in {Environment}.",
+            app.Environment.EnvironmentName
+        );
         await app.RunAsync();
     }
 }

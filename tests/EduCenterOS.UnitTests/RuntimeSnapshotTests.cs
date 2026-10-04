@@ -14,7 +14,10 @@ public sealed class RuntimeSnapshotTests
     {
         ["schemaVersion"] = 3,
         ["databaseTarget"] = new JsonObject { ["projectReference"] = "abcdefghijklmnopqrst", ["host"] = "db.abcdefghijklmnopqrst.supabase.co", ["environment"] = environment, ["serverMajor"] = 17 },
-        ["securityPolicy"] = System.Text.Json.JsonSerializer.SerializeToNode(new EduCenterOS.Modules.IdentityAccess.Infrastructure.Configuration.RegistrationSecurityOptions(), new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }),
+        ["securityPolicy"] = System.Text.Json.JsonSerializer.SerializeToNode(
+            new EduCenterOS.Modules.IdentityAccess.Infrastructure.Configuration.RegistrationSecurityOptions(),
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+        ),
         ["developmentMailboxDirectory"] = environment == "Development" ? Path.Combine(Root(), ".local/otp") : null,
         ["environment"] = environment,
         ["source"] = environment == "Testing" ? "CloudTestFixture" : "Infisical",
@@ -23,7 +26,7 @@ public sealed class RuntimeSnapshotTests
             ["ConnectionStrings__IdentityAccessDatabase"] = $"Host=db.abcdefghijklmnopqrst.supabase.co;Port=5432;Database=postgres;Username=educenteros_{(environment == "Testing" ? "test" : "dev")}_runtime;Password={Marker};SSL Mode=VerifyFull",
             ["IdentityAccess__Otp__HashKeys__v1"] = Convert.ToBase64String(new byte[32]),
             ["IdentityAccess__Otp__CurrentHashKeyVersion"] = "v1",
-            ["Platform__RateLimiting__PartitionDigestKey"] = Convert.ToBase64String(Enumerable.Repeat((byte)1,32).ToArray()),
+            ["Platform__RateLimiting__PartitionDigestKey"] = Convert.ToBase64String(Enumerable.Repeat((byte)1, 32).ToArray()),
             [SecretKey] = $"Host=db.abcdefghijklmnopqrst.supabase.co;Port=5432;Database=postgres;Username=educenteros_{(environment == "Testing" ? "test" : "dev")}_probe;Password={Marker};SSL Mode=VerifyFull"
         }
     };
@@ -97,6 +100,7 @@ public sealed class RuntimeSnapshotTests
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
             if (File.Exists(Path.Combine(directory.FullName, "EduCenterOS.sln"))) return directory.FullName;
+
         throw new InvalidOperationException("Test.RootMissing");
     }
 

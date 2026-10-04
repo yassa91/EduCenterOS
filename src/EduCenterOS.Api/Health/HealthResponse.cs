@@ -9,6 +9,7 @@ internal static class HealthResponse
         var healthy = report.Status == HealthStatus.Healthy;
         context.Response.StatusCode = healthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
         context.Response.ContentType = "text/plain";
+
         return HttpMethods.IsHead(context.Request.Method)
             ? Task.CompletedTask
             : context.Response.WriteAsync(healthy ? "Healthy" : "Unhealthy", context.RequestAborted);

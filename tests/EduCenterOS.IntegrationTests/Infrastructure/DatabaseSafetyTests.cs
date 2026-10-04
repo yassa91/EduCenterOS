@@ -34,6 +34,7 @@ public sealed class DatabaseSafetyTests(OwnedPostgresFixture database) : IClassF
     {
         Assert.Equal(1, await database.SetSentinelAndCountAsync());
         await database.SetLeaseForSafetyScenarioAsync(valid: false);
+
         try
         {
             await using var connection = new NpgsqlConnection(database.AdminConnectionString);
@@ -45,6 +46,7 @@ public sealed class DatabaseSafetyTests(OwnedPostgresFixture database) : IClassF
         {
             await database.SetLeaseForSafetyScenarioAsync(valid: true);
         }
+
         Assert.Equal(1, await database.CountSentinelAsync());
     }
 
@@ -58,6 +60,7 @@ public sealed class DatabaseSafetyTests(OwnedPostgresFixture database) : IClassF
         Assert.Equal(0, await database.CountSentinelAsync());
         await database.EnsureOwnedAsync(connection);
     }
+
     [Fact]
     public async Task CompetingCloudLease_IsRejectedBeforeChangingOwnedRows()
     {

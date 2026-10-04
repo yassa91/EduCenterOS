@@ -513,7 +513,8 @@
           "EduCenterOS.Modules.IdentityAccess": "[1.0.0, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.7, )",
           "Microsoft.OpenApi": "[2.7.5, )",
-          "Npgsql": "[10.0.3, )"
+          "Npgsql": "[10.0.3, )",
+          "Swashbuckle.AspNetCore.SwaggerUI": "[10.2.3, )"
         }
       },
       "educenteros.buildingblocks": {
@@ -579,6 +580,12 @@
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.4, 11.0.0)",
           "Npgsql": "10.0.2"
         }
+      },
+      "Swashbuckle.AspNetCore.SwaggerUI": {
+        "type": "CentralTransitive",
+        "requested": "[10.2.3, )",
+        "resolved": "10.2.3",
+        "contentHash": "nthWONRs/FJ4yyG206g1cC52WEG8EqrjuMWjGdR+5XG7lbjFto6NqcI9EMICgVFom/UivIjUVwI76ZHbHwTPfQ=="
       }
     }
   }

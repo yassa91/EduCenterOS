@@ -45,7 +45,33 @@ The API binds to `127.0.0.1:5100`. Ctrl+C stops it; Supabase remains running.
 Business API description: `/openapi/v1.json`. API startup does not apply migrations.
 Development OTP delivery remains the protected local mailbox described below.
 
+In Development, open `http://127.0.0.1:5100/swagger` for Swagger UI. It uses the existing `/openapi/v1.json` document and provides **Try it out** for the active operations. The UI assets are served locally. Rebuild and restart the API after code changes. Swagger UI is not enabled in Testing, Staging or Production.
+
+### macOS double-click launcher
+
+After the initial machine setup above, `EduCenterOS.app` runs development without a terminal. It shows startup progress, connects to Supabase, performs locked restore and Release build, applies IdentityAccess migrations through the separate reviewed migrator, and opens Swagger after liveness and readiness succeed. It uses the same `scripts/dev.py` bootstrap and Infisical account; it never provisions or replaces secrets automatically.
+
+The **Stop application** button or closing the launcher stops the API process it started. Supabase stays available. If EduCenterOS is already running, the launcher opens its Swagger without rebuilding or stopping that existing instance. To pick up code edits, stop the existing API before launching again. An occupied port belonging to another application produces an error and is left untouched.
+
+The app is built locally and remembers this checkout's absolute path. Moving the checkout requires rebuilding it. To recreate it with the macOS Command Line Tools installed:
+
+```sh
+python3 scripts/build_macos_launcher.py
+```
+
+The default generated app is `.local/mac-launcher/EduCenterOS.app`; an explicit `--output /absolute/path/EduCenterOS.app` selects another location. Generated app bundles contain no secrets and are not committed.
+
 ## Verify
+
+The agreed C# style is defined in [.editorconfig](.editorconfig), [AGENTS.md](AGENTS.md),
+and [T42 - Code Formatting](docs/technical/T42%20-%20Code%20Formatting.md).
+The gate checks formatting, including one argument per line for every `Error` construction.
+Apply the checked whitespace rules before delivery:
+
+```sh
+dotnet run --project tools/EduCenterOS.Formatting -c Release -- --fix
+dotnet run --project tools/EduCenterOS.Formatting -c Release -- --check
+```
 
 ```sh
 python3 scripts/verify.py
