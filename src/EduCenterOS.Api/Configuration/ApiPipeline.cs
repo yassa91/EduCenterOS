@@ -24,6 +24,7 @@ internal static class ApiPipeline
         app.UseRouting();
         app.UseIdentityAccessBrowserSecurity(ApiProblems.WriteErrorAsync);
         app.UseRateLimiter();
+        app.UseIdentityAccessAuthentication(ApiProblems.WriteErrorAsync);
         app.UseStatusCodePages(context => ApiProblems.WriteStatusAsync(context.HttpContext));
     }
 }

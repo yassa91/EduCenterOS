@@ -16,6 +16,20 @@ public static partial class ModuleRegistration
 {
     public static void ConfigureIdentityAccessOpenApi(this OpenApiOptions options)
     {
+        options.AddDocumentTransformer((document, context, cancellation) =>
+        {
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+            document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "educenteros-access+jwt",
+                Description = "Access JWT from Login/Refresh; keep only in browser memory. Refresh cookie alone is not authorization."
+            };
+
+            return Task.CompletedTask;
+        });
         options.AddSchemaTransformer((schema, context, cancellation) =>
         {
             var type = context.JsonTypeInfo.Type;
@@ -81,7 +95,9 @@ public static partial class ModuleRegistration
             operation.Extensions["x-security-classification"] = new JsonNodeExtension(JsonValue.Create(metadata.Classification));
             operation.Extensions["x-idempotency-mode"] = new JsonNodeExtension(JsonValue.Create(metadata.IdempotencyMode));
             operation.Extensions["x-rate-limit-policy"] = new JsonNodeExtension(JsonValue.Create(metadata.PolicyName));
-            operation.Security = [];
+            operation.Security = metadata.Classification == "AccountSelf"
+                ? [new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("Bearer", context.Document)] = [] }]
+                : [];
 
             if (metadata.BrowserProtected)
             {

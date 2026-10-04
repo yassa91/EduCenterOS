@@ -142,7 +142,7 @@ internal sealed class AuthenticationTokens : IDisposable
         value = Guid.Empty;
 
         return element.ValueKind == JsonValueKind.String && element.GetString() is { Length: 36 } text &&
-            Guid.TryParseExact(text, "D", out value) && value != Guid.Empty;
+            Guid.TryParseExact(text, "D", out value) && value != Guid.Empty && value.ToString("D") == text;
     }
 
     private static bool ExactKeys(JsonElement element, string[] expected)

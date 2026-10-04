@@ -28,20 +28,7 @@ internal static class StrictJsonBody
         )
             return transportError(415);
 
-        try
-        {
-            var accepted = context.Request.GetTypedHeaders().Accept;
-
-            if (
-                accepted is { Count: > 0 } &&
-                !accepted.Any(media => media.Quality != 0 && media.MediaType.Value is "application/json" or "application/*" or "*/*")
-            )
-                return transportError(406);
-        }
-        catch (FormatException)
-        {
-            return transportError(400);
-        }
+        if (AcceptedRepresentation(context) is { } acceptStatus) return transportError(acceptStatus);
 
         if (context.Request.ContentLength > MaximumBytes) return transportError(413);
 
@@ -81,6 +68,26 @@ internal static class StrictJsonBody
         }
 
         return await action(request);
+    }
+
+    internal static int? AcceptedRepresentation(HttpContext context)
+    {
+        try
+        {
+            var accepted = context.Request.GetTypedHeaders().Accept;
+
+            if (
+                accepted is { Count: > 0 } &&
+                !accepted.Any(media => media.Quality != 0 && media.MediaType.Value is "application/json" or "application/*" or "*/*")
+            )
+                return 406;
+        }
+        catch (FormatException)
+        {
+            return 400;
+        }
+
+        return null;
     }
 
     internal static bool RouteId(HttpContext context, out Guid id)

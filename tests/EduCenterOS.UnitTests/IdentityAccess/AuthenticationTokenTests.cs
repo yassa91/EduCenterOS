@@ -60,6 +60,7 @@ public sealed class AuthenticationTokenTests
     [InlineData("duplicateClaim")]
     [InlineData("stringVersion")]
     [InlineData("emptySession")]
+    [InlineData("noncanonicalId")]
     [InlineData("remoteKeyHeader")]
     [InlineData("notBefore")]
     [InlineData("oversizedLifetime")]
@@ -82,6 +83,7 @@ public sealed class AuthenticationTokenTests
         if (fault == "extraClaim") claims["role"] = "Owner";
         if (fault == "stringVersion") claims["sv"] = "1";
         if (fault == "emptySession") claims["sid"] = Guid.Empty.ToString("D");
+        if (fault == "noncanonicalId") claims["sid"] = "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA";
         if (fault == "remoteKeyHeader") header["jku"] = "https://other.invalid/keys";
         if (fault == "notBefore") claims["nbf"] = Now.ToUnixTimeSeconds();
         if (fault == "oversizedLifetime") claims["exp"] = Now.AddHours(1).ToUnixTimeSeconds();

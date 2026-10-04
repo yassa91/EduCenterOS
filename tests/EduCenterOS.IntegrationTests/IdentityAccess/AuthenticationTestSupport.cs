@@ -42,13 +42,13 @@ internal static class AuthenticationTestSupport
 
     internal static IdentityAccessDbContext Context(OwnedPostgresFixture database) => new(IdentityAccessDbContext.Options(database.ModuleConnectionString));
 
-    internal static async Task<Guid> SeedAsync(OwnedPostgresFixture database, TestingApiFactory factory, string phone = "01012345678", string password = Password, int? legacyIterations = null, DateTimeOffset? createdAt = null)
+    internal static async Task<Guid> SeedAsync(OwnedPostgresFixture database, TestingApiFactory factory, string phone = "01012345678", string password = Password, int? legacyIterations = null, DateTimeOffset? createdAt = null, string fullName = "مستخدم للاختبار")
     {
         using var scope = factory.Services.CreateScope();
         var hasher = legacyIterations is null ? scope.ServiceProvider.GetRequiredService<IPasswordHasher<UserAccount>>()
             : new PasswordHasher<UserAccount>(Options.Create(new PasswordHasherOptions { CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3, IterationCount = legacyIterations.Value }));
         var now = createdAt ?? factory.Clock.UtcNow;
-        var person = new PersonIdentity(Guid.CreateVersion7(now), "مستخدم للاختبار", now);
+        var person = new PersonIdentity(Guid.CreateVersion7(now), fullName, now);
         var account = new UserAccount(Guid.CreateVersion7(now), person.Id, RegistrationInputs.Phone(phone).Value, null, hasher.HashPassword(null!, password), now, now);
         await using var context = Context(database);
         context.People.Add(person);
