@@ -10,6 +10,15 @@ namespace EduCenterOS.Modules.IdentityAccess;
 
 public static partial class ModuleRegistration
 {
+    public static IApplicationBuilder UseIdentityAccessAuthentication(this IApplicationBuilder app, Func<HttpContext, Error, Task> writeError)
+    {
+        app.UseAuthentication();
+        app.UseMiddleware<CurrentSessionMiddleware>(writeError);
+        app.UseAuthorization();
+
+        return app;
+    }
+
     public static IApplicationBuilder UseIdentityAccessBrowserSecurity(this IApplicationBuilder app, Func<HttpContext, Error, Task> writeError)
     {
         app.UseCors("AuthenticationBrowser");

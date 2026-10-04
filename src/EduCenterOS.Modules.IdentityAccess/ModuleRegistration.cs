@@ -32,6 +32,8 @@ public static partial class ModuleRegistration
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<RegistrationCryptography>();
         services.AddSingleton<AuthenticationTokens>();
+        AddAccountAuthentication(services, writeError);
+        services.AddScoped<Features.GetCurrentAccount.GetCurrentAccountHandler>();
         services.AddCors();
         services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>().Configure<AuthenticationRuntimeSettings>((options, settings) =>
             options.AddPolicy("AuthenticationBrowser", policy => policy.WithOrigins(settings.Policy.BrowserOrigin)
@@ -81,7 +83,7 @@ public static partial class ModuleRegistration
                 int? retry = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? Math.Max(1, (int)Math.Ceiling(wait.TotalSeconds)) : null;
                 await writeError(
                     context.HttpContext,
-                    context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<SecurityEndpointMetadata>()?.BrowserProtected == true
+                    context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<SecurityEndpointMetadata>() is { BrowserProtected: true } or { Classification: "AccountSelf" }
                         ? AuthenticationErrors.Throttled(retry)
                         : new Error(
                             "Infrastructure.RateLimitExceeded",
