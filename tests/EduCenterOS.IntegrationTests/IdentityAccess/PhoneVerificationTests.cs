@@ -306,7 +306,7 @@ public sealed class PhoneVerificationTests(OwnedPostgresFixture database) : ICla
     }
 
     [Fact]
-    public async Task OpenApi_DescribesTheActiveAnonymousOperations()
+    public async Task OpenApi_DescribesThePhoneVerificationAndRegistrationOperations()
     {
         await Prepare();
         await using var factory = new TestingApiFactory(database, new ControlledClock(Now));
@@ -315,9 +315,12 @@ public sealed class PhoneVerificationTests(OwnedPostgresFixture database) : ICla
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         var paths = document.RootElement.GetProperty("paths");
-        Assert.Equal(4, paths.EnumerateObject().Count());
+        var registrationPaths = paths.EnumerateObject()
+            .Where(path => path.Name.StartsWith(Root, StringComparison.Ordinal) || path.Name == "/api/v1/accounts")
+            .ToArray();
+        Assert.Equal(new[] { "/api/v1/accounts", Root, $"{Root}/{{challengeId}}/resend", $"{Root}/{{challengeId}}/verify" }, registrationPaths.Select(path => path.Name).Order(StringComparer.Ordinal).ToArray());
 
-        foreach (var path in paths.EnumerateObject())
+        foreach (var path in registrationPaths)
         {
             Assert.True(path.Name.StartsWith(Root, StringComparison.Ordinal) || path.Name == "/api/v1/accounts");
             Assert.Equal("post", Assert.Single(path.Value.EnumerateObject()).Name);
