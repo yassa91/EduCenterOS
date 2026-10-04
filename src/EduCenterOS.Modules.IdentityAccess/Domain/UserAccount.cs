@@ -65,4 +65,45 @@ internal sealed class UserAccount
     public DateTimeOffset? LockoutEndUtc { get; private set; }
     public long Version { get; private set; } = 1;
     public DateTimeOffset CreatedAtUtc { get; private set; }
+
+    internal bool CanAuthenticate(DateTimeOffset now)
+    {
+        RegistrationErrors.RequireUtc(now);
+
+        return Status == AccountStatus.Active && PhoneVerifiedAtUtc <= now &&
+            (LockoutEndUtc is null || now >= LockoutEndUtc);
+    }
+
+    internal void FailAuthentication(DateTimeOffset now, int threshold, int lockoutSeconds)
+    {
+        RegistrationErrors.RequireUtc(now);
+
+        if (threshold is < 1 or > 20 || lockoutSeconds is < 30 or > 3600)
+            throw new ArgumentException("IdentityAccess.InvalidLockoutPolicy");
+
+        if (!CanAuthenticate(now)) return;
+
+        if (LockoutEndUtc is not null)
+        {
+            AccessFailedCount = 0;
+            LockoutEndUtc = null;
+        }
+
+        AccessFailedCount++;
+
+        if (AccessFailedCount >= threshold) LockoutEndUtc = now.AddSeconds(lockoutSeconds);
+
+        Version++;
+    }
+
+    internal void CompleteAuthentication(DateTimeOffset now, string passwordHash)
+    {
+        if (!CanAuthenticate(now) || string.IsNullOrWhiteSpace(passwordHash) || passwordHash.Length > 1024)
+            throw new InvalidOperationException("IdentityAccess.AuthenticationRejected");
+
+        AccessFailedCount = 0;
+        LockoutEndUtc = null;
+        PasswordHash = passwordHash;
+        Version++;
+    }
 }

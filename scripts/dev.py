@@ -223,7 +223,8 @@ def migrate_identity():
     grants = (f"REVOKE ALL ON ALL TABLES IN SCHEMA identity_access FROM PUBLIC, anon, authenticated, service_role;\n"
               f"GRANT USAGE ON SCHEMA identity_access TO {runtime};\n"
               f"GRANT SELECT, INSERT, UPDATE, DELETE ON identity_access.person_identities, identity_access.user_accounts, identity_access.otp_challenges, "
-              f"identity_access.verification_targets, identity_access.rate_key_binding TO {runtime};\n"
+              f"identity_access.verification_targets, identity_access.rate_key_binding, identity_access.user_sessions, "
+              f"identity_access.refresh_token_records, identity_access.login_targets TO {runtime};\n"
               f"GRANT SELECT ON identity_access.__ef_migrations_history TO {runtime};\n")
     psql(target, values["MIGRATION_PASSWORD"], "migration", grants)
     print("Supabase migrations and restricted runtime grants completed.")

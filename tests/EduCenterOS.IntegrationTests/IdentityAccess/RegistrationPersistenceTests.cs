@@ -50,7 +50,7 @@ public sealed class RegistrationPersistenceTests(OwnedPostgresFixture database) 
         await using var upgraded = new IdentityAccessDbContext(IdentityAccessDbContext.Options(owned.ModuleConnectionString));
         Assert.Equal(personId, (await upgraded.Accounts.SingleAsync(TestContext.Current.CancellationToken)).PersonIdentityId);
         Assert.Equal(Now, Assert.Single((await upgraded.Targets.SingleAsync(TestContext.Current.CancellationToken)).IssuesUtc));
-        Assert.Equal(3, (await upgraded.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken)).Count());
+        Assert.Equal(4, (await upgraded.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken)).Count());
         Assert.False(upgraded.Database.HasPendingModelChanges());
     }
 
@@ -59,14 +59,18 @@ public sealed class RegistrationPersistenceTests(OwnedPostgresFixture database) 
     {
         await Prepare();
         await using var context = Runtime();
-        Assert.Equal(3, (await context.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken)).Count());
+        Assert.Equal(4, (await context.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken)).Count());
         Assert.Empty(await context.Database.GetPendingMigrationsAsync(TestContext.Current.CancellationToken));
         Assert.False(context.Database.HasPendingModelChanges());
         await using var connection = new NpgsqlConnection(database.AdminConnectionString);
         await connection.OpenAsync(TestContext.Current.CancellationToken);
         await database.EnsureOwnedAsync(connection);
-        await using var command = new NpgsqlCommand("SELECT count(*)::integer FROM pg_tables WHERE schemaname='identity_access'", connection);
-        Assert.Equal(6, await command.ExecuteScalarAsync(TestContext.Current.CancellationToken));
+        await using var command = new NpgsqlCommand("SELECT array_agg(tablename::text ORDER BY tablename) FROM pg_tables WHERE schemaname='identity_access'", connection);
+        Assert.Equal(new[]
+        {
+            "__ef_migrations_history", "login_targets", "otp_challenges", "person_identities", "rate_key_binding",
+            "refresh_token_records", "user_accounts", "user_sessions", "verification_targets"
+        }, Assert.IsType<string[]>(await command.ExecuteScalarAsync(TestContext.Current.CancellationToken)));
     }
 
     [Theory]

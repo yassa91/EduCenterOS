@@ -91,7 +91,8 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
             REVOKE ALL ON ALL TABLES IN SCHEMA identity_access FROM PUBLIC, anon, authenticated, service_role;
             GRANT USAGE ON SCHEMA identity_access TO {runtime};
             GRANT SELECT, INSERT, UPDATE, DELETE ON identity_access.person_identities, identity_access.user_accounts,
-                identity_access.otp_challenges, identity_access.verification_targets, identity_access.rate_key_binding TO {runtime};
+                identity_access.otp_challenges, identity_access.verification_targets, identity_access.rate_key_binding,
+                identity_access.user_sessions, identity_access.refresh_token_records, identity_access.login_targets TO {runtime};
             GRANT SELECT ON identity_access.__ef_migrations_history TO {runtime};
             """,
             connection
@@ -105,7 +106,7 @@ public sealed class OwnedPostgresFixture : IAsyncLifetime
         await connection.OpenAsync();
         await EnsureOwnedAsync(connection);
         await using var command = new NpgsqlCommand(
-            "TRUNCATE identity_access.user_accounts, identity_access.person_identities, identity_access.otp_challenges, identity_access.verification_targets",
+            "TRUNCATE identity_access.refresh_token_records, identity_access.user_sessions, identity_access.login_targets, identity_access.user_accounts, identity_access.person_identities, identity_access.otp_challenges, identity_access.verification_targets",
             connection
         );
         await command.ExecuteNonQueryAsync();
