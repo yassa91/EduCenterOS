@@ -146,13 +146,27 @@ def psql(target, password, purpose, sql):
     return command(["psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1"], input_text=sql, environment=env, timeout=60)
 
 
-def bundle(environment):
+def bundle(environment, authentication_required=True):
     target = database_target(environment)
     values = export(PATHS[environment])
     required = {"SUPABASE_DATABASE_PASSWORD", "PROBE_PASSWORD", "RUNTIME_PASSWORD", "ConnectionStrings__RuntimeProbeDatabase", "ConnectionStrings__IdentityAccessDatabase"}
     required |= ({"MIGRATION_PASSWORD", "ConnectionStrings__IdentityAccessMigrationDatabase", "IdentityAccess__Otp__HashKeys__v1",
                   "IdentityAccess__Otp__CurrentHashKeyVersion", "Platform__RateLimiting__PartitionDigestKey"} if environment == "Development"
                  else {"OWNER_PASSWORD", "ConnectionStrings__TestOwnerDatabase"})
+    if environment == "Development":
+        auth = {key for key in values if key.startswith("IdentityAccess__Jwt__")}
+        public = {key for key in auth if key.startswith("IdentityAccess__Jwt__ValidationPublicKeys__")}
+        if auth or authentication_required:
+            if not 1 <= len(public) <= 4:
+                raise RuntimeError("AuthenticationBundleMissing: provision-auth is required")
+            if auth != public | {"IdentityAccess__Jwt__PrivateKeyPem", "IdentityAccess__Jwt__CurrentKeyId"}:
+                raise RuntimeError("InvalidAuthenticationBundle")
+            current = values["IdentityAccess__Jwt__CurrentKeyId"]
+            if (not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", current) or
+                "IdentityAccess__Jwt__ValidationPublicKeys__" + current not in public or
+                any(not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", key.split("__")[-1]) for key in public)):
+                raise RuntimeError("InvalidAuthenticationBundle")
+            required |= auth
     if set(values) != required:
         raise RuntimeError("IncompleteSupabaseBundle: provision-cloud is required")
     for purpose, key in [("probe", "RuntimeProbeDatabase"), ("runtime", "IdentityAccessDatabase"),
@@ -183,6 +197,7 @@ def provision(environment):
             with os.fdopen(descriptor, "w") as output:
                 output.write("\n".join(key + "=" + json.dumps(value) for key, value in values.items()) + "\n")
             cli(["secrets", "set", "--path=" + PATHS[environment], "--type=shared", "--file=" + str(file)])
+    if environment == "Development": provision_authentication()
     target, values = bundle(environment)
     actual = psql(target, values["SUPABASE_DATABASE_PASSWORD"], "admin",
                   "SELECT current_database() || ':' || current_user || ':' || (current_setting('server_version_num')::int/10000)::text;")
@@ -211,6 +226,33 @@ def provision(environment):
     sql += "COMMIT;\n"
     psql(target, values["SUPABASE_DATABASE_PASSWORD"], "admin", sql)
     print(environment + " cloud credentials and roles provisioned; no credentials displayed.")
+
+
+def provision_authentication():
+    # This explicit additive operation never overwrites existing DB/OTP/partition material.
+    _, values = bundle("Development", authentication_required=False)
+    if not any(key.startswith("IdentityAccess__Jwt__") for key in values):
+        private = command(["openssl", "genpkey", "-algorithm", "RSA", "-pkeyopt", "rsa_keygen_bits:2048"])
+        public = command(["openssl", "pkey", "-pubout"], input_text=private)
+        added = {"IdentityAccess__Jwt__PrivateKeyPem": private.rstrip("\n"),
+                 "IdentityAccess__Jwt__CurrentKeyId": "s03-dev-v1",
+                 "IdentityAccess__Jwt__ValidationPublicKeys__s03-dev-v1": public.rstrip("\n")}
+        with tempfile.TemporaryDirectory(prefix="educenteros-auth-") as directory:
+            file = Path(directory) / "keys.yaml"
+            descriptor = os.open(file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(descriptor, "w") as output:
+                # JSON is a YAML subset; the YAML reader preserves PEM newline characters.
+                json.dump(added, output)
+                output.write("\n")
+            cli(["secrets", "set", "--path=" + PATHS["Development"], "--type=shared", "--file=" + str(file)])
+        _, updated = bundle("Development")
+        if any(updated.get(key) != value for key, value in values.items()) or any(updated.get(key) != value for key, value in added.items()):
+            raise RuntimeError("AuthenticationProvisionRoundTripMismatch")
+        values = updated
+    exported = command(["openssl", "pkey", "-pubout"], input_text=values["IdentityAccess__Jwt__PrivateKeyPem"])
+    if exported.rstrip("\n") != values["IdentityAccess__Jwt__ValidationPublicKeys__" + values["IdentityAccess__Jwt__CurrentKeyId"]].rstrip("\n"):
+        raise RuntimeError("AuthenticationSigningKeyMismatch")
+    print("Development signing material validated in Infisical; existing credentials preserved.")
 
 
 def migrate_identity():
@@ -246,7 +288,8 @@ def run():
     target, values = bundle("Development")
     runtime_secrets = {key: value for key, value in values.items() if key.startswith("IdentityAccess__")
         or key == "Platform__RateLimiting__PartitionDigestKey" or key in ("ConnectionStrings__RuntimeProbeDatabase", "ConnectionStrings__IdentityAccessDatabase")}
-    snapshot = {"schemaVersion": 3, "environment": "Development", "source": "Infisical", "databaseTarget": public_target(target),
+    snapshot = {"schemaVersion": 4, "environment": "Development", "source": "Infisical", "databaseTarget": public_target(target),
+                "authenticationPolicy": json.loads((ROOT / "infra/authentication-policy.json").read_text()),
                 "secrets": runtime_secrets, "securityPolicy": json.loads((ROOT / "infra/registration-policy.json").read_text()),
                 "developmentMailboxDirectory": str(ROOT / ".local/otp")}
     environment = clean_environment()
@@ -257,7 +300,7 @@ def run():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["trust", "trust-database", "provision-cloud", "identity-migrate", "run"])
+    parser.add_argument("action", choices=["trust", "trust-database", "provision-cloud", "provision-auth", "identity-migrate", "run"])
     parser.add_argument("--endpoint")
     parser.add_argument("--project-id")
     parser.add_argument("--environment", choices=PATHS, default="Development")
@@ -291,6 +334,7 @@ def main():
         os.chmod(temporary, 0o600); os.replace(temporary, DATABASE_TRUST)
         print("Reviewed cloud target trusted outside repository.")
     elif args.action == "provision-cloud": provision(args.environment)
+    elif args.action == "provision-auth": provision_authentication()
     elif args.action == "identity-migrate": migrate_identity()
     else: run()
 

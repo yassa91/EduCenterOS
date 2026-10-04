@@ -48,3 +48,67 @@ class SupabaseBootstrapTests(unittest.TestCase):
 
     def test_secret_export_rejects_duplicates(self):
         with self.assertRaises(RuntimeError): dev.decode_export('{"KEY":"a", "key":"b"}')
+
+    def authentication_bundle(self):
+        values = {"SUPABASE_DATABASE_PASSWORD": "bootstrap", "PROBE_PASSWORD": "p" * 32,
+                  "RUNTIME_PASSWORD": "r" * 32, "MIGRATION_PASSWORD": "m" * 32,
+                  "IdentityAccess__Otp__HashKeys__v1": "otp", "IdentityAccess__Otp__CurrentHashKeyVersion": "v1",
+                  "Platform__RateLimiting__PartitionDigestKey": "partition"}
+        for purpose, key in [("probe", "RuntimeProbeDatabase"), ("runtime", "IdentityAccessDatabase"), ("migration", "IdentityAccessMigrationDatabase")]:
+            values["ConnectionStrings__" + key] = dev.connection_string(self.target(), values[purpose.upper() + "_PASSWORD"], purpose)
+        return values
+
+    def test_authentication_missing_rejected_except_explicit_additive_provision_boundary(self):
+        values = self.authentication_bundle()
+        with patch.object(dev, "database_target", return_value=self.target()), patch.object(dev, "export", return_value=values):
+            with self.assertRaisesRegex(RuntimeError, "AuthenticationBundleMissing"): dev.bundle("Development")
+            self.assertEqual(values, dev.bundle("Development", authentication_required=False)[1])
+
+    def test_partial_authentication_never_accepted_or_overwritten(self):
+        values = self.authentication_bundle()
+        values["IdentityAccess__Jwt__PrivateKeyPem"] = "private-marker"
+        with patch.object(dev, "database_target", return_value=self.target()), patch.object(dev, "export", return_value=values), patch.object(dev, "cli") as cli:
+            with self.assertRaises(RuntimeError): dev.provision_authentication()
+            cli.assert_not_called()
+
+    def test_existing_authentication_only_validated_and_not_replaced(self):
+        import contextlib, io
+        values = self.authentication_bundle()
+        values.update({"IdentityAccess__Jwt__PrivateKeyPem": "private-marker", "IdentityAccess__Jwt__CurrentKeyId": "old",
+                       "IdentityAccess__Jwt__ValidationPublicKeys__old": "public-marker"})
+        with patch.object(dev, "database_target", return_value=self.target()), patch.object(dev, "export", return_value=values), \
+                patch.object(dev, "cli") as cli, patch.object(dev, "command", return_value="public-marker") as command, \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            dev.provision_authentication()
+            cli.assert_not_called()
+            self.assertNotIn("private-marker", output.getvalue())
+            self.assertNotIn("private-marker", repr(command.call_args.args))
+
+    def test_export_preserves_multiline_key_values(self):
+        import json
+        secret = "-----BEGIN PRIVATE KEY-----\nmarker\n-----END PRIVATE KEY-----\n"
+        self.assertEqual(secret, dev.decode_export(json.dumps({"IdentityAccess__Jwt__PrivateKeyPem": secret}))["IdentityAccess__Jwt__PrivateKeyPem"])
+
+    def test_new_authentication_uses_private_yaml_and_preserves_existing_secrets(self):
+        import contextlib, io, json, stat
+        values = self.authentication_bundle()
+        private = "-----BEGIN PRIVATE KEY-----\nsynthetic\n-----END PRIVATE KEY-----\n"
+        public = "-----BEGIN PUBLIC KEY-----\nsynthetic\n-----END PUBLIC KEY-----\n"
+        updated = values | {"IdentityAccess__Jwt__PrivateKeyPem": private.rstrip("\n"), "IdentityAccess__Jwt__CurrentKeyId": "s03-dev-v1",
+                            "IdentityAccess__Jwt__ValidationPublicKeys__s03-dev-v1": public.rstrip("\n")}
+        files = []
+        def inspect(arguments):
+            file = Path(next(argument[7:] for argument in arguments if argument.startswith("--file=")))
+            self.assertEqual(".yaml", file.suffix)
+            self.assertEqual(0o600, stat.S_IMODE(file.stat().st_mode))
+            document = json.loads(file.read_text())
+            self.assertEqual(set(updated) - set(values), set(document))
+            self.assertEqual(private.rstrip("\n"), document["IdentityAccess__Jwt__PrivateKeyPem"])
+            files.append(file)
+            return ""
+        with patch.object(dev, "database_target", return_value=self.target()), patch.object(dev, "export", side_effect=[values, updated]), \
+                patch.object(dev, "cli", side_effect=inspect), patch.object(dev, "command", side_effect=[private, public, public]), \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            dev.provision_authentication()
+            self.assertNotIn("synthetic", output.getvalue())
+        self.assertTrue(files and all(not file.exists() for file in files))

@@ -1,4 +1,6 @@
 using System.Net;
+using System.Security.Cryptography;
+using EduCenterOS.Modules.IdentityAccess.Infrastructure.Configuration;
 using System.Text.Json;
 using EduCenterOS.Api.ErrorHandling;
 using EduCenterOS.Api.Middleware;
@@ -23,6 +25,15 @@ namespace EduCenterOS.IntegrationTests.IdentityAccess;
 
 public sealed class RuntimeSecurityTests(OwnedPostgresFixture database) : IClassFixture<OwnedPostgresFixture>
 {
+    private static AuthenticationRuntimeSettings AuthenticationSettings()
+    {
+        using var key = RSA.Create(2048);
+
+        return AuthenticationRuntimeSettings.FromSnapshot(
+            JsonSerializer.Serialize(new AuthenticationPolicy(), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
+            key.ExportPkcs8PrivateKeyPem(), "runtime-test", new Dictionary<string, string> { ["runtime-test"] = key.ExportSubjectPublicKeyInfoPem() });
+    }
+
     private IdentityAccessRuntimeSettings Settings(bool changedKey = false, bool strictLimit = false)
     {
         var policy = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(OwnedPostgresFixture.FindRoot(), "infra/registration-policy.json")))!;
@@ -75,6 +86,7 @@ public sealed class RuntimeSecurityTests(OwnedPostgresFixture database) : IClass
     {
         await database.PrepareIdentityAsync();
         var services = new ServiceCollection().AddSingleton(Settings()).AddLogging();
+        services.AddSingleton(AuthenticationSettings());
         services.AddIdentityAccess("Testing", ApiProblems.WriteErrorAsync);
 
         using (var provider = services.BuildServiceProvider())
@@ -85,6 +97,7 @@ public sealed class RuntimeSecurityTests(OwnedPostgresFixture database) : IClass
         }
 
         var changed = new ServiceCollection().AddSingleton(Settings(changedKey: true)).AddLogging();
+        changed.AddSingleton(AuthenticationSettings());
         changed.AddIdentityAccess("Testing", ApiProblems.WriteErrorAsync);
         using var changedProvider = changed.BuildServiceProvider();
         var failure = await Assert.ThrowsAsync<InvalidOperationException>(() => changedProvider.GetServices<IHostedService>().OfType<RegistrationRuntimeGuard>().Single().StartAsync(TestContext.Current.CancellationToken));
@@ -100,6 +113,7 @@ public sealed class RuntimeSecurityTests(OwnedPostgresFixture database) : IClass
         builder.WebHost.UseTestServer();
         builder.Logging.ClearProviders();
         builder.Services.AddSingleton(Settings(strictLimit: true));
+        builder.Services.AddSingleton(AuthenticationSettings());
         builder.Services.AddIdentityAccess("Testing", ApiProblems.WriteErrorAsync);
         await using var app = builder.Build();
         app.UseMiddleware<CorrelationMiddleware>();

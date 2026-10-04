@@ -23,6 +23,9 @@ SPEC.loader.exec_module(launcher)
 class LauncherTests(unittest.TestCase):
     def setUp(self):
         launcher.STOP.clear()
+        self.trust = patch.object(launcher, "trusted_https_opener", return_value=None)
+        self.trust.start()
+        self.addCleanup(self.trust.stop)
 
     @contextlib.contextmanager
     def server(self, educenteros):
@@ -52,11 +55,19 @@ class LauncherTests(unittest.TestCase):
 
     def test_existing_api_is_reused_without_running_bootstrap_commands(self):
         with self.server(True) as port, patch.object(launcher, "read_port", return_value=port), \
+                patch.object(launcher, "secure_api_ready", return_value=True), \
                 patch.object(launcher, "run_step") as step, contextlib.redirect_stdout(io.StringIO()) as output:
             launcher.launch()
             event = json.loads(output.getvalue())
             self.assertEqual("ready", event["kind"])
             self.assertFalse(event["owned"])
+            step.assert_not_called()
+
+    def test_http_only_instance_is_not_reused_as_secure_ready(self):
+        with self.server(True) as port, patch.object(launcher, "read_port", return_value=port), \
+                patch.object(launcher, "secure_api_ready", return_value=False), patch.object(launcher, "run_step") as step:
+            with self.assertRaises(RuntimeError): launcher.launch()
+            self.assertTrue(launcher.occupied(port))
             step.assert_not_called()
 
     def test_foreign_application_is_left_running(self):

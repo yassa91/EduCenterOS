@@ -1,4 +1,6 @@
 using EduCenterOS.BuildingBlocks.Time;
+using System.Security.Cryptography;
+using System.Text.Json.Nodes;
 using EduCenterOS.IntegrationTests.IdentityAccess;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Delivery;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -17,6 +19,7 @@ namespace EduCenterOS.IntegrationTests.Api;
 
 internal sealed class TestingApiFactory(OwnedPostgresFixture database, ControlledClock? clock = null, IInterceptor? interceptor = null) : WebApplicationFactory<Program>
 {
+    internal const string AuthenticationOrigin = "https://localhost:5443";
     internal SafeLogCapture Logs { get; } = new();
     internal TestOtpSender Sender { get; } = new();
     internal ControlledClock Clock { get; } = clock ?? new(DateTimeOffset.UtcNow);
@@ -50,19 +53,24 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
 
     private sealed class CloudTestSnapshotSource(OwnedPostgresFixture database) : IRuntimeSnapshotSource
     {
+        private static readonly RSA SigningKey = RSA.Create(2048);
         private readonly RuntimeSnapshot snapshot = RuntimeSnapshot.Parse(
             JsonSerializer.Serialize(new
             {
-                schemaVersion = 3,
+                schemaVersion = 4,
                 environment = "Testing",
                 databaseTarget = new { projectReference = database.Target.ProjectReference, host = database.Target.Host, environment = database.Target.Environment, serverMajor = database.Target.ServerMajor },
                 source = "CloudTestFixture",
                 securityPolicy = System.Text.Json.JsonSerializer.Deserialize<object>(File.ReadAllText(Path.Combine(OwnedPostgresFixture.FindRoot(), "infra/registration-policy.json"))),
+                authenticationPolicy = TestAuthenticationPolicy(),
                 developmentMailboxDirectory = (string?)null,
                 secrets = new Dictionary<string, string>
                 {
                     ["ConnectionStrings__RuntimeProbeDatabase"] = database.RuntimeConnectionString,
                     ["ConnectionStrings__IdentityAccessDatabase"] = database.ModuleConnectionString,
+                    ["IdentityAccess__Jwt__PrivateKeyPem"] = SigningKey.ExportPkcs8PrivateKeyPem(),
+                    ["IdentityAccess__Jwt__CurrentKeyId"] = "s03-test",
+                    ["IdentityAccess__Jwt__ValidationPublicKeys__s03-test"] = SigningKey.ExportSubjectPublicKeyInfoPem(),
                     ["IdentityAccess__Otp__HashKeys__v1"] = Convert.ToBase64String(database.OtpKey),
                     ["IdentityAccess__Otp__CurrentHashKeyVersion"] = "v1",
                     ["Platform__RateLimiting__PartitionDigestKey"] = Convert.ToBase64String(database.PartitionKey)
@@ -70,6 +78,15 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
             }),
             "Testing"
         );
+
+        private static JsonObject TestAuthenticationPolicy()
+        {
+            var policy = JsonNode.Parse(File.ReadAllText(Path.Combine(OwnedPostgresFixture.FindRoot(), "infra/authentication-policy.json")))!.AsObject();
+            policy["issuer"] = "https://educenteros.testing.invalid";
+            policy["browserOrigin"] = AuthenticationOrigin;
+
+            return policy;
+        }
 
         public RuntimeSnapshot Read() => snapshot;
     }

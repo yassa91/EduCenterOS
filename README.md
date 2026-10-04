@@ -36,16 +36,18 @@ python3 scripts/dev.py provision-cloud --environment Development
 python3 scripts/dev.py provision-cloud --environment Testing
 dotnet restore EduCenterOS.sln --locked-mode
 dotnet build EduCenterOS.sln -c Release --no-restore
+dotnet dev-certs https --trust
+python3 scripts/dev.py provision-auth
 python3 scripts/dev.py identity-migrate
 python3 scripts/dev.py run
 ```
 
-The API binds to `127.0.0.1:5100`. Ctrl+C stops it; Supabase remains running.
+The API binds to `127.0.0.1:5100` for existing registration/diagnostics and `https://localhost:5101` for the approved browser authentication protocol. HTTPS uses the trusted local .NET development certificate. Ctrl+C stops it; Supabase remains running.
 `/health/live` and `/health/ready` support GET/HEAD and return safe Healthy/Unhealthy status.
 Business API description: `/openapi/v1.json`. API startup does not apply migrations.
 Development OTP delivery remains the protected local mailbox described below.
 
-In Development, open `http://127.0.0.1:5100/swagger` for Swagger UI. It uses the existing `/openapi/v1.json` document and provides **Try it out** for the active operations. The UI assets are served locally. Rebuild and restart the API after code changes. Swagger UI is not enabled in Testing, Staging or Production.
+In Development, open `https://localhost:5101/swagger` for Swagger UI. It uses the existing `/openapi/v1.json` document and provides **Try it out** for the active operations. The UI assets are served locally. Rebuild and restart the API after code changes. Swagger UI is not enabled in Testing, Staging or Production.
 
 ### macOS double-click launcher
 
@@ -128,3 +130,9 @@ To replace a code/proof, wait at least the issue response's `resendAvailableAtUt
 - Each task uses a new branch from updated `main`, review and Squash Merge according to [T40](docs/technical/T40%20-%20Git%20%26%20GitHub%20Workflow.md). Automatic merge is delegated after acceptance, checks and review. The current private-repository plan blocks GitHub branch protection; these gates are enforced procedurally until server-side protection is available.
 
 The approved registration scope and current delivery evidence are in [S02](docs/sprints/S02.md) and [the registration contract](docs/contracts/S02-registration.md). Foundation evidence is in [S01](docs/sprints/S01.md). Current cloud hosting is defined by [T41](docs/technical/T41%20-%20Supabase%20Development%20%26%20Testing.md). Historical runtime, tests and CI contracts are in [T37](docs/technical/T37%20-%20Local%20Runtime%20%26%20Docker.md), [T33](docs/technical/T33%20-%20Testing%20Stack.md) and [T38](docs/technical/T38%20-%20CI%20%26%20Verification.md).
+
+## Authentication runtime (S03)
+
+The immutable runtime snapshot is now schema4 (maximum 65,536 UTF-8 bytes). Old or partial snapshots fail startup. Reviewed numeric policy is in `infra/authentication-policy.json`; signing material is held only in the existing Development Infisical scope. `provision-auth` explicitly adds a separate RSA key when the entire authentication extension is absent, validates an existing complete extension, and refuses partial configuration. It preserves existing DB/OTP/partition secrets. The protected YAML input is removed immediately; raw CLI output is withheld. CI and test hosts generate their own RSA keys, with a distinct synthetic issuer/origin.
+
+JWT key rotation requires prepublishing the new public key in the validation map, activating the matching new private key/current ID, retaining the old public key until every old token has expired plus the explicit skew, and then retiring it. Keep one to four immutable lowercase key IDs; never overwrite an existing ID with different public material. There is no token-directed discovery or automatic key replacement. OS TLS certificates and JWT signing keys are separate. Authentication routes become available with their owning S03 tasks; see [the contract](docs/contracts/S03-authentication.md).
