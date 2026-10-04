@@ -6,6 +6,9 @@ namespace EduCenterOS.Modules.IdentityAccess.Infrastructure.Persistence;
 
 internal sealed class IdentityAccessDbContext(DbContextOptions<IdentityAccessDbContext> options) : DbContext(options)
 {
+    internal DbSet<UserSession> Sessions => Set<UserSession>();
+    internal DbSet<RefreshTokenRecord> RefreshTokens => Set<RefreshTokenRecord>();
+    internal DbSet<LoginTarget> LoginTargets => Set<LoginTarget>();
     internal DbSet<PersonIdentity> People => Set<PersonIdentity>();
     internal DbSet<UserAccount> Accounts => Set<UserAccount>();
     internal DbSet<OtpChallenge> Challenges => Set<OtpChallenge>();
