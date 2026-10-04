@@ -70,7 +70,7 @@ internal sealed class UserAccount
     {
         RegistrationErrors.RequireUtc(now);
 
-        return Status == AccountStatus.Active && PhoneVerifiedAtUtc <= now &&
+        return Status == AccountStatus.Active && now >= CreatedAtUtc && PhoneVerifiedAtUtc <= now &&
             (LockoutEndUtc is null || now >= LockoutEndUtc);
     }
 

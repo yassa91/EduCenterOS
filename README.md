@@ -4,7 +4,7 @@ Backend foundation for education center management. Sprint S01 provides the loca
 
 ## Prerequisites
 
-.NET SDK from `global.json`, Python 3.11+, Git, PostgreSQL client (`psql` 17+), Infisical CLI 0.43.120.
+.NET SDK from `global.json`, Python 3.11+, Git, PostgreSQL client (`psql` 17+), OpenSSL for explicit Development RSA provisioning, Infisical CLI 0.43.120.
 No local database or Docker required. Development and Integration tests use two distinct Supabase
 projects; Unit and Architecture tests require no database credentials.
 
@@ -136,3 +136,5 @@ The approved registration scope and current delivery evidence are in [S02](docs/
 The immutable runtime snapshot is now schema4 (maximum 65,536 UTF-8 bytes). Old or partial snapshots fail startup. Reviewed numeric policy is in `infra/authentication-policy.json`; signing material is held only in the existing Development Infisical scope. `provision-auth` explicitly adds a separate RSA key when the entire authentication extension is absent, validates an existing complete extension, and refuses partial configuration. It preserves existing DB/OTP/partition secrets. The protected YAML input is removed immediately; raw CLI output is withheld. CI and test hosts generate their own RSA keys, with a distinct synthetic issuer/origin.
 
 JWT key rotation requires prepublishing the new public key in the validation map, activating the matching new private key/current ID, retaining the old public key until every old token has expired plus the explicit skew, and then retiring it. Keep one to four immutable lowercase key IDs; never overwrite an existing ID with different public material. There is no token-directed discovery or automatic key replacement. OS TLS certificates and JWT signing keys are separate. Authentication routes become available with their owning S03 tasks; see [the contract](docs/contracts/S03-authentication.md).
+
+Login is active at `POST /api/v1/auth/login`. After S02 registration, use HTTPS Swagger with `phoneNumber` and `password`; the request interceptor adds `X-EduCenterOS-Auth: 1`, and the browser supplies the exact same Origin. A successful response contains a short-lived access JWT, tokenType and expiration; the refresh credential stays in the Secure HttpOnly SameSite Strict cookie. Keep access only in memory and do not enable Swagger authorization persistence. Registration still creates no session. Unknown/wrong/inactive/locked login returns the same safe 401; follow 429/Retry-After without blind credential replay. A failure around Commit must not be treated as proof that no session was created. Protected account, refresh and session-management routes follow in their owning S03 tasks.

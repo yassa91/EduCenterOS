@@ -41,6 +41,10 @@ public static partial class ModuleRegistration
                 postgres => postgres.MigrationsHistoryTable("__ef_migrations_history", "identity_access").CommandTimeout(5))
             .AddInterceptors(provider.GetServices<IInterceptor>()));
         services.AddScoped<RegistrationTransactions>();
+        services.AddScoped<AuthenticationTransactions>();
+        services.AddScoped<Features.Login.LoginHandler>();
+        services.AddSingleton<LoginDummyPassword>();
+        services.AddHostedService<AuthenticationBudgetCleanup>();
         services.AddScoped<RequestPhoneVerificationHandler>();
         services.AddScoped<ResendPhoneVerificationHandler>();
         services.AddScoped<VerifyPhoneHandler>();

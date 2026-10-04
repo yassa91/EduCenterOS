@@ -112,3 +112,8 @@ class SupabaseBootstrapTests(unittest.TestCase):
             dev.provision_authentication()
             self.assertNotIn("synthetic", output.getvalue())
         self.assertTrue(files and all(not file.exists() for file in files))
+
+    def test_testing_environment_cannot_provision_development_signing_material(self):
+        with patch("sys.argv", ["dev.py", "provision-auth", "--environment", "Testing"]), patch.object(dev, "provision_authentication") as provision:
+            with self.assertRaisesRegex(RuntimeError, "DevelopmentOnly"): dev.main()
+            provision.assert_not_called()
