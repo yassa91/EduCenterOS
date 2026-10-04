@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using EduCenterOS.Modules.IdentityAccess.Features.Login;
+using EduCenterOS.Modules.IdentityAccess.Features.Refresh;
 using EduCenterOS.Modules.IdentityAccess.Contracts;
 using EduCenterOS.Modules.IdentityAccess.Features.RegisterAccount;
 using EduCenterOS.Modules.IdentityAccess.Features.RequestPhoneVerification;
@@ -44,6 +45,7 @@ public static partial class ModuleRegistration
                 Utf16Bounds(password, 1, 128);
                 schema.Properties!["password"] = password;
             }
+            else if (type == typeof(RefreshRequest)) Strict(schema);
             else if (type == typeof(AccessResponse))
             {
                 schema.Properties!["accessToken"].Description = "Short-lived access JWT; browser memory only; never persist or log.";

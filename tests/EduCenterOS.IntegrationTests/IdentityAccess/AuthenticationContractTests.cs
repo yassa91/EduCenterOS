@@ -21,7 +21,7 @@ public sealed class AuthenticationContractTests(OwnedPostgresFixture database) :
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         var paths = doc.RootElement.GetProperty("paths");
-        Assert.Equal(new[] { "/api/v1/accounts", "/api/v1/accounts/me", "/api/v1/auth/login", "/api/v1/phone-verifications", "/api/v1/phone-verifications/{challengeId}/resend", "/api/v1/phone-verifications/{challengeId}/verify" }, paths.EnumerateObject().Select(path => path.Name).Order(StringComparer.Ordinal).ToArray());
+        Assert.Equal(new[] { "/api/v1/accounts", "/api/v1/accounts/me", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/phone-verifications", "/api/v1/phone-verifications/{challengeId}/resend", "/api/v1/phone-verifications/{challengeId}/verify" }, paths.EnumerateObject().Select(path => path.Name).Order(StringComparer.Ordinal).ToArray());
         var login = paths.GetProperty("/api/v1/auth/login").GetProperty("post");
         Assert.Equal("Authentication_Login", login.GetProperty("operationId").GetString());
         Assert.Equal("AnonymousSecurity", login.GetProperty("x-security-classification").GetString());
@@ -51,7 +51,17 @@ public sealed class AuthenticationContractTests(OwnedPostgresFixture database) :
             Assert.True(statuses.GetProperty(status).GetProperty("headers").TryGetProperty("Cache-Control", out _));
         }
         var endpoints = factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>().Where(endpoint => endpoint.RoutePattern.RawText?.StartsWith("/api/v1/", StringComparison.Ordinal) == true).ToArray();
-        Assert.Equal(6, endpoints.Length);
+        Assert.Equal(7, endpoints.Length);
+        var refresh = paths.GetProperty("/api/v1/auth/refresh").GetProperty("post");
+        Assert.Equal("Authentication_Refresh", refresh.GetProperty("operationId").GetString());
+        Assert.Equal("AnonymousSecurity", refresh.GetProperty("x-security-classification").GetString());
+        Assert.Equal("RefreshSource", refresh.GetProperty("x-rate-limit-policy").GetString());
+        Assert.Equal("SecuritySpecific", refresh.GetProperty("x-idempotency-mode").GetString());
+        Assert.Empty(refresh.GetProperty("security").EnumerateArray());
+        Assert.True(refresh.GetProperty("requestBody").GetProperty("required").GetBoolean());
+        Assert.False(schemas.GetProperty("RefreshRequest").GetProperty("additionalProperties").GetBoolean());
+        if (schemas.GetProperty("RefreshRequest").TryGetProperty("properties", out var refreshProperties))
+            Assert.Empty(refreshProperties.EnumerateObject());
         var current = paths.GetProperty("/api/v1/accounts/me").GetProperty("get");
         Assert.Equal("AccountSelf", current.GetProperty("x-security-classification").GetString());
         Assert.Equal("NotRequiredRead", current.GetProperty("x-idempotency-mode").GetString());
