@@ -1,5 +1,7 @@
 # T33 - Testing Stack
 
+> **2026-10-04 — S03 scope clarification:** The approved [S03](../sprints/S03.md) implements Authentication & Session Management. Earlier Sprint 03 / S03-T04 / S03-T06 Institutions/Account Facts examples below describe future institution work, not the current task numbering or authorization. Their module-boundary rules remain applicable when that feature is implemented.
+
 > **2026-10-03 — Current development/testing override:** [T41 — Supabase Development & Testing](T41%20-%20Supabase%20Development%20%26%20Testing.md) replaces local PostgreSQL/Docker/Testcontainers provisioning and the synthetic-only infrastructure credential rule. The owner requested two cloud projects and an empty development database. The following earlier decision/evidence remains historical where it conflicts with T41. Remote compatibility verification is required before DB01 is complete.
 
 ## الهدف من القرار

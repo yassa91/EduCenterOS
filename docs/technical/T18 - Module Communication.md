@@ -1,5 +1,7 @@
 # T18 - التواصل المتزامن بين الـModules - القرار التقني المعتمد
 
+> **2026-10-04 — S03 scope clarification:** The approved [S03](../sprints/S03.md) implements Authentication & Session Management. Earlier Sprint 03 / S03-T04 / S03-T06 Institutions/Account Facts examples below describe future institution work, not the current task numbering or authorization. Their module-boundary rules remain applicable when that feature is implemented.
+
 ## الهدف من القرار
 
 تحديد الشكل الموحد للتواصل المتزامن `Synchronous Communication` بين الـBusiness Modules داخل EduCenterOS، بحيث:

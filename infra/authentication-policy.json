@@ -1,0 +1,16 @@
+{
+  "issuer": "https://localhost:5101",
+  "audience": "educenteros-api",
+  "browserOrigin": "https://localhost:5101",
+  "accessLifetimeSeconds": 600,
+  "idleTimeoutSeconds": 2592000,
+  "absoluteLifetimeSeconds": 7776000,
+  "clockSkewSeconds": 5,
+  "lockoutAttempts": 5,
+  "lockoutSeconds": 300,
+  "loginWindowSeconds": 900,
+  "loginIdentifierPermits": 10,
+  "sourceWindowSeconds": 60,
+  "sourcePermits": 60,
+  "refreshSourcePermits": 30
+}
