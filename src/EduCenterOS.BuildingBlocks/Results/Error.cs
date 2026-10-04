@@ -30,10 +30,18 @@ public sealed class Error
     public int? RetryDelaySeconds { get; }
 
     public Error(string code, ErrorCategory category, string description, int? retryDelaySeconds = null)
-        : this(code, category, description, [], false, retryDelaySeconds) { }
+        : this(code, category, description, [], false, retryDelaySeconds)
+    {
+    }
 
-    private Error(string code, ErrorCategory category, string description,
-        IReadOnlyList<ValidationIssue> issues, bool truncated, int? retryDelaySeconds)
+    private Error(
+        string code,
+        ErrorCategory category,
+        string description,
+        IReadOnlyList<ValidationIssue> issues,
+        bool truncated,
+        int? retryDelaySeconds
+    )
     {
         if (
             string.IsNullOrWhiteSpace(code) ||
@@ -59,7 +67,6 @@ public sealed class Error
     public static Error Validation(IEnumerable<ValidationIssue> issues)
     {
         ArgumentNullException.ThrowIfNull(issues);
-
         var distinct = issues.DistinctBy(issue => (issue.MemberPath, issue.Code)).Take(51).ToArray();
 
         if (
@@ -78,8 +85,8 @@ public sealed class Error
         }
 
         var bounded = distinct.Take(50)
-        .OrderBy(issue => issue.MemberPath, StringComparer.Ordinal)
-        .ThenBy(issue => issue.Code, StringComparer.Ordinal).ToArray();
+            .OrderBy(issue => issue.MemberPath, StringComparer.Ordinal)
+            .ThenBy(issue => issue.Code, StringComparer.Ordinal).ToArray();
 
         return new Error(
             "Validation.Failed",

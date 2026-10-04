@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EduCenterOS - AI Features</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #20242c;
+            --muted: #515965;
+            --line: #d9dde3;
+            --accent: #1d4ed8;
+        }
+        * { box-sizing: border-box; }
+        html { direction: rtl; text-align: right; scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            direction: rtl;
+            text-align: right;
+            background: #f3f4f6;
+            color: var(--ink);
+            font-family: "Geeza Pro", Tahoma, Arial, sans-serif;
+            font-size: 19px;
+            line-height: 1.95;
+            overflow-wrap: anywhere;
+        }
+        main {
+            width: min(1120px, calc(100% - 112px));
+            margin: 32px auto;
+            padding: clamp(24px, 4vw, 48px);
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+        h1, h2, h3 { color: #161b24; line-height: 1.65; text-wrap: balance; }
+        h1 { font-size: 30px; margin-block: 0 40px; }
+        h2 {
+            font-size: 26px; margin: 0; padding-block-end: 20px;
+            border-block-end: 1px solid #a7b2c3;
+            scroll-margin-block-start: 24px;
+        }
+        h3 { font-size: 23px; margin-block: 0 24px; }
+        p { margin-block: 18px; text-wrap: pretty; }
+        .agreed-feature > p, .agreed-feature > ul {
+            width: 100%; max-width: none;
+            text-align: right;
+        }
+        .feature-description { font-size: 20px; margin-block: 0 24px; }
+        .feature-users { color: var(--muted); font-size: 17px; }
+        ul { margin-block: 16px 24px; padding-inline-start: 28px; padding-inline-end: 0; }
+        .agreed-feature li { padding-inline-start: 4px; }
+        .agreed-feature li + li { margin-block-start: 12px; }
+        .feature-example {
+            padding: 16px 20px; background: #f5f7fa;
+            border-radius: 8px; margin-block: 24px 20px;
+        }
+        .feature-rules { color: #47515f; font-size: 17px; line-height: 1.95; }
+        a { color: var(--accent); text-underline-offset: 3px; }
+        a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+        .feature-group { margin-block-start: 72px; }
+        .feature-group:first-of-type { margin-block-start: 0; }
+        .agreed-feature {
+            padding-block: 36px 40px;
+            border-block-end: 1px solid var(--line);
+            scroll-margin-block-start: 24px;
+        }
+        .agreed-feature:last-child { border-block-end: 0; padding-block-end: 0; }
+        .agreed-feature:focus { outline: none; }
+        .feature-code {
+            display: inline-block; padding: 2px 10px; border-radius: 6px;
+            background: #edf2ff; text-decoration: none; font-size: 18px;
+            vertical-align: baseline; white-space: nowrap;
+        }
+        .feature-code:hover { background: #dfe8ff; }
+        .sr-only {
+            position: absolute; width: 1px; height: 1px;
+            padding: 0; margin: -1px; overflow: hidden;
+            clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+        }
+        /* A quiet reading rail on the physical right edge. */
+        .document-index {
+            position: fixed; inset-inline-start: 8px; top: 50%;
+            transform: translateY(-50%);
+            width: 40px; height: min(768px, calc(100vh - 48px));
+            height: min(768px, calc(100dvh - 48px));
+            z-index: 10;
+        }
+        .index-track {
+            display: flex; flex-direction: column;
+            height: 100%; margin: 0; padding: 0;
+            list-style: none; overflow-y: auto;
+            scrollbar-width: none; overscroll-behavior: contain;
+        }
+        .index-track::-webkit-scrollbar { display: none; }
+        .index-track li { flex: 1 0 24px; min-height: 24px; }
+        .index-track a {
+            display: flex; align-items: center; justify-content: flex-start;
+            height: 100%; min-height: 24px; padding-inline-start: 4px;
+            text-decoration: none; position: relative;
+        }
+        .index-mark {
+            display: block; width: 32px; height: 3px;
+            background: #858b94;
+            transform: scaleX(.25); transform-origin: right center;
+            transition: transform 160ms ease-out, background-color 160ms ease-out;
+        }
+        .index-track [data-group-start="true"] .index-mark { transform: scaleX(.5); }
+        .index-track a[data-near="2"] .index-mark { transform: scaleX(.5); }
+        .index-track a[data-near="1"] .index-mark { transform: scaleX(.75); background: #626a76; }
+        .index-track a:hover .index-mark, .index-track a:focus-visible .index-mark {
+            transform: scaleX(.875); background: #20242c;
+        }
+        .index-track a[aria-current="location"] .index-mark {
+            height: 4px; transform: scaleX(1); background: #20242c;
+        }
+        .index-track a:focus-visible { outline-offset: -2px; border-radius: 4px; }
+        .index-preview {
+            position: fixed; inset-inline-start: 64px; top: 24px;
+            width: min(420px, calc(100vw - 88px));
+            max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px);
+            overflow-y: auto; overscroll-behavior: contain;
+            padding: 20px 24px; border-radius: 14px;
+            background: #262626; color: #f5f5f5;
+            box-shadow: 0 4px 8px #00000029;
+            font-size: 15px; line-height: 1.85; z-index: 20;
+        }
+        .index-preview[hidden] { display: none; }
+        .preview-group { font-size: 12px; color: #d1d5db; margin: 0 0 8px; }
+        .preview-title { margin: 0 0 12px; font-size: 17px; color: #fff; line-height: 1.7; }
+        .preview-title bdi { font-size: 15px; margin-inline-end: 6px; }
+        .preview-description, .preview-example {
+            display: -webkit-box; -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3; overflow: hidden;
+            margin: 0; color: #d1d5db;
+        }
+        .preview-example { -webkit-line-clamp: 2; margin-block-start: 16px; color: #c4c8ce; }
+        .skip-link { position: fixed; top: -100px; inset-inline-start: 64px; z-index: 30; background: #fff; padding: 10px 16px; }
+        .skip-link:focus { top: 16px; }
+        @media (max-width: 700px) {
+            body { font-size: 17px; }
+            main { width: calc(100% - 80px); margin: 16px auto; padding: 24px 20px; }
+            h1 { font-size: 25px; margin-block-end: 32px; }
+            h2 { font-size: 22px; padding-block-end: 16px; }
+            h3 { font-size: 20px; margin-block-end: 20px; }
+            .feature-description { font-size: 18px; }
+            .feature-users, .feature-rules { font-size: 16px; }
+            .feature-group { margin-block-start: 48px; }
+            .agreed-feature { padding-block: 28px 32px; }
+            .feature-example { padding: 12px 16px; }
+            .document-index { inset-inline-start: 0; width: 40px; }
+            .index-track a { padding-inline-start: 4px; }
+            .index-mark { width: 28px; }
+            .index-preview { inset-inline-start: 48px; width: calc(100vw - 64px); padding: 16px 20px; }
+        }
+        @media (pointer: coarse) {
+            .document-index { width: 44px; }
+            .index-track li, .index-track a { min-height: 44px; }
+            .index-track li { flex-basis: 44px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .index-mark { transition: none; }
+        }
+        @media print {
+            html { scroll-behavior: auto; }
+            body { background: #fff; font-size: 11pt; }
+            main { width: 100%; margin: 0; max-width: none; padding: 0; border: 0; }
+            .document-index, .index-preview, .skip-link { display: none !important; }
+            h1, h2, h3 { break-after: avoid; }
+            h1 { font-size: 20pt; }
+            h2 { font-size: 16pt; }
+            h3 { font-size: 13pt; }
+            .feature-description { font-size: 11pt; }
+            .feature-users, .feature-rules { font-size: 10pt; }
+            .feature-group { margin-block-start: 24px; }
+            .agreed-feature { padding-block: 16px 24px; }
+            .feature-example { background: none; padding: 0; }
+            .feature-code { background: none; color: #111827; padding: 0; font-size: 11pt; }
+            @page { size: A4; margin: 16mm; }
+        }
+        /* Summary table shares the reading page's type and spacing. */
+        .table-scroll { width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; margin-block: 28px 12px; }
+        .table-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+        .ai-summary { width: 100%; min-width: 880px; border-collapse: collapse; font-size: 16px; line-height: 1.85; }
+        .ai-summary th, .ai-summary td { padding: 14px 16px; text-align: right; vertical-align: top; border: 1px solid var(--line); }
+        .ai-summary th { color: #161b24; background: #f5f7fa; font-weight: 700; }
+        .ai-summary th:first-child, .ai-summary td:first-child { white-space: nowrap; }
+        .ai-summary tbody tr:nth-child(even) { background: #fafbfc; }
+        .document-index { height: min(96px, calc(100vh - 48px)); height: min(96px, calc(100dvh - 48px)); }
+        @media (pointer: coarse) { .document-index { height: min(176px, calc(100vh - 48px)); height: min(176px, calc(100dvh - 48px)); } }
+        @media print {
+            .table-scroll { overflow: visible; }
+            .ai-summary { min-width: 0; font-size: 8pt; line-height: 1.5; }
+            .ai-summary th, .ai-summary td { padding: 6px 8px; }
+            .ai-summary thead { display: table-header-group; }
+            .ai-summary tr { break-inside: avoid; }
+        }
+    </style>
+</head>
+
+<body>
+    <a class="skip-link" href="#document-content">انتقل إلى المحتوى</a>
+    <nav class="document-index" id="document-index" aria-label="فهرس مميزات الذكاء الاصطناعي — اختر علامة لعرض ملخص الميزة أو الانتقال إليها">
+        <ol class="index-track">
+            <li data-group-start="true"><a href="#feature-AI01" aria-label="AI01 — التصنيف الذكي لطلبات الطلاب وأولياء الأمور" aria-current="location">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>AI01</bdi> — التصنيف الذكي لطلبات الطلاب وأولياء الأمور</span>
+            </a></li>
+            <li><a href="#feature-AI02" aria-label="AI02 — تلخيص تقارير السنتر واختيار الملاحظات المهمة">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>AI02</bdi> — تلخيص تقارير السنتر واختيار الملاحظات المهمة</span>
+            </a></li>
+            <li><a href="#feature-AI03" aria-label="AI03 — مساعد الأسئلة الشائعة بإجابات معتمدة">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>AI03</bdi> — مساعد الأسئلة الشائعة بإجابات معتمدة</span>
+            </a></li>
+            <li><a href="#feature-AI04" aria-label="AI04 — مساعد صياغة الإعلانات والرسائل">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>AI04</bdi> — مساعد صياغة الإعلانات والرسائل</span>
+            </a></li>
+        </ol>
+    </nav>
+    <div class="index-preview" id="index-preview" role="tooltip" hidden>
+        <p class="preview-group"></p>
+        <h3 class="preview-title"><bdi></bdi><span></span></h3>
+        <p class="preview-description"></p>
+        <p class="preview-example"></p>
+    </div>
+    <main id="document-content">
+        <h1>EduCenterOS — AI Features</h1>
+        <section class="feature-group" aria-labelledby="ai-features">
+            <h2 id="ai-features">مميزات الذكاء الاصطناعي — AI Features</h2>
+            <div class="table-scroll" role="region" aria-label="ملخص مميزات الذكاء الاصطناعي وصعوبتها" tabindex="0">
+<table class="ai-summary" aria-label="ملخص المميزات وصعوبة التنفيذ والتدريب">
+<thead><tr><th scope="col">‏الكود</th><th scope="col">‏الميزة والنطاق المقترح</th><th scope="col">‏صعوبة التنفيذ والربط</th><th scope="col">‏صعوبة التدريب والبيانات</th><th scope="col">‏الملاءمة للفريق</th></tr></thead>
+<tbody>
+<tr><td>‏<a href="#feature-AI01" class="feature-link" aria-label="عرض تفاصيل AI01: التصنيف الذكي لطلبات الطلاب وأولياء الأمور">AI01</a></td><td>‏تصنيف الطلب المكتوب إلى نقل أو تجميد أو استرداد أو استفسار عام.</td><td>‏منخفضة إلى متوسطة: شاشة طلب وخدمة تصنيف وتأكيد يدوي.</td><td>‏منخفضة إلى متوسطة: أمثلة عربية مصنفة، وتحويل نصوص مع مصنّف تقليدي.</td><td>‏الترشيح الأول؛ نطاق واضح وتقييم مباشر.</td></tr>
+<tr><td>‏<a href="#feature-AI02" class="feature-link" aria-label="عرض تفاصيل AI02: تلخيص تقارير السنتر واختيار الملاحظات المهمة">AI02</a></td><td>‏اختيار الملاحظات المهمة من تقرير محدد وعرضها في ملخص بقوالب.</td><td>‏متوسطة: تجهيز مؤشرات التقرير وصياغة الملخص وربط كل ملاحظة ببياناتها.</td><td>‏متوسطة إلى مرتفعة: حالات تقارير مع أحكام بشرية على أهمية الملاحظات. التلخيص الحر من الصفر أعلى صعوبة.</td><td>‏بديل قابل للمناقشة إذا توفر من يراجع البيانات ويحدد الأهمية.</td></tr>
+<tr><td>‏<a href="#feature-AI03" class="feature-link" aria-label="عرض تفاصيل AI03: مساعد الأسئلة الشائعة بإجابات معتمدة">AI03</a></td><td>‏تحديد موضوع السؤال واختيار إجابة معتمدة من مجموعة أسئلة محدودة.</td><td>‏متوسطة: واجهة أسئلة وإجابات وإدارة المحتوى ومسار عدم التأكد.</td><td>‏منخفضة إلى متوسطة للنطاق المحدود: صيغ متنوعة لكل موضوع، مع أسئلة خارج النطاق للاختبار.</td><td>‏الترشيح الثاني؛ توسع عدد الموضوعات يرفع صعوبة البيانات.</td></tr>
+<tr><td>‏<a href="#feature-AI04" class="feature-link" aria-label="عرض تفاصيل AI04: مساعد صياغة الإعلانات والرسائل">AI04</a></td><td>‏صياغة نص عربي جديد بحرية من تفاصيل إعلان أو رسالة.</td><td>‏متوسطة للواجهة والربط، مع جهد أكبر لمراجعة النص والحقائق.</td><td>‏مرتفعة جدًا من الصفر: بيانات عربية كثيرة وتدريب توليدي وتقييم اللغة والحقائق. يوجد بديل محدود يعتمد على تصنيف نوع الرسالة وقوالب.</td><td>‏التوليد الحر غير مرشح للفريق حاليًا؛ يناقش البديل المحدود فقط.</td></tr>
+</tbody></table>
+            </div>
+            <section class="agreed-feature" id="feature-AI01" tabindex="-1">
+                <h3><a class="feature-code" href="#feature-AI01" aria-label="رابط ميزة AI01"><bdi>AI01</bdi></a> — التصنيف الذكي لطلبات الطلاب وأولياء الأمور</h3>
+                <p class="feature-description">‏<strong>وصف الميزة:</strong> تصنيف الطلب المكتوب إلى نقل أو تجميد أو استرداد أو استفسار عام.</p>
+<p class="feature-users">‏<strong>المستخدمون:</strong> الطلاب وأولياء الأمور وموظفو استقبال الطلبات.</p>
+<p>‏<strong>الوظائف المقترحة:</strong></p>
+<ul>
+<li>‏استقبال وصف الطلب بالعربية، واقتراح فئة واحدة من: نقل مجموعة، تجميد تسجيل، استرداد، استفسار عام.</li>
+<li>‏إظهار التصنيف للمستخدم للتأكيد أو التعديل، ثم توجيه الطلب إلى قائمة المراجعة المناسبة.</li>
+<li>‏إتاحة اختيار النوع يدويًا إذا كان الطلب خارج الفئات أو لم تحقق النتيجة مستوى الثقة المعتمد بالتجربة.</li>
+<li>‏حفظ التصحيح بعد مراجعته للاستفادة منه في تحديث بيانات التدريب لاحقًا.</li>
+</ul>
+<p class="feature-example">‏<strong>مثال عملي:</strong> «عايز أوقف الاشتراك الشهر الجاي وأرجع بعده» → يقترح الموديل «تجميد تسجيل»، ثم يؤكد المستخدم التصنيف.</p>
+<p>‏<strong>ما الذي يتعلمه الموديل؟</strong> العلاقة بين صياغة الطلب والفئة الصحيحة. نقترح تدريب TF-IDF مع Logistic Regression، مع تجربة تمثيل الكلمات أو أجزاء الحروف للتعامل مع اختلاف الصياغة والكتابة.</p>
+<p>‏<strong>البيانات المطلوبة:</strong> طلبات عربية قصيرة مصنفة يدويًا، بصيغ مصرية وفصحى ومن كُتّاب مختلفين. نستهدف مبدئيًا نحو 100 مثال متنوع لكل فئة كخطة بداية؛ العدد ليس ضمانًا للجودة ويزاد حسب أخطاء التقييم. تشمل التجربة طلبات ملتبسة وخارج النطاق، مع تجنب استخدام أسماء أو بيانات شخصية حقيقية.</p>
+<p>‏<strong>صعوبة التنفيذ:</strong> منخفضة إلى متوسطة؛ الربط يحتاج خدمة تستقبل النص وتعيد التصنيف، وشاشة تسمح بتصحيحه. تتصل الميزة برحلة طلبات الطالب وولي الأمر داخل مساحة الطالب وولي الأمر.</p>
+<p>‏<strong>صعوبة التدريب:</strong> منخفضة إلى متوسطة بالنسبة لباقي البدائل. إعداد وتصنيف الأمثلة وتنويعها هو الجهد الرئيسي؛ الموديل التقليدي الصغير غالبًا يناسب جهاز الفريق العادي، دون الحاجة لتدريب نموذج لغوي كبير.</p>
+<p>‏<strong>التقييم:</strong> قياس Precision وRecall وF1 لكل فئة وMacro-F1، وعرض مصفوفة الأخطاء. نختبر طلبات جديدة وصيغًا غير مكررة، ونضبط مسار عدم التأكد باستخدام بيانات تحقق مستقلة؛ درجة الثقة ليست ضمانًا لصحة النتيجة.</p>
+<p class="feature-rules">‏<strong>نطاق البداية:</strong> طلب واحد واضح في كل مرة، وأربع فئات فقط. التصنيف يساعد في توجيه الطلب، وتنفيذ النقل أو الاسترداد يظل خاضعًا لإجراءات النظام والموافقات المعتادة.</p>
+            </section>
+            <section class="agreed-feature" id="feature-AI02" tabindex="-1">
+                <h3><a class="feature-code" href="#feature-AI02" aria-label="رابط ميزة AI02"><bdi>AI02</bdi></a> — تلخيص تقارير السنتر واختيار الملاحظات المهمة</h3>
+                <p class="feature-description">‏<strong>وصف الميزة:</strong> اختيار الملاحظات المهمة من تقرير محدد وعرضها في ملخص بقوالب.</p>
+<p class="feature-users">‏<strong>المستخدمون:</strong> مدير الفرع وإدارة السنتر ضمن صلاحيات التقارير.</p>
+<p>‏<strong>الوظائف المقترحة:</strong></p>
+<ul>
+<li>‏البدء بتقرير أسبوعي واحد يشمل الحضور والسعة والتسجيلات، ضمن لوحات المتابعة والتقارير.</li>
+<li>‏تجهيز ملاحظات واقعية مرشحة من مؤشرات التقرير، مع حفظ الرقم والفترة والمجموعة التي تخص كل ملاحظة.</li>
+<li>‏استخدام موديل مدرّب لترتيب أهمية الملاحظات، ثم عرض عدد قليل منها في ملخص عربي بقوالب واضحة.</li>
+<li>‏إتاحة الرجوع إلى التقرير الأصلي وإظهار نقص البيانات عندما يمنع المقارنة الصحيحة.</li>
+</ul>
+<p class="feature-example">‏<strong>مثال عملي:</strong> من بين ملاحظات التقرير، يختار الموديل ملاحظة حضور مجموعة الفيزياء 70% وملاحظة وصول مجموعة الرياضيات إلى 95% من سعتها، ثم يعرضهما النظام بصياغة ثابتة مرتبطة بالأرقام.</p>
+<p>‏<strong>ما الذي يتعلمه الموديل؟</strong> أولوية عرض الملاحظة بناءً على نوع المؤشر وقيمته وحجم المجموعة والتغير عن الفترة السابقة. يمكن تدريب مصنّف لأهمية الملاحظات، مثل Logistic Regression أو شجرة قرار؛ حساب المؤشرات وكتابة القوالب يتمان برمجيًا.</p>
+<p>‏<strong>البيانات المطلوبة:</strong> حالات تقارير متنوعة، وتقييم بشري لكل ملاحظة: مهمة أو أقل أهمية، وفق معيار متفق عليه مع شخص يفهم تشغيل السنتر. نحتاج حالات انخفاض وارتفاع واستقرار وبيانات ناقصة. البيانات التجريبية تفيد في تطوير العرض، لكن تقييم الفائدة الفعلية يتطلب حالات مستقلة وأحكامًا بشرية موثوقة.</p>
+<p>‏<strong>صعوبة التنفيذ:</strong> متوسطة؛ تجهيز التقرير وربط الملاحظات بالأرقام ومنع أخطاء الحساب يحتاجان اهتمامًا. هذه النسخة تنتج ملخصًا محدودًا بالقوالب.</p>
+<p>‏<strong>صعوبة التدريب:</strong> متوسطة إلى مرتفعة بسبب صعوبة الاتفاق على «أهمية» الملاحظة وتوفير أمثلة جيدة. تدريب موديل يولّد ملخصات عربية حرة من الصفر أكثر صعوبة، ولا يدخل في النسخة المحدودة المقترحة.</p>
+<p>‏<strong>التقييم:</strong> مقارنة الملاحظات المختارة باختيار المراجع البشري، وقياس نسبة المهم منها ضمن النتائج الأولى، ومقارنتها بترتيب بسيط ثابت للمؤشرات. نراجع تطابق جميع الأرقام مع التقرير وصحة التعامل مع البيانات الناقصة.</p>
+<p class="feature-rules">‏<strong>نطاق البداية:</strong> تقرير واحد ومؤشرات قليلة؛ الموديل يحدد أولوية عرض حقائق متاحة. تفسير سبب انخفاض الحضور أو توقع الانسحاب يحتاج بيانات ونطاقًا مستقلين.</p>
+            </section>
+            <section class="agreed-feature" id="feature-AI03" tabindex="-1">
+                <h3><a class="feature-code" href="#feature-AI03" aria-label="رابط ميزة AI03"><bdi>AI03</bdi></a> — مساعد الأسئلة الشائعة بإجابات معتمدة</h3>
+                <p class="feature-description">‏<strong>وصف الميزة:</strong> تحديد موضوع السؤال واختيار إجابة معتمدة من مجموعة أسئلة محدودة.</p>
+<p class="feature-users">‏<strong>المستخدمون:</strong> الطلاب وأولياء الأمور، والموظف المسؤول عن تحديث الأسئلة والإجابات.</p>
+<p>‏<strong>الوظائف المقترحة:</strong></p>
+<ul>
+<li>‏استقبال سؤال مكتوب بالعربية عن التسجيل والمواعيد والنقل والتجميد وسياسة الاسترداد.</li>
+<li>‏تصنيف موضوع السؤال واختيار إجابة معتمدة للسنتر من المحتوى الذي يديره الموظف.</li>
+<li>‏طلب اختيار موضوع أو تحويل السؤال للموظف عند عدم التأكد أو خروج السؤال عن النطاق.</li>
+<li>‏تحديث نص الإجابة من لوحة الإدارة؛ وإعادة تدريب المصنّف عندما تتغير الموضوعات أو تضاف موضوعات جديدة.</li>
+</ul>
+<p class="feature-example">‏<strong>مثال عملي:</strong> «لو هوقف شهر وبعدين أرجع أعمل إيه؟» → يصنف الموديل السؤال ضمن «إجراءات التجميد» ويعرض الإجابة المعتمدة لهذا السنتر.</p>
+<p>‏<strong>ما الذي يتعلمه الموديل؟</strong> ربط صيغ السؤال بالموضوع المناسب باستخدام TF-IDF ومصنّف مدرّب على بيانات الفريق. نص الإجابة يكتبه المسؤول؛ الموديل لا يولّد إجابات حرة.</p>
+<p>‏<strong>البيانات المطلوبة:</strong> موضوعات محددة، وإجابة معتمدة لكل موضوع، وصيغ متعددة للأسئلة الخاصة به. يمكن البدء بخمسة موضوعات ونحو 50–100 صيغة متنوعة لكل موضوع كخطة أولية قابلة للتعديل. نضيف أمثلة خارج النطاق وأسئلة متشابهة بين الموضوعات لاختبار مسار عدم التأكد.</p>
+<p>‏<strong>صعوبة التنفيذ:</strong> متوسطة؛ تشمل واجهة المحادثة وإدارة الإجابات واختيار محتوى المؤسسة الصحيحة. بيانات الحساب الشخصية مثل الرصيد والحضور خارج نطاق البداية.</p>
+<p>‏<strong>صعوبة التدريب:</strong> منخفضة إلى متوسطة للنطاق الصغير. كلما زادت الموضوعات المتشابهة أو اختلفت اللهجات، زادت الحاجة إلى أمثلة ومراجعة الأخطاء.</p>
+<p>‏<strong>التقييم:</strong> قياس صحة الموضوع والإجابة المختارة على أسئلة جديدة، وأداء كل موضوع، ونسبة الإجابات غير المناسبة على الأسئلة خارج النطاق. عرض أمثلة الأخطاء ومعالجتها جزء من التقييم.</p>
+<p class="feature-rules">‏<strong>نطاق البداية:</strong> مساعد أسئلة بإجابات معتمدة ومحددة؛ المحادثة المفتوحة متعددة الموضوعات وتوليد الإجابات من الصفر يحتاجان مشروع تدريب أوسع.</p>
+            </section>
+            <section class="agreed-feature" id="feature-AI04" tabindex="-1">
+                <h3><a class="feature-code" href="#feature-AI04" aria-label="رابط ميزة AI04"><bdi>AI04</bdi></a> — مساعد صياغة الإعلانات والرسائل</h3>
+                <p class="feature-description">‏<strong>وصف الميزة:</strong> صياغة نص عربي جديد بحرية من تفاصيل إعلان أو رسالة.</p>
+<p class="feature-users">‏<strong>المستخدمون:</strong> الإدارة وموظفو التواصل والإعلانات.</p>
+<p>‏<strong>الوظائف المقترحة في الفكرة الأصلية:</strong> إدخال تفاصيل الإعلان والجمهور والأسلوب، ثم إنتاج مسودة عربية جديدة قابلة للمراجعة، وربطها بمركز الإشعارات والتنبيهات والإعلانات داخل النظام.</p>
+<p class="feature-example">‏<strong>مثال عملي:</strong> يكتب الموظف تفاصيل تغيير موعد مجموعة الرياضيات، فينتج الموديل مسودة رسالة تحتوي اسم المجموعة والموعد الجديد دون تغيير الحقائق.</p>
+<p>‏<strong>صعوبة التنفيذ:</strong> واجهة الإدخال وعرض المسودة متوسطة الصعوبة؛ التحقق من الأسماء والمواعيد وصحة النص والمراجعة قبل الإرسال يزيد جهد التنفيذ.</p>
+<p>‏<strong>صعوبة التدريب:</strong> مرتفعة جدًا عند تدريب التوليد الحر من الصفر. يحتاج بيانات عربية كثيرة ومتنوعة، وأمثلة تربط تفاصيل الإعلان بالنص الصحيح، وتدريبًا متخصصًا وموارد حسابية وتجارب متعددة. عدد قليل من الرسائل قد ينتج نصوصًا محفوظة أو ضعيفة، ولا يكفي لافتراض جودة التوليد على حالات جديدة.</p>
+<p>‏<strong>البيانات المطلوبة:</strong> نصوص عربية مناسبة للتعلم اللغوي وأزواج مدخلات ومسودات مراجعة تغطي أنواع الإعلانات والأساليب والمواقف. حجمها وتكلفتها يتوقفان على الموديل المستهدف، ولا يمكن ضمانهما قبل تجربة تدريب فعلية.</p>
+<p>‏<strong>بديل محدود قابل للمناقشة:</strong> تدريب مصنّف على وصف الرسالة ليختار نوعها، مثل تغيير موعد أو فتح التسجيل أو تذكير، ثم تعبئة قالب معتمد ببيانات يراجعها الموظف. يحتاج هذا البديل أمثلة مصنفة لكل نوع؛ صعوبة التنفيذ والتدريب منخفضة إلى متوسطة. الجزء المتعلم هو اختيار نوع الرسالة، والتأليف هنا بالقوالب.</p>
+<p>‏<strong>التقييم:</strong> في البديل المحدود نقيس صحة اختيار القالب واكتمال الحقول وتطابق التفاصيل مع المدخلات. في التوليد الحر نحتاج أيضًا تقييمًا بشريًا لصحة اللغة والحقائق وتنوع الصياغة على مواقف جديدة.</p>
+<p class="feature-rules">‏<strong>ملاءمة الفريق:</strong> لا نرشح التوليد الحر من الصفر للفريق في المرحلة الحالية. يمكن مناقشة البديل المحدود كميزة أخرى ذات نطاق صريح، دون عرضه كتوليد لغوي حر.</p>
+            </section>
+        </section>
+    </main>
+    <script type="application/json" id="index-data">[{"id":"feature-AI01","code":"AI01","title":"التصنيف الذكي لطلبات الطلاب وأولياء الأمور","group":"مميزات الذكاء الاصطناعي","description":"تصنيف الطلب المكتوب إلى نقل أو تجميد أو استرداد أو استفسار عام.","example":"«عايز أوقف الاشتراك الشهر الجاي وأرجع بعده» → يقترح الموديل «تجميد تسجيل»، ثم يؤكد المستخدم التصنيف."},{"id":"feature-AI02","code":"AI02","title":"تلخيص تقارير السنتر واختيار الملاحظات المهمة","group":"مميزات الذكاء الاصطناعي","description":"اختيار الملاحظات المهمة من تقرير محدد وعرضها في ملخص بقوالب.","example":"من بين ملاحظات التقرير، يختار الموديل ملاحظة حضور مجموعة الفيزياء 70% وملاحظة وصول مجموعة الرياضيات إلى 95% من سعتها، ثم يعرضهما النظام بصياغة ثابتة مرتبطة بالأرقام."},{"id":"feature-AI03","code":"AI03","title":"مساعد الأسئلة الشائعة بإجابات معتمدة","group":"مميزات الذكاء الاصطناعي","description":"تحديد موضوع السؤال واختيار إجابة معتمدة من مجموعة أسئلة محدودة.","example":"«لو هوقف شهر وبعدين أرجع أعمل إيه؟» → يصنف الموديل السؤال ضمن «إجراءات التجميد» ويعرض الإجابة المعتمدة لهذا السنتر."},{"id":"feature-AI04","code":"AI04","title":"مساعد صياغة الإعلانات والرسائل","group":"مميزات الذكاء الاصطناعي","description":"صياغة نص عربي جديد بحرية من تفاصيل إعلان أو رسالة.","example":"يكتب الموظف تفاصيل تغيير موعد مجموعة الرياضيات، فينتج الموديل مسودة رسالة تحتوي اسم المجموعة والموعد الجديد دون تغيير الحقائق."}]</script>
+    <script>
+    (() => {
+        const index = document.getElementById('document-index');
+        const track = index.querySelector('.index-track');
+        const preview = document.getElementById('index-preview');
+        const data = JSON.parse(document.getElementById('index-data').textContent);
+        const links = [...index.querySelectorAll('a[href^="#feature-"]')];
+        const features = links.map((link, i) => ({ link, section: document.getElementById(data[i].id), data: data[i] }));
+        const group = preview.querySelector('.preview-group');
+        const code = preview.querySelector('.preview-title bdi');
+        const title = preview.querySelector('.preview-title span');
+        const description = preview.querySelector('.preview-description');
+        const example = preview.querySelector('.preview-example');
+        let activeIndex = -1;
+        let previewLink = null;
+        let hideTimer = null;
+        let scheduled = false;
+        let suppressed = false;
+        const hidePreview = () => {
+            clearTimeout(hideTimer);
+            if (previewLink) previewLink.removeAttribute('aria-describedby');
+            previewLink = null;
+            preview.hidden = true;
+        };
+        const deferHide = () => {
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(hidePreview, 160);
+        };
+        const positionPreview = () => {
+            if (!previewLink) return;
+            const row = previewLink.getBoundingClientRect();
+            const height = preview.getBoundingClientRect().height;
+            const viewportHeight = document.documentElement.clientHeight;
+            const top = Math.max(16, Math.min(row.top + row.height / 2 - height / 2, viewportHeight - height - 16));
+            preview.style.top = `${top}px`;
+        };
+        const showPreview = link => {
+            if (suppressed) return;
+            clearTimeout(hideTimer);
+            if (previewLink && previewLink !== link) previewLink.removeAttribute('aria-describedby');
+            const feature = features.find(item => item.link === link);
+            if (!feature) return;
+            group.textContent = feature.data.group;
+            code.textContent = feature.data.code;
+            title.textContent = '— ' + feature.data.title;
+            description.textContent = feature.data.description;
+            example.textContent = feature.data.example ? 'مثال: ' + feature.data.example : '';
+            example.hidden = !feature.data.example;
+            previewLink = link;
+            link.setAttribute('aria-describedby', 'index-preview');
+            preview.hidden = false;
+            positionPreview();
+        };
+        const revealActive = () => {
+            const row = links[activeIndex].getBoundingClientRect();
+            const frame = track.getBoundingClientRect();
+            if (row.top < frame.top || row.bottom > frame.bottom) {
+                hidePreview();
+                track.scrollTop += row.top - frame.top - frame.height / 2 + row.height / 2;
+            }
+        };
+        const setActive = nextIndex => {
+            if (nextIndex === activeIndex) return;
+            activeIndex = nextIndex;
+            links.forEach((link, i) => {
+                const distance = Math.abs(i - nextIndex);
+                if (distance === 0) link.setAttribute('aria-current', 'location');
+                else link.removeAttribute('aria-current');
+                if (distance === 1 || distance === 2) link.dataset.near = String(distance);
+                else delete link.dataset.near;
+            });
+            revealActive();
+        };
+        const updateActive = () => {
+            scheduled = false;
+            let nextIndex = 0;
+            const threshold = Math.min(160, document.documentElement.clientHeight * .22);
+            for (let i = 0; i < features.length; i++) {
+                if (features[i].section.getBoundingClientRect().top <= threshold) nextIndex = i;
+                else break;
+            }
+            if (window.scrollY + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 2) nextIndex = features.length - 1;
+            setActive(nextIndex);
+        };
+        const scheduleUpdate = () => {
+            if (scheduled) return;
+            scheduled = true;
+            requestAnimationFrame(updateActive);
+        };
+        links.forEach((link, i) => {
+            link.addEventListener('pointerenter', event => {
+                suppressed = false;
+                if (event.pointerType !== 'touch') showPreview(link);
+            });
+            link.addEventListener('focus', () => { suppressed = false; showPreview(link); });
+            link.addEventListener('click', () => {
+                suppressed = true;
+                hidePreview();
+                setActive(i);
+                features[i].section.focus({ preventScroll: true });
+            });
+        });
+        index.addEventListener('pointerleave', deferHide);
+        index.addEventListener('focusout', event => {
+            if (!index.contains(event.relatedTarget)) hidePreview();
+        });
+        preview.addEventListener('pointerenter', () => clearTimeout(hideTimer));
+        preview.addEventListener('pointerleave', deferHide);
+        track.addEventListener('scroll', positionPreview, { passive: true });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') { suppressed = true; hidePreview(); }
+        });
+        window.addEventListener('scroll', scheduleUpdate, { passive: true });
+        window.addEventListener('resize', () => { hidePreview(); scheduleUpdate(); }, { passive: true });
+        window.addEventListener('hashchange', scheduleUpdate);
+        window.addEventListener('pageshow', scheduleUpdate);
+        updateActive();
+    })();
+    </script>
+</body>
+
+</html>

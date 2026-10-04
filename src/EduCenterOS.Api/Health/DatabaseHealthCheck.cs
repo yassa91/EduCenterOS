@@ -11,6 +11,7 @@ internal sealed class DatabaseHealthCheck(IOptions<DatabaseProbeOptions> options
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(options.Value.TimeoutSeconds));
+
         try
         {
             // Bound driver-level waits as well as cancellation; an unresponsive server can
@@ -24,6 +25,7 @@ internal sealed class DatabaseHealthCheck(IOptions<DatabaseProbeOptions> options
             await connection.OpenAsync(timeout.Token);
             await using var command = new NpgsqlCommand("SELECT 1", connection);
             await command.ExecuteScalarAsync(timeout.Token);
+
             return HealthCheckResult.Healthy();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -34,6 +36,7 @@ internal sealed class DatabaseHealthCheck(IOptions<DatabaseProbeOptions> options
         {
             logger.LogWarning(new EventId(1002, "DatabaseProbeUnavailable"),
                 "Required database probe failed ({FailureKind}).", exception.GetType().Name);
+
             return HealthCheckResult.Unhealthy();
         }
     }

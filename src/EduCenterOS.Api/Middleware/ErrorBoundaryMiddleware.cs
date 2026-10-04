@@ -1,4 +1,5 @@
 using EduCenterOS.Api.ErrorHandling;
+
 namespace EduCenterOS.Api.Middleware;
 
 internal sealed class ErrorBoundaryMiddleware(RequestDelegate next, ILogger<ErrorBoundaryMiddleware> logger)
@@ -17,6 +18,7 @@ internal sealed class ErrorBoundaryMiddleware(RequestDelegate next, ILogger<Erro
         {
             logger.LogError(new EventId(1001, "UnexpectedFailure"),
                 "Unhandled request failure ({ExceptionType}).", exception.GetType().Name);
+
             if (context.Response.HasStarted)
                 throw;
 

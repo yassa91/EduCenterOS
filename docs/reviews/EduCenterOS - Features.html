@@ -1,0 +1,1384 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EduCenterOS - Features</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { direction: rtl; text-align: right; }
+body { margin: 0; background: #f3f4f6; color: #1f2937; font-family: "Geeza Pro", Tahoma, Arial, sans-serif; font-size: 17px; line-height: 1.95; }
+main { max-width: 1120px; margin: 32px auto; padding: 40px; background: #fff; border: 1px solid #d1d5db; border-radius: 8px; }
+main :is(div,h1,h2,h3,h4,p,ul,ol,li,table,thead,tbody,tr,th,td) { direction: rtl; text-align: right; }
+h1,h2,h3,h4 { line-height: 1.65; color: #111827; scroll-margin-top: 20px; }
+h1 { font-size: 30px; margin-block: 0 24px; }
+h2 { font-size: 26px; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; margin-top: 48px; }
+h3 { font-size: 22px; margin-top: 36px; }
+h4 { font-size: 20px; background: #f1f5f9; border-inline-start: 4px solid #475569; padding: 12px 16px; margin-top: 36px; }
+p { margin-block: 14px; }
+ul,ol { padding-inline-start: 28px; padding-inline-end: 0; }
+li { margin-block: 5px; }
+a { color: #1d4ed8; text-underline-offset: 3px; overflow-wrap: anywhere; }
+strong { font-weight: 700; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.85; margin-block: 22px; }
+th,td { border: 1px solid #cbd5e1; padding: 10px 12px; vertical-align: top; }
+th { background: #e2e8f0; font-weight: 700; }
+tr:nth-child(even) td { background: #f8fafc; }
+@media (max-width: 700px) { body { font-size: 16px; } main { margin: 0; padding: 22px 16px; border: 0; border-radius: 0; } table { font-size: 13px; } th,td { padding: 7px; } }
+@media print { body { background: #fff; font-size: 11pt; } main { margin: 0; max-width: none; padding: 0; border: 0; } h1,h2,h3,h4 { break-after: avoid; } tr { break-inside: avoid; } th { display: table-cell; } thead { display: table-header-group; } a { color: inherit; } @page { size: A4; margin: 16mm; } }
+
+html { scroll-behavior: smooth; }
+a.feature-link { font-weight: 700; white-space: nowrap; }
+a.feature-link:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 4px; border-radius: 3px; }
+h4:target { background: #dbeafe; border-inline-start-color: #1d4ed8; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Compact reading outline, with a neutral rail and a current-topic marker. */
+/* Keep the document centered independently of the viewport-edge index. */
+.page-layout { padding: 32px 24px; }
+.page-layout > main { width: 100%; min-width: 0; max-width: 1120px; margin: 0 auto; }
+.page-layout > main > div > h2:first-child { margin-block-start: 0; }
+.document-index {
+  position: fixed;
+  inset-inline-start: 16px;
+  inset-block-start: 24px;
+  width: 260px;
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 8px 4px;
+  direction: rtl;
+  text-align: right;
+  scrollbar-width: thin;
+}
+.document-title {
+  margin: 0;
+  padding: 8px 10px 20px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: #202123;
+}
+.index-outline { border-block-start: 1px solid #dedfe1; padding-block-start: 8px; }
+.index-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  padding: 10px;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: #505359;
+  cursor: pointer;
+  user-select: none;
+}
+.index-title::-webkit-details-marker { display: none; }
+.index-title:hover { background: #e9eaec; color: #202123; }
+.index-icon { width: 18px; height: 18px; flex: none; }
+.index-chevron { width: 15px; height: 15px; margin-inline-start: auto; flex: none; transform: rotate(90deg); }
+.index-outline[open] .index-chevron { transform: rotate(0); }
+.document-index nav { padding-block: 8px 4px; }
+.document-index ul { list-style: none; margin: 0; padding: 0; }
+.document-index nav > ul { position: relative; }
+.document-index nav > ul::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 13px;
+  inset-block: 22px;
+  width: 1px;
+  background: #d7d9dc;
+  pointer-events: none;
+}
+.document-index ul ul { margin-block-start: 2px; padding-inline-start: 15px; }
+.document-index li { margin: 2px 0; }
+.document-index a {
+  position: relative;
+  display: block;
+  min-height: 44px;
+  padding-block: 10px;
+  padding-inline: 30px 10px;
+  border-radius: 7px;
+  color: #62666c;
+  font-size: 14px;
+  line-height: 1.7;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: background-color 140ms ease-out, color 140ms ease-out;
+}
+.document-index a::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 10px;
+  inset-block-start: 19px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b8bbc0;
+  outline: 4px solid #f3f4f6;
+}
+.document-index ul ul a::before { width: 5px; height: 5px; inset-inline-start: 11px; inset-block-start: 20px; }
+.toc-label { display: block; font-size: 15px; font-weight: 600; }
+.toc-subtitle { display: block; margin-block-start: 1px; font-size: 12px; color: #62666c; }
+.document-index a:hover { background: #e9eaec; color: #202123; }
+.document-index a:hover::before { outline-color: #e9eaec; }
+.document-index a[aria-current="location"] { background: #e7e8ea; color: #202123; font-weight: 600; }
+.document-index a[aria-current="location"]::before { background: #202123; outline-color: #e7e8ea; }
+.document-index a.toc-parent-active { color: #202123; }
+.document-index :is(a, summary):focus-visible { outline: 2px solid #42464d; outline-offset: 2px; }
+.document-index a:active { background: #dedfe2; }
+@media (prefers-reduced-motion: reduce) { .document-index a { transition: none; } }
+main :is(h2, h3):target { color: #1d4ed8; }
+th, td { overflow-wrap: anywhere; }
+/* Below 1720px there is no room for a 260px index beside the centered
+   1120px document. Move it above the page instead of narrowing or covering it. */
+@media (max-width: 1719px) {
+  .page-layout { padding: 20px 16px; }
+  .document-index {
+    position: static;
+    width: 100%;
+    max-width: 1120px;
+    max-height: none;
+    padding: 0 8px 20px;
+    margin: 0 auto 24px;
+    border-block-end: 1px solid #cbd5e1;
+  }
+  .document-title { padding-block-end: 12px; }
+}
+@media (max-width: 700px) {
+  .page-layout { padding: 16px 0 0; }
+  .document-index { width: auto; margin-inline: 16px; }
+}
+@media print {
+  .page-layout { display: block; padding: 0; max-width: none; }
+  .document-index { display: none; }
+  .page-layout > main { max-width: none; margin: 0; border: 0; }
+}
+</style>
+</head>
+<body>
+<div class="page-layout" dir="rtl"><aside class="document-index" aria-label="فهرس الملف">
+  <p class="document-title">‏EduCenterOS - Features</p>
+  <details class="index-outline" open>
+    <summary class="index-title" id="index-title">
+      <svg class="index-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
+      <span>فهرس المحتوى</span>
+      <svg class="index-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+    </summary>
+    <nav aria-labelledby="index-title">
+      <ul>
+        <li><a href="#core-features" aria-current="location"><span class="toc-label">المميزات الأساسية</span><span class="toc-subtitle">Core Features</span></a></li>
+        <li>
+          <a href="#additional-features"><span class="toc-label">المميزات الإضافية</span><span class="toc-subtitle">Additional Features</span></a>
+          <ul>
+            <li><a href="#optional-integrations" aria-label="أ. تكاملات اختيارية ضمن تصور المنتج الحالي">التكاملات الاختيارية</a></li>
+            <li><a href="#deferred-extensions" aria-label="ب. تحسينات وتوسعات مؤجلة لنظام السناتر">التحسينات والتوسعات المؤجلة</a></li>
+            <li><a href="#recorded-marketplace" aria-label="ج. سوق الكورسات والمحاضرات المسجلة — توسع مستقل Phase 2">سوق الكورسات والمحاضرات المسجلة<span class="toc-subtitle">توسع مستقل · Phase 2</span></a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </details>
+</aside><main dir="rtl" lang="ar" id="features-content">
+<div dir="rtl" lang="ar" align="right" style="direction: rtl; text-align: right;">
+<h2 id="core-features" tabindex="-1">‏المميزات الأساسية — Core Features</h2>
+<h3>‏أ. الحسابات والأشخاص والمؤسسات</h3>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تشملها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-C01" class="feature-link" aria-label="عرض تفاصيل C01: إنشاء الحساب وتسجيل الدخول واستعادته">C01</a></td>
+<td align="right">‏إنشاء الحساب وتسجيل الدخول واستعادته</td>
+<td align="right">‏تسجيل برقم هاتف موثق، تسجيل الدخول، استرجاع الحساب، تغيير وسائل التواصل وفق التحقق، وعرض الجلسات وإنهاؤها. حساب واحد يمكنه الوصول لمساحات العمل المستحقة.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C02" class="feature-link" aria-label="عرض تفاصيل C02: الأدوار والصلاحيات وعضويات المؤسسة">C02</a></td>
+<td align="right">‏الأدوار والصلاحيات وعضويات المؤسسة</td>
+<td align="right">‏دعوة الموظفين والمدرسين وقبول الدعوات؛ تحديد الدور ونطاق المؤسسة أو الفرع والصلاحيات الاختيارية؛ تعليق العضوية أو إنهاؤها. اختيار صفة أثناء التسجيل لا يمنح صلاحيات.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C03" class="feature-link" aria-label="عرض تفاصيل C03: إنشاء وإدارة المؤسسات والفروع">C03</a></td>
+<td align="right">‏إنشاء وإدارة المؤسسات والفروع</td>
+<td align="right">‏إنشاء السنتر والفرع الرئيسي، إضافة الفروع وإعداد بياناتها، تحديد المالك الأساسي والممثل المخول، وفصل تشغيل وبيانات كل مؤسسة عن الأخرى.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C04" class="feature-link" aria-label="عرض تفاصيل C04: إدارة ملفات الطلاب">C04</a></td>
+<td align="right">‏إدارة ملفات الطلاب</td>
+<td align="right">‏إضافة الطالب وبيانات التواصل والصف، البحث والتصفية، متابعة تاريخه الأكاديمي والمالي، كشف التكرار، وإدارة الطالب بدون اشتراط حساب دخول ثم ربط حسابه لاحقًا بتحقق مناسب.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C05" class="feature-link" aria-label="عرض تفاصيل C05: ربط أولياء الأمور بالطلاب">C05</a></td>
+<td align="right">‏ربط أولياء الأمور بالطلاب</td>
+<td align="right">‏ربط ولي أمر بأكثر من طالب أو أكثر من ولي أمر بطالب، تحديد العلاقة ونطاقها وصلاحياتها، وتفعيلها أو إنهاؤها. علاقة داخل مؤسسة لا تمنح وصولًا تلقائيًا لمؤسسات أخرى.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C06" class="feature-link" aria-label="عرض تفاصيل C06: مساحة الطالب وولي الأمر">C06</a></td>
+<td align="right">‏مساحة الطالب وولي الأمر</td>
+<td align="right">‏عرض المجموعات والجدول والحضور وكشف الحساب والإيصالات والإشعارات، وبدء طلبات مسموحة مثل النقل والتجميد والانسحاب والاسترداد وتقديم عذر؛ تنفيذها يخضع للمراجعة عند الحاجة.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C07" class="feature-link" aria-label="عرض تفاصيل C07: إدارة سجلات الموظفين والمدرسين">C07</a></td>
+<td align="right">‏إدارة سجلات الموظفين والمدرسين</td>
+<td align="right">‏تسجيل بيانات العمل والتواصل وربطها بالحسابات والعضويات، توزيع نطاق العمل بين الفروع، وإتاحة مساحة المدرس لجدوله وحصصه وما يخصه من مستحقات.</td>
+</tr>
+</tbody></table>
+<h3>‏ب. الهيكل الأكاديمي والمجموعات والجداول</h3>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تشملها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-C08" class="feature-link" aria-label="عرض تفاصيل C08: إدارة الهيكل الأكاديمي والسنوات">C08</a></td>
+<td align="right">‏إدارة الهيكل الأكاديمي والسنوات</td>
+<td align="right">‏الأنظمة التعليمية والمراحل والصفوف والمواد والفترات؛ سنة تشغيلية واحدة نشطة وسنة مستقبلية للتجهيز؛ إغلاق السنة وترقية الصفوف مع حفظ التاريخ.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C09" class="feature-link" aria-label="عرض تفاصيل C09: إدارة المجموعات الدراسية">C09</a></td>
+<td align="right">‏إدارة المجموعات الدراسية</td>
+<td align="right">‏إنشاء المجموعة وربطها بفرع وصف ومادة ومدرس أساسي وسعة؛ التحكم في التشغيل وفتح التسجيل والظهور؛ تغيير المدرس بتاريخ سريان؛ نسخ إعدادات مجموعة كمسودة بدون نسخ الطلاب أو المالية.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C10" class="feature-link" aria-label="عرض تفاصيل C10: إدارة القاعات والجداول وفحص التعارض">C10</a></td>
+<td align="right">‏إدارة القاعات والجداول وفحص التعارض</td>
+<td align="right">‏تسجيل القاعات وسعاتها وحالتها، تحديد المواعيد الأسبوعية، ومنع تعارض القاعة والمدرس ومواعيد المجموعة.</td>
+</tr>
+</tbody></table>
+<h3>‏ج. الحجز والتسجيل وإدارة رحلة الطالب</h3>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تشملها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-C11" class="feature-link" aria-label="عرض تفاصيل C11: حجز المقاعد والتسجيل في المجموعات">C11</a></td>
+<td align="right">‏حجز المقاعد والتسجيل في المجموعات</td>
+<td align="right">‏فحص أهلية الطالب والسعة، حجز مؤقت بمهلة انتهاء عند الحاجة، تأكيد التسجيل وفق سياسة التفعيل والدفع، ومنع التسجيل المكرر وتجاوز آخر مقعد.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C12" class="feature-link" aria-label="عرض تفاصيل C12: قوائم الانتظار وعروض المقاعد">C12</a></td>
+<td align="right">‏قوائم الانتظار وعروض المقاعد</td>
+<td align="right">‏تسجيل الطلب عند اكتمال المجموعة، عرض فرصة عند توفر مكان أو فتح مجموعة مناسبة، قبول حسب الأسبقية في إتمام الحجز أو عروض مرتبة؛ الترتيب الأولي للعروض هو FIFO. لا يتحول الانتظار إلى تسجيل تلقائيًا.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C13" class="feature-link" aria-label="عرض تفاصيل C13: قياس الطلب والمساعدة في فتح مجموعات">C13</a></td>
+<td align="right">‏قياس الطلب والمساعدة في فتح مجموعات</td>
+<td align="right">‏تجميع طلبات الانتظار حسب المادة والصف والمدرس والفرع والتوقيت، وربطها بتوفر القاعات والمدرسين لعرض فرص فتح مجموعات. القرار النهائي للإدارة.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C14" class="feature-link" aria-label="عرض تفاصيل C14: الحجز المبكر وتجديد التسجيل">C14</a></td>
+<td align="right">‏الحجز المبكر وتجديد التسجيل</td>
+<td align="right">‏حجز للسنة المستقبلية وفق السعة ثم استكمال التسجيل عند التفعيل؛ تقديم فرص التجديد وتأكيدها صراحة. الحجز المبكر لا يبدأ حصصًا أو مستحقات دراسية تشغيلية افتراضيًا.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C15" class="feature-link" aria-label="عرض تفاصيل C15: نقل الطالب وتجميد التسجيل والانسحاب">C15</a></td>
+<td align="right">‏نقل الطالب وتجميد التسجيل والانسحاب</td>
+<td align="right">‏طلب ومراجعة النقل بين المجموعات أو الفروع، تأمين المكان الجديد، تجميد مؤقت وفق سياسة حفظ المقعد، إعادة التفعيل، والانسحاب أو الإلغاء مع معالجة الأثر المالي وحفظ التاريخ.</td>
+</tr>
+</tbody></table>
+<h3>‏د. الحصص والحضور</h3>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تشملها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-C16" class="feature-link" aria-label="عرض تفاصيل C16: إدارة الحصص الفعلية والاستثناءات">C16</a></td>
+<td align="right">‏إدارة الحصص الفعلية والاستثناءات</td>
+<td align="right">‏توليد حصص بتاريخ محدد من الجدول، متابعة التنفيذ والإغلاق، تعيين بديل لحصة واحدة، إلغاء أو إعادة جدولة أو إنشاء تعويض مع حفظ الموعد والسبب الأصليين؛ تسجيل ملاحظات وموضوعات الحصة بصورة أساسية.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C17" class="feature-link" aria-label="عرض تفاصيل C17: تسجيل الحضور والغياب واعتماده">C17</a></td>
+<td align="right">‏تسجيل الحضور والغياب واعتماده</td>
+<td align="right">‏حاضر، غائب، متأخر، غياب بعذر؛ مراجعة الأعذار واعتماد الحضور؛ تصحيح السجل المغلق بصلاحية وسبب وسجل تغيير. لا يسجل الحضور إلا للمستحقين للحصة في تاريخها.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C18" class="feature-link" aria-label="عرض تفاصيل C18: تسجيل الحضور بدون إنترنت والمزامنة">C18</a></td>
+<td align="right">‏تسجيل الحضور بدون إنترنت والمزامنة</td>
+<td align="right">‏تجهيز بيانات الحصة اللازمة، تسجيل الحضور أثناء انقطاع مؤقت، ثم المزامنة والتحقق وعرض التعارضات للمراجعة عند الحاجة. الدعم محدود بالحضور، ولا يعني عمل النظام المالي بدون إنترنت.</td>
+</tr>
+</tbody></table>
+<h3>‏هـ. مالية الطلاب</h3>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تشملها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-C19" class="feature-link" aria-label="عرض تفاصيل C19: التسعير وإنشاء المستحقات ومتابعة المتأخرات">C19</a></td>
+<td align="right">‏التسعير وإنشاء المستحقات ومتابعة المتأخرات</td>
+<td align="right">‏أسعار للدورة أو الأقساط أو الشهر أو الحصة أو باقة بسيطة؛ تثبيت شروط السعر عند التسجيل؛ مواعيد الاستحقاق، الانضمام المتأخر، والمتأخرات وسياسات التعامل معها. نحدد نماذج التسعير المختارة للمشروع أثناء المراجعة.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C20" class="feature-link" aria-label="عرض تفاصيل C20: تسجيل المدفوعات والإيصالات">C20</a></td>
+<td align="right">‏تسجيل المدفوعات والإيصالات</td>
+<td align="right">‏نقدي وتحويل يدوي، مراجعة إثبات التحويل، دفع جزئي، توزيع الدفعة على المستحقات، وتتبع طريقة الدفع ومن دفع وإصدار إيصال تشغيلي. رفع صورة تحويل لا يؤكد الدفع وحده.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C21" class="feature-link" aria-label="عرض تفاصيل C21: الخصومات والمنح والأرصدة الدائنة">C21</a></td>
+<td align="right">‏الخصومات والمنح والأرصدة الدائنة</td>
+<td align="right">‏خصم ثابت أو نسبة ومنحة كاملة، استثناءات بموافقة عند الحاجة، حفظ قيمة الخدمة الأصلية، وإدارة الزيادة أو الرصيد لصالح الطالب واستخدامه في مستحقاته اللاحقة.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C22" class="feature-link" aria-label="عرض تفاصيل C22: الاسترداد والتصحيح وكشف الحساب">C22</a></td>
+<td align="right">‏الاسترداد والتصحيح وكشف الحساب</td>
+<td align="right">‏استرداد كامل أو جزئي بعد الطلب والموافقة والتنفيذ، أو تحويل مناسب إلى رصيد دائن؛ عكس الحركة الخاطئة بدل حذفها؛ كشف حساب يوضح المستحق والمدفوع والمتأخر والرصيد والتعديلات.</td>
+</tr>
+</tbody></table>
+<h3>‏و. الخزن والمصروفات ومستحقات المدرسين</h3>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تشملها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-C23" class="feature-link" aria-label="عرض تفاصيل C23: إدارة الخزن وورديات التحصيل">C23</a></td>
+<td align="right">‏إدارة الخزن وورديات التحصيل</td>
+<td align="right">‏فتح وإغلاق وردية مسؤول محدد، تسجيل الحركات المرتبطة بالنقد، مقارنة المتوقع بالمعدود، مراجعة العجز أو الزيادة وتسليم النقد. دفعة الطالب وحركة الخزنة مترابطتان ولهما سجلات منفصلة.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C24" class="feature-link" aria-label="عرض تفاصيل C24: المصروفات والتحويلات والإغلاق اليومي">C24</a></td>
+<td align="right">‏المصروفات والتحويلات والإغلاق اليومي</td>
+<td align="right">‏تصنيف المصروف وطلب اعتماده وتسجيل دفعه وإثباتاته، نقل النقد بين الخزن أو الفروع مع التسليم والاستلام، ومراجعة اليوم المالي للفرع.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C25" class="feature-link" aria-label="عرض تفاصيل C25: عقود المدرسين وقواعد حساب مستحقاتهم">C25</a></td>
+<td align="right">‏عقود المدرسين وقواعد حساب مستحقاتهم</td>
+<td align="right">‏عقد بتاريخ سريان ونطاق، حساب ثابت أو بالحصة أو بالطالب أو بنسبة من أساس مالي واضح أو تركيب محدود؛ مراعاة المدرس الذي قدم الحصة فعلًا وقواعد البديل والإلغاء والتعويض. نحدد النماذج المختارة للمشروع أثناء المراجعة.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C26" class="feature-link" aria-label="عرض تفاصيل C26: تسويات المدرسين ودفع المستحقات والاعتراضات">C26</a></td>
+<td align="right">‏تسويات المدرسين ودفع المستحقات والاعتراضات</td>
+<td align="right">‏إعداد تسوية فترة مع تفاصيل الحساب، مراجعتها واعتمادها، دفعها كليًا أو جزئيًا، عرض المتبقي، استقبال الاعتراضات، وتصحيح الأخطاء بعد الإغلاق بحركة تعديل واضحة.</td>
+</tr>
+</tbody></table>
+<h3>‏ز. المتابعة والتواصل والرقابة ونقل البيانات</h3>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تشملها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-C27" class="feature-link" aria-label="عرض تفاصيل C27: لوحات المتابعة والتقارير والتصدير">C27</a></td>
+<td align="right">‏لوحات المتابعة والتقارير والتصدير</td>
+<td align="right">‏تقارير الطلاب والتسجيلات والمجموعات والسعة والانتظار والحصص والحضور؛ التحصيل والمتأخرات والاستردادات والخزن والمصروفات ومستحقات المدرسين؛ تصفية حسب الفرع والفترة وتصدير مناسب للصلاحيات. نختار مجموعة محددة من التقارير للعرض.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C28" class="feature-link" aria-label="عرض تفاصيل C28: مركز الإشعارات والتنبيهات والإعلانات">C28</a></td>
+<td align="right">‏مركز الإشعارات والتنبيهات والإعلانات</td>
+<td align="right">‏إشعارات التسجيل والانتظار وتغييرات الحصص والغياب المعتمد والمدفوعات والموافقات؛ تذكيرات؛ إعلانات للمجموعة أو الفرع؛ قراءة الإشعارات وتفضيلاتها الأساسية ومواعيد الهدوء لغير العاجل.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C29" class="feature-link" aria-label="عرض تفاصيل C29: البريد وSMS والقنوات المناسبة للعميل">C29</a></td>
+<td align="right">‏البريد وSMS والقنوات المناسبة للعميل</td>
+<td align="right">‏ربط القنوات المطلوبة لتوثيق التواصل والتنبيهات المهمة، متابعة حالة التسليم وإعادة المحاولة؛ Push عند توفر عميل مناسب. اتجاه البريد وSMS موجود في Core، لكن المزودين والتكلفة والتنفيذ الفعلي يحتاجون تحديدًا.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C30" class="feature-link" aria-label="عرض تفاصيل C30: سجل العمليات والموافقات الحساسة">C30</a></td>
+<td align="right">‏سجل العمليات والموافقات الحساسة</td>
+<td align="right">‏توثيق من نفذ العملية ومتى وسببها وتغييراتها؛ صندوق طلبات الموافقات وقبولها أو رفضها؛ مراجعة الاستردادات والخصومات الاستثنائية والتعديلات الحساسة وفق السياسة؛ مراعاة تضارب المصالح.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C31" class="feature-link" aria-label="عرض تفاصيل C31: استيراد البيانات الحالية من Excel وCSV">C31</a></td>
+<td align="right">‏استيراد البيانات الحالية من Excel وCSV</td>
+<td align="right">‏قوالب وربط أعمدة وتحقق وكشف تكرار ومعاينة وأخطاء وسجل استيراد؛ نقل الطلاب وبيانات أولياء الأمور والمجموعات والتسجيلات الحالية وسجلات الموظفين والمدرسين والوضع المالي الافتتاحي.</td>
+</tr>
+</tbody></table>
+<h3>‏ح. الظهور العام وإدارة المنصة</h3>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تشملها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-C32" class="feature-link" aria-label="عرض تفاصيل C32: صفحات السناتر والمجموعات والبحث العام">C32</a></td>
+<td align="right">‏صفحات السناتر والمجموعات والبحث العام</td>
+<td align="right">‏صفحة تعرض البيانات المنشورة والفروع والمواد والمدرسين والمواعيد والأسعار إذا اختارت المؤسسة نشرها؛ بحث حسب البيانات المناسبة؛ تحكم في الإخفاء أو الرابط المباشر أو البحث العام. الظهور في البحث يخضع للتحقق المناسب.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C33" class="feature-link" aria-label="عرض تفاصيل C33: اشتراكات المؤسسات وخطط الاستخدام">C33</a></td>
+<td align="right">‏اشتراكات المؤسسات وخطط الاستخدام</td>
+<td align="right">‏تجربة ثم اشتراك المؤسسة، خطط وحدود استخدام، متابعة الاستهلاك، ترقية أو تخفيض وتجديد؛ تنبيهات الانتهاء ووضع قراءة وتصدير بعد انتهاء الاستحقاق وفق السياسة. اشتراك المنصة مستقل عن مدفوعات طلاب السنتر.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C34" class="feature-link" aria-label="عرض تفاصيل C34: لوحة إدارة EduCenterOS">C34</a></td>
+<td align="right">‏لوحة إدارة EduCenterOS</td>
+<td align="right">‏متابعة المؤسسات والحسابات والاشتراكات وطلبات الظهور العام، البلاغات والدعم والقيود والتعليق، الإعدادات والمؤشرات العامة؛ إجراءات نقل السيطرة الأساسية على المؤسسة واستعادتها حسب القواعد. صلاحيات إدارة المنصة منفصلة عن إدارة السنتر.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-C35" class="feature-link" aria-label="عرض تفاصيل C35: حماية الحسابات والبيانات وطلبات الخصوصية">C35</a></td>
+<td align="right">‏حماية الحسابات والبيانات وطلبات الخصوصية</td>
+<td align="right">‏MFA للأدوار الحساسة وتحقق إضافي للعمليات المحددة، عزل المؤسسات، تقييد البيانات والملفات والتصدير، توثيق الموافقات المناسبة، طلبات تصحيح أو تصدير أو حذف الحساب مع حفظ السجلات المطلوبة، وحماية النسخ الاحتياطية. متطلبات ملازمة للمميزات المختارة.</td>
+</tr>
+</tbody></table>
+<h3>‏تفاصيل المميزات الأساسية</h3>
+<p>‏توضح البطاقات التالية المستخدمين والوظائف والسلوك العملي لكل بند. الأمثلة توضيحية؛ مبالغها وأعدادها ليست سياسات نهائية.</p>
+<h4 id="feature-C01" tabindex="-1">‏<a href="#feature-C01" class="feature-link" aria-label="عرض تفاصيل C01: إنشاء الحساب وتسجيل الدخول واستعادته">C01</a> — إنشاء الحساب وتسجيل الدخول واستعادته</h4>
+<p>‏<strong>المستخدمون:</strong> كل المستخدمين: الإدارة والموظفون والمدرسون والطلاب وأولياء الأمور.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏إنشاء حساب باستخدام رقم موبايل والتحقق منه بكود قبل استكمال بيانات الحساب.</li>
+<li>‏تسجيل الدخول ببيانات الحساب المعتمدة، مع تحقق إضافي في الحالات التي تحددها سياسة الأمان.</li>
+<li>‏عرض مساحات العمل المستحقة: طالب أو ولي أمر أو عضوية داخل مؤسسة أو أكثر، والتبديل بينها.</li>
+<li>‏استرجاع الحساب عند فقد كلمة المرور، وتغيير الهاتف أو البريد بعد التحقق المناسب.</li>
+<li>‏عرض الجلسات النشطة وإنهاء جلسة معينة أو تسجيل الخروج من كل الجلسات.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> شخص يعمل مدرسًا في سنتر وولي أمر لطالب في سنتر آخر يستخدم حسابًا واحدًا، ويختار مساحة العمل المناسبة لكل استخدام.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> لا يحصل المستخدم على صلاحية مدرس أو مدير بمجرد اختيارها أثناء التسجيل. دخول البريد مشروط بتوثيقه والسماح به؛ تسجيل الدخول بحسابات Google أو Facebook ليس متطلبًا أساسيًا.</p>
+<h4 id="feature-C02" tabindex="-1">‏<a href="#feature-C02" class="feature-link" aria-label="عرض تفاصيل C02: الأدوار والصلاحيات وعضويات المؤسسة">C02</a> — الأدوار والصلاحيات وعضويات المؤسسة</h4>
+<p>‏<strong>المستخدمون:</strong> مالك المؤسسة والممثل المخول والمديرون، والموظف أو المدرس المدعو.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏إرسال دعوة مرتبطة بالمؤسسة والدور ونطاق الفرع والصلاحيات الاختيارية المسموحة.</li>
+<li>‏قبول الدعوة بعد التحقق من حساب الشخص وأهليته، وإلغاء أو إعادة إرسال الدعوات وفق السياسة.</li>
+<li>‏إسناد أدوار معروفة مثل مدير مؤسسة أو فرع، استقبال، محاسب، مدرس، أو موظف حضور.</li>
+<li>‏تحديد الوصول على مستوى المؤسسة أو فرع محدد، وتفعيل صلاحيات اختيارية داخل حدود الدور.</li>
+<li>‏تعليق العضوية أو إنهاؤها عند انتهاء العمل، مع الاحتفاظ بالعمليات التي نفذها الشخص سابقًا.</li>
+<li>‏مراجعة تعارض الصلاحيات عندما يكون نفس الشخص منفذًا ومراجعًا لعملية حساسة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> موظف استقبال يعمل في الفرع الأول يستطيع تسجيل طلابه وتحصيل المدفوعات المسموحة، ولا يطلع تلقائيًا على خزنة الفرع الثاني أو يعتمد استردادًا خارج صلاحياته.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> المؤسسة تستخدم الأدوار والصلاحيات المعروفة؛ لا تنشئ صلاحيات جديدة خارج النظام. تعدد الأدوار لا يسمح بتجاوز الفصل المطلوب بين التنفيذ والمراجعة.</p>
+<h4 id="feature-C03" tabindex="-1">‏<a href="#feature-C03" class="feature-link" aria-label="عرض تفاصيل C03: إنشاء وإدارة المؤسسات والفروع">C03</a> — إنشاء وإدارة المؤسسات والفروع</h4>
+<p>‏<strong>المستخدمون:</strong> صاحب السنتر والممثل المخول ومديرو المؤسسة والفروع.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏إنشاء مؤسسة ببياناتها الأساسية واستكمال التواصل المطلوب والإقرار بصحة البيانات.</li>
+<li>‏إنشاء الفرع الرئيسي مع المؤسسة، وإضافة فروع أخرى حسب الصلاحيات وحدود الاشتراك.</li>
+<li>‏تحديد مسؤول السيطرة الأساسية على المؤسسة، والتفويضات الممنوحة لممثلها المخول.</li>
+<li>‏ربط القاعات والمجموعات والخزن والتشغيل بالفرع المناسب.</li>
+<li>‏إدارة المؤسسات المستقلة بصورة منفصلة حتى لو كان نفس الشخص مسؤولًا عنها.</li>
+<li>‏حفظ تاريخ الفروع والعمليات عند إيقاف التشغيل أو الأرشفة بدل حذف التاريخ.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> صاحب سنتر له فرعان يديرهما تحت مؤسسة واحدة ويراجع تقارير كل فرع منفردًا أو مجمعة، بينما سنتر آخر مستقل له بيانات واشتراك منفصلان.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> السيطرة على المؤسسة داخل المنصة لا تثبت وحدها الملكية القانونية. الاستخدام الداخلي لا ينتظر قبول المؤسسة في البحث العام.</p>
+<h4 id="feature-C04" tabindex="-1">‏<a href="#feature-C04" class="feature-link" aria-label="عرض تفاصيل C04: إدارة ملفات الطلاب">C04</a> — إدارة ملفات الطلاب</h4>
+<p>‏<strong>المستخدمون:</strong> الاستقبال ومدير الفرع والمستخدمون المخولون بإدارة الطلاب.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏إنشاء سجل طالب داخل المؤسسة مع البيانات الأساسية والتواصل والصف الدراسي المناسب.</li>
+<li>‏إدارة الطالب حتى إذا لم يمتلك حساب دخول أو رقمًا قوميًّا، في العمليات التي لا تتطلب تحققًا أعلى.</li>
+<li>‏البحث عن الطالب والوصول إلى تسجيلاته ومجموعاته وحضوره وكشف حسابه بحسب الصلاحية.</li>
+<li>‏كشف السجلات المكررة أو المتشابهة لعرضها للمراجعة قبل إنشاء سجل جديد أو ربطه.</li>
+<li>‏ربط حساب ينشئه الطالب لاحقًا بسجله الموجود عن طريق تحقق مناسب.</li>
+<li>‏تحديث البيانات الحالية مع الحفاظ على السياق التاريخي للتسجيلات القديمة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> الاستقبال يضيف طالبًا صغير السن ويربطه بولي أمره، ويسجله في مجموعة ويحصّل رسومه؛ لا يتوقف التشغيل على إنشاء حساب شخصي للطفل.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> تشابه الاسم أو رقم الهاتف ليس إذنًا لدمج الهوية تلقائيًا. نحدد البيانات الإلزامية وطريقة ربط الحساب بالسجل أثناء اختيار نطاق التنفيذ.</p>
+<h4 id="feature-C05" tabindex="-1">‏<a href="#feature-C05" class="feature-link" aria-label="عرض تفاصيل C05: ربط أولياء الأمور بالطلاب">C05</a> — ربط أولياء الأمور بالطلاب</h4>
+<p>‏<strong>المستخدمون:</strong> الموظف المخول داخل المؤسسة، وولي الأمر؛ وإدارة المنصة للحالات التي تحتاج تحققًا أعلى.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تسجيل علاقة ولي الأمر بالطالب ونوعها وحالتها ونطاقها.</li>
+<li>‏ربط ولي الأمر بأكثر من طالب، أو ربط أكثر من ولي أمر بطالب واحد.</li>
+<li>‏تحديد ولي الأمر الأساسي عند الحاجة، وصلاحيات الاطلاع والطلبات المتاحة لكل علاقة.</li>
+<li>‏تمييز العلاقة التي تحققت منها مؤسسة عن العلاقة الموثقة على مستوى المنصة.</li>
+<li>‏تفعيل العلاقة أو إنهاؤها وتصحيح الربط الخاطئ بإجراء موثق.</li>
+<li>‏توجيه الاطلاع والإشعارات والطلبات بحسب نطاق العلاقة وإعدادات المستخدم والمؤسسة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> ولي أمر مرتبط بطالبين داخل سنتر يمكنه متابعة كل طفل، لكن العلاقة داخل هذا السنتر لا تفتح تلقائيًا سجلاتهما في مؤسسة أخرى.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> قوة الإثبات المطلوبة تعتمد على العملية والعمر والمخاطر؛ موافقة الطفل وحدها ليست إثباتًا كافيًا لكل الحالات. نختار مستوى التحقق الذي يحتاجه نطاق المشروع.</p>
+<h4 id="feature-C06" tabindex="-1">‏<a href="#feature-C06" class="feature-link" aria-label="عرض تفاصيل C06: مساحة الطالب وولي الأمر">C06</a> — مساحة الطالب وولي الأمر</h4>
+<p>‏<strong>المستخدمون:</strong> الطالب صاحب الحساب وولي الأمر المرتبط بعلاقة صالحة.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏عرض المجموعات المسجل فيها الطالب ومواعيد الحصص وما طرأ عليها من إلغاء أو تغيير.</li>
+<li>‏متابعة الحضور والغياب والتأخير والأعذار المعتمدة.</li>
+<li>‏عرض المستحقات والمدفوعات والمتأخرات والإيصالات وكشف الحساب الشخصي.</li>
+<li>‏قراءة الإشعارات المتعلقة بالخدمات التي يحق للمستخدم الوصول إليها.</li>
+<li>‏بدء طلب تسجيل أو نقل أو تجميد أو انسحاب أو استرداد عندما تسمح الأهلية والسياسة.</li>
+<li>‏تقديم عذر أو مستند مناسب، ومتابعة نتيجة الطلبات التي تحتاج مراجعة المؤسسة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> ولي الأمر يرى أن حصة ابنه أعيدت جدولتها، يراجع الموعد الجديد، ويرسل طلب نقل لمجموعة أخرى. الطلب لا ينفذ إلا بعد مراجعة السعة والقواعد.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> تقديم الطلب لا يساوي الموافقة أو التنفيذ. المستخدم يرى البيانات المسموحة فقط؛ وحدة امتحانات ودرجات كاملة ليست معرفة ضمن هذا النطاق.</p>
+<h4 id="feature-C07" tabindex="-1">‏<a href="#feature-C07" class="feature-link" aria-label="عرض تفاصيل C07: إدارة سجلات الموظفين والمدرسين">C07</a> — إدارة سجلات الموظفين والمدرسين</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والموظفون والمدرسون، كل حسب صلاحياته.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تسجيل بيانات الموظف أو المدرس ووسائل التواصل ومعلومات العمل اللازمة.</li>
+<li>‏الاحتفاظ بسجل داخلي قبل وجود حساب دخول ثم ربطه بالحساب الصحيح لاحقًا.</li>
+<li>‏تعيين العضوية والدور ونطاق الفروع بعد الدعوة أو الإجراء المعتمد.</li>
+<li>‏ربط المدرس بالمجموعات التي يتولى مسؤوليتها وبالحصص التي قدمها فعليًا.</li>
+<li>‏إتاحة جدول المدرس وحصصه وما يخصه من تسويات ومستحقات بحسب الصلاحيات.</li>
+<li>‏إنهاء صلاحيات الموظف عند انتهاء العمل مع حفظ سجلات التشغيل والعقود السابقة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> مدرس جديد يسجل أولًا كبيانات داخلية، ثم يقبل دعوة المؤسسة ليستخدم مساحته الشخصية ويراجع جدوله ومستحقاته.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> سجل المدرس لا يفعّل صلاحيات الدخول وحده، ودور المدرس لا يحدد اتفاقه المالي. إدارة رواتب وحضور كل الموظفين كنظام HR كامل توسع إضافي.</p>
+<h4 id="feature-C08" tabindex="-1">‏<a href="#feature-C08" class="feature-link" aria-label="عرض تفاصيل C08: إدارة الهيكل الأكاديمي والسنوات">C08</a> — إدارة الهيكل الأكاديمي والسنوات</h4>
+<p>‏<strong>المستخدمون:</strong> إدارة المؤسسة والمسؤولون عن الإعداد الأكاديمي.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏اختيار النظام التعليمي والمراحل والصفوف والمواد المرجعية التي تعمل بها المؤسسة.</li>
+<li>‏تحديد تقديم المادة للصف المناسب، مع مشاركة فروع المؤسسة للكتالوج الأكاديمي الخاص بها.</li>
+<li>‏إنشاء السنة الدراسية والفترات التابعة لها، مثل الترمين أو المراجعات.</li>
+<li>‏إدارة سنة واحدة نشطة للتشغيل وسنة مستقبلية واحدة للتجهيز المبكر.</li>
+<li>‏تجهيز مجموعات وجداول السنة القادمة دون بدء حضور أو حصص فعلية قبل التفعيل.</li>
+<li>‏إغلاق السنة وترقية الصفوف للحالات المؤهلة، مع حفظ التاريخ وعدم تسجيل الطلاب تلقائيًا في مجموعات جديدة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> تجهز الإدارة مجموعات الصف الثالث الثانوي للسنة المقبلة بينما يستمر التشغيل في السنة الحالية، ثم تفعل السنة الجديدة بعد الإجراءات المطلوبة.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> النطاق الأساسي قبل الجامعي؛ الكتالوج الأولي يشمل المصري العام العربي واللغات والأزهري. ترقية الصف لا تنقل المدفوعات أو تجدد التسجيل تلقائيًا.</p>
+<h4 id="feature-C09" tabindex="-1">‏<a href="#feature-C09" class="feature-link" aria-label="عرض تفاصيل C09: إدارة المجموعات الدراسية">C09</a> — إدارة المجموعات الدراسية</h4>
+<p>‏<strong>المستخدمون:</strong> مدير المؤسسة أو الفرع، والمستخدمون المخولون بإعداد المجموعات.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏إنشاء مجموعة وربطها بمادة وصف وفرع وسنة وفترة مناسبة، وإسناد مدرس أساسي واحد فعال.</li>
+<li>‏تحديد السعة والجدول ونوع المجموعة وشروط التسجيل المناسبة.</li>
+<li>‏إدارة تشغيل المجموعة من التجهيز إلى النشاط أو التوقف أو الإكمال أو الإلغاء والأرشفة.</li>
+<li>‏إدارة حالة فتح التسجيل وحالة الظهور بصورة مستقلة عن حالة التشغيل.</li>
+<li>‏تغيير المدرس الأساسي بتاريخ سريان وسبب، مع حفظ تعيين المدرس السابق.</li>
+<li>‏نسخ إعدادات مجموعة لتجهيز مجموعة جديدة، وإعادة فحص المدرس والقاعة والتعارضات.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> مجموعة فيزياء نشطة أغلقت التسجيل لاكتمال السعة؛ تستمر حصصها بصورة طبيعية ويظل الطلاب الجدد في قائمة الانتظار.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> نسخ المجموعة لا ينسخ الطلاب أو الحضور أو المدفوعات. المجموعة الأساسية تتبع فرعًا واحدًا ومادة واحدة وصفًا واحدًا، ونموذجها حضوري.</p>
+<h4 id="feature-C10" tabindex="-1">‏<a href="#feature-C10" class="feature-link" aria-label="عرض تفاصيل C10: إدارة القاعات والجداول وفحص التعارض">C10</a> — إدارة القاعات والجداول وفحص التعارض</h4>
+<p>‏<strong>المستخدمون:</strong> المسؤولون عن الجداول والقاعات ومديرو الفروع.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تسجيل القاعة وفرعها وسعتها وحالتها وتجهيزاتها التشغيلية.</li>
+<li>‏تحديد موعد أسبوعي أو أكثر للمجموعة: يوم ووقت بداية ونهاية وقاعة وتاريخ سريان عند الحاجة.</li>
+<li>‏فحص تداخل استخدام نفس القاعة في أكثر من موعد.</li>
+<li>‏فحص تداخل مواعيد المدرس، بما في ذلك عمله في فروع المؤسسة المختلفة.</li>
+<li>‏منع وجود موعدين متداخلين لنفس المجموعة، ومراعاة الوقت الفاصل عندما تحدده السياسة.</li>
+<li>‏إعادة فحص التعارض عند تغيير الوقت أو القاعة أو المدرس، دون إعادة كتابة الحصص التاريخية.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> عند محاولة وضع مجموعتين في القاعة نفسها من الخامسة للسابعة، يرفض النظام التعارض ويتيح للإدارة اختيار موعد أو قاعة مناسبة.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> الفحص هنا تحقق من الجدول الذي أدخلته الإدارة؛ الإنشاء والتحسين التلقائي للجدول ضمن <a href="#feature-A05" class="feature-link" aria-label="عرض تفاصيل A05: إنشاء جداول واختيار قاعات تلقائيًا">A05</a>. سلوك تعارض جدول الطالب ما زال قرارًا مفتوحًا.</p>
+<h4 id="feature-C11" tabindex="-1">‏<a href="#feature-C11" class="feature-link" aria-label="عرض تفاصيل C11: حجز المقاعد والتسجيل في المجموعات">C11</a> — حجز المقاعد والتسجيل في المجموعات</h4>
+<p>‏<strong>المستخدمون:</strong> موظف الاستقبال والمدير المخول، والطالب أو ولي الأمر عند إتاحة الخدمات الذاتية.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏اختيار الطالب والمجموعة وفحص الصف والأهلية وحالة التسجيل والسنة.</li>
+<li>‏حساب الأماكن المشغولة، مع احتساب الحجوزات المؤقتة السارية على السعة.</li>
+<li>‏إنشاء حجز مؤقت بمهلة واضحة عند الحاجة، وتحرير المكان عند انتهائه أو إلغائه.</li>
+<li>‏تفعيل التسجيل عند استكمال الشروط: موافقة أو حد أدنى للدفع أو دفع كامل حسب السياسة.</li>
+<li>‏منع التسجيل المكرر لنفس الطالب والمجموعة، ومنع تجاوز السعة حتى عند طلب آخر مكان في الوقت نفسه.</li>
+<li>‏عرض حالة التسجيل وربطه بعرض السعر المناسب والتاريخ التشغيلي للطالب.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> آخر مقعد متاح في مجموعة يحاول طالبان حجزه في نفس الوقت؛ يثبت لطالب واحد فقط، ويعرض على الآخر الانتظار.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> الدفع والتسجيل عمليتان منفصلتان: يمكن وجود تسجيل مع مستحقات لم تدفع كاملة إذا كانت السياسة تسمح. مدة تثبيت المقعد وسياسة التفعيل نختارهما أثناء المراجعة.</p>
+<h4 id="feature-C12" tabindex="-1">‏<a href="#feature-C12" class="feature-link" aria-label="عرض تفاصيل C12: قوائم الانتظار وعروض المقاعد">C12</a> — قوائم الانتظار وعروض المقاعد</h4>
+<p>‏<strong>المستخدمون:</strong> الطلاب وأولياء الأمور والاستقبال وإدارة المجموعات.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏إضافة طلب انتظار عند اكتمال المجموعة، مع تحديد سياق الطلب المناسب.</li>
+<li>‏إلغاء الطلب أو تحديث حالته دون اعتباره تسجيلًا داخل المجموعة.</li>
+<li>‏تقديم فرص عند توفر مكان أو إنشاء مجموعة مناسبة للطلب.</li>
+<li>‏دعم إخطار المنتظرين والحجز حسب أسبقية إتمام الحجز، أو إرسال عروض مرتبة حسب السياسة.</li>
+<li>‏في العروض المرتبة، استخدام أسبقية وقت طلب الانتظار كترتيب أولي؛ انتهاء العرض يتيح الانتقال للطالب التالي.</li>
+<li>‏إظهار انتهاء الفرصة والحجز المؤقت إن وجد، ثم استكمال التسجيل بعد قبول الطالب وشروطه.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> انسحب طالب من مجموعة ممتلئة؛ يرسل النظام فرصة للطالب التالي في قائمة الانتظار، ويتيح المكان للتالي إذا انتهت مهلة العرض دون استكمال.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> الانتظار لا يحجز مقعدًا ولا يضمنه. الإشعار العام وحده لا يعني تثبيت مكان؛ لا يوجد نقل تلقائي من الانتظار إلى التسجيل في النطاق الأساسي.</p>
+<h4 id="feature-C13" tabindex="-1">‏<a href="#feature-C13" class="feature-link" aria-label="عرض تفاصيل C13: قياس الطلب والمساعدة في فتح مجموعات">C13</a> — قياس الطلب والمساعدة في فتح مجموعات</h4>
+<p>‏<strong>المستخدمون:</strong> مديرو المؤسسة والفروع والمسؤولون عن تخطيط المجموعات.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تجميع الطلب غير المستوعب حسب المادة والصف والمدرس والفرع والتوقيت.</li>
+<li>‏عرض عدد المنتظرين والمجموعات الممتلئة والمجالات التي يزيد فيها الطلب على السعة.</li>
+<li>‏مقارنة الطلب بجدول المدرسين والقاعات والقدرة المتاحة.</li>
+<li>‏عرض فرصة تشغيلية لفتح مجموعة جديدة مع أسبابها والموارد التي تسمح بها.</li>
+<li>‏تمكين الإدارة من اتخاذ قرار إنشاء المجموعة وربطها بالطلب السابق.</li>
+<li>‏توجيه فرص التسجيل للمنتظرين المناسبين وفق سياسة الانتظار المعتمدة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> يوجد 28 طالبًا ينتظرون فيزياء للصف الثالث، ومدرس وقاعة سعتها 30 متاحان في توقيت مناسب؛ تظهر فرصة للإدارة لفتح مجموعة جديدة.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> هذه مساعدة مبنية على بيانات وقواعد واضحة؛ لا تفترض تعلمًا آليًا. لا تفتح المجموعة أو تسجل الطلاب دون قرار وإجراء مخول.</p>
+<h4 id="feature-C14" tabindex="-1">‏<a href="#feature-C14" class="feature-link" aria-label="عرض تفاصيل C14: الحجز المبكر وتجديد التسجيل">C14</a> — الحجز المبكر وتجديد التسجيل</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والاستقبال والطالب أو ولي الأمر المسموح له بالحجز والتجديد.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏فتح حجز مبكر لمجموعة مكتملة التجهيز في السنة المستقبلية.</li>
+<li>‏حفظ المكان أو الرغبة وفق سياسة الحجز والسعة والمهلة المحددة.</li>
+<li>‏متابعة الحجوزات المبكرة وتحويلها إلى تسجيلات عند تفعيل السنة واستكمال الشروط.</li>
+<li>‏تقديم فرصة تجديد لخدمة تعليمية جديدة بعد انتهاء التسجيل السابق.</li>
+<li>‏إعادة فحص السعة والأسعار والأهلية عند التجديد بدل مد التسجيل القديم بصمت.</li>
+<li>‏الاحتفاظ بتاريخ التسجيل السابق والحجز أو التجديد الجديد بصورة مستقلة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> طالب يحجز مكانه للسنة القادمة، وبعد تفعيل السنة يستكمل شروط التسجيل. عند انتهاء دورة أخرى يختار تجديدًا جديدًا بدل إنشاء التزام مالي تلقائي.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> الحجز المبكر لا يبدأ مستحقات دراسية تشغيلية افتراضيًا قبل التفعيل. التجديد التلقائي المتكرر جزء إضافي يحتاج موافقة ونموذج فوترة مستقلًا.</p>
+<h4 id="feature-C15" tabindex="-1">‏<a href="#feature-C15" class="feature-link" aria-label="عرض تفاصيل C15: نقل الطالب وتجميد التسجيل والانسحاب">C15</a> — نقل الطالب وتجميد التسجيل والانسحاب</h4>
+<p>‏<strong>المستخدمون:</strong> الطالب أو ولي الأمر مقدم الطلب، والاستقبال والمدير والمحاسب بحسب الأثر.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تقديم طلب نقل لمجموعة أخرى أو لفرع آخر داخل المؤسسة والتحقق من السعة والأهلية والصلاحيات.</li>
+<li>‏تأمين المقعد الجديد قبل إنهاء التسجيل القديم، ثم حفظ تاريخ التسجيلين وعلاقة النقل.</li>
+<li>‏حساب فرق السعر أو الرصيد أو المستحق الإضافي أو الاسترداد حسب السياسة المالية.</li>
+<li>‏تجميد التسجيل لفترة مع توضيح هل يحتفظ الطالب بالمقعد أم يحرر للآخرين.</li>
+<li>‏إعادة التفعيل وفق تاريخ العودة والسعة والسياسة، خصوصًا إذا كان المقعد قد تحرر.</li>
+<li>‏تسجيل الانسحاب أو الإلغاء بتاريخ وسبب، وتحرير المكان ومعالجة الحقوق المالية وفق القواعد.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> طالب ينقل من مجموعة الثلاثاء إلى الخميس؛ يتحقق النظام من المكان الجديد ويعالج فرق السعر، بينما يظل حضوره ومدفوعاته القديمة ظاهرين في سياقهم الأصلي.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> التجميد والانسحاب والإلغاء حالات مختلفة. لا يضمن التجميد العودة لنفس المجموعة إذا كانت سياسته تحرير المقعد. الانسحاب لا يعني استردادًا كاملًا تلقائيًا.</p>
+<h4 id="feature-C16" tabindex="-1">‏<a href="#feature-C16" class="feature-link" aria-label="عرض تفاصيل C16: إدارة الحصص الفعلية والاستثناءات">C16</a> — إدارة الحصص الفعلية والاستثناءات</h4>
+<p>‏<strong>المستخدمون:</strong> إدارة الفرع والمسؤول عن الحصص والمدرسون ضمن صلاحياتهم.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏إنشاء حصص فعلية لها تاريخ ووقت وقاعة من الجدول الأسبوعي خلال فترة توليد محددة.</li>
+<li>‏متابعة حالة الحصة من الموعد المجدول إلى بدء التنفيذ والإكمال والإغلاق.</li>
+<li>‏تسجيل المدرس المتوقع والمدرس الذي قدم الحصة فعلًا، وتعيين بديل مؤقت مع فحص الأهلية والتعارض.</li>
+<li>‏إلغاء الحصة بسبب واضح، أو إعادة جدولتها مع الاحتفاظ بالموعد الأصلي والتغيير الذي حدث.</li>
+<li>‏إنشاء حصة تعويضية مرتبطة بسبب أو حصة سابقة، ومتابعة الحاجة إلى التعويض.</li>
+<li>‏تسجيل ملاحظات تشغيلية وموضوعات أو واجب الحصة، وإخطار الأطراف المتأثرة بالتغييرات.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> المدرس الأساسي يتعذر حضوره يوم السبت؛ تعين الإدارة بديلًا لهذه الحصة فقط، ويسجل النظام من قدمها لتطبيق قاعدة مستحقاته المناسبة.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> البديل المؤقت لا يغير المدرس الأساسي للمجموعة. إلغاء الحصة أو تعويضها لا يمحو الأصل؛ الأثر المالي على الطالب والمدرس تحدده السياسات والعقد.</p>
+<h4 id="feature-C17" tabindex="-1">‏<a href="#feature-C17" class="feature-link" aria-label="عرض تفاصيل C17: تسجيل الحضور والغياب واعتماده">C17</a> — تسجيل الحضور والغياب واعتماده</h4>
+<p>‏<strong>المستخدمون:</strong> موظف الحضور والمدرس المخول والمدير المراجع، والطالب أو ولي الأمر عند تقديم عذر.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏عرض الطلاب المستحقين للحضور في تاريخ الحصة، مع مراعاة الانضمام والنقل والانسحاب والتجميد.</li>
+<li>‏تسجيل حاضر أو غائب أو متأخر أو غياب بعذر؛ حالة الانصراف المبكر تضيفها حاجة تشغيلية معتمدة.</li>
+<li>‏تمييز الطالب الذي لم يسجل حضوره بعد عن غياب نهائي معتمد.</li>
+<li>‏استقبال عذر أو مستند ومراجعته قبل تحويل الحالة إلى غياب بعذر.</li>
+<li>‏إرسال الحضور للمراجعة أو اعتماده وإغلاقه وفق سير العمل المسموح.</li>
+<li>‏إعادة فتح السجل النهائي عند الحاجة بصلاحية وسبب، مع تسجيل الحالة القديمة والجديدة وإشعار مناسب.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> طالب سجل غائبًا ثم قدم ولي أمره عذرًا مقبولًا؛ يصحح المسؤول الحالة بإجراء ظاهر في التاريخ، ولا تختفي حالة التسجيل الأولى.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> رفع عذر لا يعني قبوله آليًا، ولا ترسل رسالة غياب نهائي قبل اعتماد الحالة. الغياب لا يلغي الرسوم تلقائيًا؛ التسعير يحدد الأثر المالي.</p>
+<h4 id="feature-C18" tabindex="-1">‏<a href="#feature-C18" class="feature-link" aria-label="عرض تفاصيل C18: تسجيل الحضور بدون إنترنت والمزامنة">C18</a> — تسجيل الحضور بدون إنترنت والمزامنة</h4>
+<p>‏<strong>المستخدمون:</strong> موظف الحضور أو المدرس المخول على جهاز مصرح له بالحصة.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تجهيز بيانات محدودة للحصص التي يجوز للمستخدم إدارتها قبل انقطاع الاتصال.</li>
+<li>‏تسجيل حالات الحضور محليًا خلال انقطاع مؤقت مع معرفة المستخدم والعملية وتوقيتها.</li>
+<li>‏إظهار العمليات التي لم تزامن بعد ونتيجة المزامنة عند عودة الإنترنت.</li>
+<li>‏التحقق وقت المزامنة من صلاحية المستخدم وحالة الحصة وأهلية الطلاب.</li>
+<li>‏منع تكرار تطبيق نفس العملية عند إعادة الإرسال أو ضعف الاتصال.</li>
+<li>‏عرض قبول أو رفض أو حاجة لمراجعة لكل تغيير، خصوصًا إذا تعارض مع حضور أغلق أو تغير على جهاز آخر.</li>
+<li>‏حماية البيانات المؤقتة وتقليلها والاحتفاظ بها وفق الحاجة المسموحة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> المدرس يسجل طالبًا حاضرًا أثناء انقطاع الإنترنت؛ عند الاتصال يتبين أن مسؤولًا آخر اعتمد غيابه، فتظهر الحالة للمراجعة بدل استبدال السجل النهائي تلقائيًا.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> لا يتضمن هذا تشغيل التحصيل أو الاسترداد بدون إنترنت. يعتمد على تجهيز بيانات الحصة المناسبة، ويحتاج تحديد الأجهزة وطريقة معالجة التعارض ضمن نطاق المشروع.</p>
+<h4 id="feature-C19" tabindex="-1">‏<a href="#feature-C19" class="feature-link" aria-label="عرض تفاصيل C19: التسعير وإنشاء المستحقات ومتابعة المتأخرات">C19</a> — التسعير وإنشاء المستحقات ومتابعة المتأخرات</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمحاسب والاستقبال المخول، مع عرض النتائج للطالب وولي الأمر.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏إنشاء عرض سعر مرتبط بالخدمة التعليمية، واختيار طريقة الحساب المناسبة.</li>
+<li>‏دعم نماذج معرفة مثل الدورة الكاملة أو الأقساط أو الشهر أو الحصة أو باقة بسيطة بحسب ما نختاره.</li>
+<li>‏تثبيت شروط السعر للتسجيل حتى لا يؤدي تغيير السعر العام إلى تغيير التاريخ السابق.</li>
+<li>‏إنشاء مستحقات لها قيمة ومصدر وموعد، ومتابعة المدفوع منها والمتبقي.</li>
+<li>‏تحديد احتساب الانضمام بعد بداية الدورة: سعر كامل أو جزء متبق أو قيمة خاصة حسب السياسة.</li>
+<li>‏فصل المستحق حاليًا عن المتأخر والمستحق مستقبلًا والرصيد لصالح الطالب.</li>
+<li>‏تطبيق سياسة معلومة للمتأخرات، مثل تحذير أو منع تسجيل جديد أو طلب موافقة، دون قرار عشوائي لكل طالب.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> رسوم الدورة 1200 جنيه على ثلاثة أقساط؛ يعرض النظام موعد وقيمة كل قسط وما سدد منه، ولا يعتبر القسط المستقبلي متأخرًا.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> الأرقام هنا مثال فقط. نختار نماذج التسعير وسياسة توليد المستحقات، ولا نفترض غرامات تأخير أو فوائد تلقائية ضمن النطاق الأساسي.</p>
+<h4 id="feature-C20" tabindex="-1">‏<a href="#feature-C20" class="feature-link" aria-label="عرض تفاصيل C20: تسجيل المدفوعات والإيصالات">C20</a> — تسجيل المدفوعات والإيصالات</h4>
+<p>‏<strong>المستخدمون:</strong> الاستقبال أو المحصل والمحاسب، والطالب أو ولي الأمر الذي يقدم إثبات تحويل.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تسجيل المبلغ وطريقة الدفع والتاريخ والفرع والطالب والشخص الدافع ومرجع العملية عند الحاجة.</li>
+<li>‏تحصيل النقد داخل سياق وردية مفتوحة ومسؤول معلوم، وربطه بحركة الخزنة.</li>
+<li>‏استقبال بيانات التحويل اليدوي وإثباته، وتركه قيد التحقق حتى يراجعه مستخدم مخول.</li>
+<li>‏تسجيل دفعة جزئية بدل إجبار المستخدم على دفع المستحق بالكامل.</li>
+<li>‏توزيع الدفعة على مستحق واحد أو أكثر، وإظهار الجزء الذي سدد كل مستحق.</li>
+<li>‏الاحتفاظ بالمبلغ الزائد أو غير الموزع وفق النموذج المالي دون إضاعته.</li>
+<li>‏إصدار إيصال تحصيل تشغيلي مرقم وإتاحته لصاحب الصلاحية مع حفظ العملية الأصلية.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> طالب عليه مستحقان بقيمة 400 و500 جنيه ودفع 600؛ تخصص 400 للأول و200 للثاني، فيبقى عليه 300 جنيه في الثاني.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> صورة التحويل وحدها لا تؤكد التحصيل. الإيصال التشغيلي ليس فاتورة ضريبية تلقائيًا. الدفع الإلكتروني موضح كتكامل اختياري مستقل في <a href="#feature-A01" class="feature-link" aria-label="عرض تفاصيل A01: الدفع الإلكتروني لطلاب السنتر">A01</a>.</p>
+<h4 id="feature-C21" tabindex="-1">‏<a href="#feature-C21" class="feature-link" aria-label="عرض تفاصيل C21: الخصومات والمنح والأرصدة الدائنة">C21</a> — الخصومات والمنح والأرصدة الدائنة</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمحاسب والاستقبال ضمن حدود الخصم المسموحة.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تعريف خصم ثابت أو نسبة، وإظهار قيمة الخدمة الأصلية والخصم والصافي.</li>
+<li>‏تسجيل منحة كاملة بصورة توضح أن خدمة قدمت بقيمتها وأن الخصم غطى المستحق.</li>
+<li>‏رفع طلب خصم استثنائي بسببه عند تجاوز السياسة أو حدود صلاحية الموظف.</li>
+<li>‏تسجيل مصدر الرصيد الدائن، مثل زيادة دفع أو إلغاء خدمة أو تسوية نقل.</li>
+<li>‏استخدام الرصيد المؤهل في سداد مستحقات لاحقة مع حفظ أثر الاستخدام.</li>
+<li>‏عرض الرصيد المتاح والعمليات التي أنشأته أو استهلكته بدل تعديل إجمالي الرصيد مباشرة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> طالب عليه 700 جنيه ودفع 900؛ يسجل النظام سداد المستحق والـ200 المتبقية لصالح الطالب، ويمكن استخدامها لاحقًا وفق السياسة.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> رصيد طالب لا ينتقل تلقائيًا لأخيه أو لمؤسسة أخرى. الخصومات الخاصة بالأقارب والمنح تحتاج الصلاحيات والمراجعة المناسبة، وليست استثناءً مفتوحًا.</p>
+<h4 id="feature-C22" tabindex="-1">‏<a href="#feature-C22" class="feature-link" aria-label="عرض تفاصيل C22: الاسترداد والتصحيح وكشف الحساب">C22</a> — الاسترداد والتصحيح وكشف الحساب</h4>
+<p>‏<strong>المستخدمون:</strong> الاستقبال أو المحاسب مقدم الطلب، والمراجع المخول، والشخص الذي يحق له الاسترداد.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏استقبال طلب استرداد كامل أو جزئي وربطه بالدفع والخدمة والسبب.</li>
+<li>‏فحص القيمة المؤهلة بعد الاستردادات السابقة ومراجعة القرار قبل التنفيذ.</li>
+<li>‏تمييز الاسترداد المعتمد عن الاسترداد المنفذ، وتأكيد خروج الأموال بالفعل.</li>
+<li>‏إرجاع المال للدافع أو لوسيلة الدفع الأصلية عندما تسمح الطريقة؛ أو تحويل مناسب إلى رصيد حسب السياسة.</li>
+<li>‏تصحيح دفعة أو مستحق مسجل خطأ بحركة عكس مرتبطة بالأصل مع سبب ومراجعة عند الحاجة.</li>
+<li>‏عرض كشف حساب يشرح المستحقات والخصومات والدفعات والتوزيعات والأرصدة والاستردادات والتعديلات.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> دفعة نقدية أدخلت مرتين تصحح بعكس النسخة الخاطئة. أما رد 200 جنيه للعميل عن خدمة ملغاة فهو استرداد فعلي وله تسجيل خروج أموال.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> العكس ليس استردادًا، والموافقة ليست خروج الأموال. لا يمكن استرداد أكثر من القيمة المؤهلة، ولا تصحح العمليات المالية المؤكدة بحذفها أو تغيير الرصيد يدويًا.</p>
+<h4 id="feature-C23" tabindex="-1">‏<a href="#feature-C23" class="feature-link" aria-label="عرض تفاصيل C23: إدارة الخزن وورديات التحصيل">C23</a> — إدارة الخزن وورديات التحصيل</h4>
+<p>‏<strong>المستخدمون:</strong> المحصل أو أمين الخزنة والمحاسب ومدير الفرع.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏إنشاء خزن وأدراج تحصيل تتبع فروعًا محددة وتحديد حالتها.</li>
+<li>‏فتح وردية مرتبطة بمستخدم ودرج مع مبلغ البداية عند الحاجة.</li>
+<li>‏تسجيل دخول وخروج النقد من مصادر واضحة: تحصيل أو استرداد أو مصروف أو تحويل.</li>
+<li>‏حساب النقد المتوقع من الحركات، وعدم استخدام رصيد يدوي منفصل عن أسباب تغيره.</li>
+<li>‏إغلاق الوردية بإدخال النقد المعدود ومقارنته بالمتوقع وتسجيل العجز أو الزيادة.</li>
+<li>‏مراجعة أسباب الفرق ومعالجته بالعملية الصحيحة، ثم إثبات تسليم النقد أو نقله للخزنة الرئيسية.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> المتوقع في درج التحصيل 5000 جنيه والمعدود 4950؛ يظهر عجز 50 جنيهًا للمراجعة دون تقليل مدفوعات الطلاب لإخفائه.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> لا توجد حسابات تحصيل مشتركة مجهولة المسؤولية. التحويل الإلكتروني لا يدخل النقد الموجود في الدرج. إعادة فتح وردية مغلقة إجراء بصلاحية وسبب.</p>
+<h4 id="feature-C24" tabindex="-1">‏<a href="#feature-C24" class="feature-link" aria-label="عرض تفاصيل C24: المصروفات والتحويلات والإغلاق اليومي">C24</a> — المصروفات والتحويلات والإغلاق اليومي</h4>
+<p>‏<strong>المستخدمون:</strong> موظف مقدم مصروف والمدير المعتمد والمحاسب وأمين الخزنة.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تسجيل المصروف وفرعه وتصنيفه وسببه وقيمته ومستنداته المناسبة.</li>
+<li>‏طلب الموافقة بحسب القيمة أو النوع، ثم تسجيل الدفع منفصلًا عن اعتماد المصروف.</li>
+<li>‏ربط الدفع النقدي بخروج المال من الخزنة المناسبة، وتمييز الدفع غير النقدي.</li>
+<li>‏بدء تحويل نقد بين الخزن أو الفروع مع تسجيل من سلم والمبلغ ووقت الإرسال.</li>
+<li>‏تأكيد الاستلام بواسطة المستخدم المخول، وعرض اختلاف المبلغ للتحقيق بدل قبول قيمة جديدة بصمت.</li>
+<li>‏مراجعة اليوم المالي: الورديات والتحصيل والاستردادات والمصروفات والتحويلات والفروق غير المحسومة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> الفرع الأول يرسل 10000 جنيه للثاني؛ يسجل التسليم والاستلام. إذا أكد المستلم 9900 يفتح فرق للمراجعة مع بقاء قيمة الإرسال واضحة.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> المصروف ليس حركة خروج نقد دائمًا؛ قد يكون مستحقًا لم يدفع بعد. ميزانيات المصروفات وأوامر الشراء وإدارة الموردين الكاملة ضمن التوسعات الإضافية.</p>
+<h4 id="feature-C25" tabindex="-1">‏<a href="#feature-C25" class="feature-link" aria-label="عرض تفاصيل C25: عقود المدرسين وقواعد حساب مستحقاتهم">C25</a> — عقود المدرسين وقواعد حساب مستحقاتهم</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمحاسب، والمدرس للاطلاع على ما يسمح به من اتفاقه ومستحقاته.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تسجيل عقد المدرس مع المؤسسة وفترة سريانه ونطاق تطبيقه.</li>
+<li>‏اختيار نموذج ثابت للفترة أو مبلغ للحصة المنفذة أو قيمة للطالب أو نسبة أو تركيب محدود.</li>
+<li>‏تعريف أساس النسبة صراحة: مستحقات أو تحصيل مؤكد أو تحصيل مخصص، حسب العقد.</li>
+<li>‏تحديد تعريف الطالب أو الحصة التي تدخل في الحساب وتاريخ القياس المناسب.</li>
+<li>‏تحديد أثر الخصومات والإلغاء والتعويض والبديل على المستحقات وفق النموذج المختار.</li>
+<li>‏تطبيق شروط العقد السارية وقت الاستحقاق، وحفظ التفسير عند تغيير الاتفاق مستقبلًا.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> مدرس يتقاضى 300 جنيه للحصة المؤهلة التي قدمها؛ تحسب حصصه الفعلية، وتطبق قاعدة عقد البديل عند تقديم شخص آخر لحصة المجموعة.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> ليس هناك مبلغ واحد لكل المدرسين أو نسبة بلا أساس. نختار نماذج عقود محددة للمشروع؛ الغرامات العقابية والقروض ومعادلات التعويض المفتوحة ليست جزءًا افتراضيًا.</p>
+<h4 id="feature-C26" tabindex="-1">‏<a href="#feature-C26" class="feature-link" aria-label="عرض تفاصيل C26: تسويات المدرسين ودفع المستحقات والاعتراضات">C26</a> — تسويات المدرسين ودفع المستحقات والاعتراضات</h4>
+<p>‏<strong>المستخدمون:</strong> المحاسب ومراجع التسوية والمدرس والمسؤول عن دفعها.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏اختيار فترة التسوية وتجميع الاستحقاقات الناتجة من العقود والحصص والمالية المؤهلة.</li>
+<li>‏عرض بنود توضح الحصص والأعداد والأسعار أو النسب والتعديلات ومصدر كل مبلغ.</li>
+<li>‏مراجعة التسوية واعتمادها قبل دفعها، وحفظ شروط الحساب عند الاعتماد.</li>
+<li>‏دفع التسوية كليًا أو على دفعات إذا سمحت السياسة، وإظهار المدفوع والمتبقي.</li>
+<li>‏إتاحة اعتراض المدرس على حصة ناقصة أو حساب غير صحيح ومراجعة الاعتراض.</li>
+<li>‏تصحيح الأخطاء بعد اعتماد أو إغلاق التسوية بحركة تعديل واضحة بدل تغيير البنود القديمة بصمت.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> التسوية 7200 جنيه مقابل 24 حصة × 300؛ دفع 5000 فيظهر المتبقي 2200. إذا اكتشفت حصة مفقودة بعد الإغلاق تعالج كتعديل موثق.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> حساب المستحق يختلف عن دفعه، والمدرس لا يعتمد تسويته لنفسه كمراجع مستقل عندما تتطلب السياسة مراجعة مستقلة. الأرباح من سوق المحتوى تظل منفصلة.</p>
+<h4 id="feature-C27" tabindex="-1">‏<a href="#feature-C27" class="feature-link" aria-label="عرض تفاصيل C27: لوحات المتابعة والتقارير والتصدير">C27</a> — لوحات المتابعة والتقارير والتصدير</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة ومديرو الفروع والمحاسب والاستقبال والمدرس؛ كل يرى التقارير المستحقة له.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏لوحة تشغيل تعرض الطلاب والمجموعات النشطة وحصص اليوم والسعة والانتظار.</li>
+<li>‏تقارير التسجيل والنقل والتجميد والتجديد والحضور والإلغاء والتعويض.</li>
+<li>‏متابعة المستحقات والتحصيل والمتأخرات والأرصدة والاستردادات، مع فصل الأرقام المختلفة.</li>
+<li>‏تقارير الخزن والورديات والفروق والمصروفات ومستحقات المدرسين والمدفوع منها.</li>
+<li>‏تصفية بحسب المؤسسة أو الفرع والفترة والمادة والمجموعة والمدرس عندما ينطبق ذلك.</li>
+<li>‏الوصول إلى التفاصيل التي تفسر الإجماليات دون تجاوز صلاحيات المستخدم.</li>
+<li>‏تصدير Excel أو CSV وPDF لبعض التقارير المناسبة، مع نفس نطاق الاطلاع وحماية البيانات.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> مدير الفرع يراجع حصص اليوم والمجموعات الممتلئة والمتأخرات، بينما مالك المؤسسة يراجع إجماليات الفروع والمحاسب يصل لتفاصيل التحصيل.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> نختار تقارير محددة بالاسم بدل الالتزام بكل التقارير الممكنة. معادلات بعض نسب التحصيل والتحويل من الانتظار والتجديد ما زالت تحتاج قرارًا، ولا يسمى التحصيل ناقص المصروفات ربحًا محاسبيًا نهائيًا.</p>
+<h4 id="feature-C28" tabindex="-1">‏<a href="#feature-C28" class="feature-link" aria-label="عرض تفاصيل C28: مركز الإشعارات والتنبيهات والإعلانات">C28</a> — مركز الإشعارات والتنبيهات والإعلانات</h4>
+<p>‏<strong>المستخدمون:</strong> كل أصحاب الحسابات المستحقين للإشعار، والموظفون المخولون بإعلانات المؤسسة.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏مركز إشعارات بعناوين ورسائل وأوقات وحالة قراءة ورابط للعنصر المرتبط.</li>
+<li>‏تنبيهات التسجيل والانتظار وقرب انتهاء عروض المقاعد وتغييرات مواعيد الحصص.</li>
+<li>‏إشعارات الغياب بعد اعتماده، ونتائج الأعذار والمدفوعات والاستردادات والطلبات.</li>
+<li>‏تذكيرات للمستحقات والمواعيد والموافقات المعلقة بحسب الحالة الحالية.</li>
+<li>‏إرسال إعلان تشغيلي لجمهور محدد مثل مجموعة أو فرع من مستخدم مخول.</li>
+<li>‏تفضيلات للقنوات وأنواع الرسائل وفترات الهدوء لغير العاجل، دون تعطيل رسائل الأمان الضرورية.</li>
+<li>‏منع تكرار الرسالة ومراجعة المستحقين قبل الإرسال حتى لا تصل معلومات لطرف غير مخول.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> بعد إلغاء حصة تصل رسالة للطلاب وأولياء الأمور المستحقين توضح الإلغاء. إذا دفع الطالب قبل موعد تذكير المتأخرات، لا يرسل التذكير القديم.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> الإشعارات التشغيلية والإعلانات المحدودة لا تعني منصة حملات تسويقية. مسح الإشعار من الواجهة لا يحذف الحدث المالي أو سجل العملية الذي يتعلق به.</p>
+<h4 id="feature-C29" tabindex="-1">‏<a href="#feature-C29" class="feature-link" aria-label="عرض تفاصيل C29: البريد وSMS والقنوات المناسبة للعميل">C29</a> — البريد وSMS والقنوات المناسبة للعميل</h4>
+<p>‏<strong>المستخدمون:</strong> المستخدمون المستلمون، والإدارة المخولة بمتابعة الإرسال وإعداد القنوات.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏استخدام البريد للرسائل والمستندات والتأكيدات المناسبة، وSMS للأكواد والرسائل المهمة المختصرة.</li>
+<li>‏دعم Push عند توفر تطبيق أو متصفح وعميل مناسبين لذلك.</li>
+<li>‏تحديد القناة والمستلم واللغة والقالب بحسب الحدث وسياسة الإشعارات.</li>
+<li>‏عرض محاولة الإرسال وحالتها حسب ما يقدمه المزود: إرسال أو تسليم أو فشل.</li>
+<li>‏إعادة المحاولة للأخطاء المؤقتة، أو استخدام بديل عندما تسمح السياسة.</li>
+<li>‏متابعة الاستخدام والتكلفة أو الحصة المتاحة للرسائل الخارجية بحسب النموذج المختار.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> تؤكد دفعة الطالب داخل النظام ثم تفشل SMS مؤقتًا؛ تظل الدفعة صحيحة والإشعار الداخلي متاحًا وتجرى محاولة إرسال أخرى وفق السياسة.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> الإرسال والتسليم والقراءة حالات مختلفة. المزودون والتكلفة يحتاجون تحديدًا؛ نوضح في العرض ما يرسل فعلًا وما يستخدم بيئة تجريبية. WhatsApp مفصولة في <a href="#feature-A02" class="feature-link" aria-label="عرض تفاصيل A02: إشعارات WhatsApp">A02</a>.</p>
+<h4 id="feature-C30" tabindex="-1">‏<a href="#feature-C30" class="feature-link" aria-label="عرض تفاصيل C30: سجل العمليات والموافقات الحساسة">C30</a> — سجل العمليات والموافقات الحساسة</h4>
+<p>‏<strong>المستخدمون:</strong> منفذو العمليات والمراجعون والإدارة المخولة بالاطلاع على السجل.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏توثيق المستخدم والمؤسسة والفرع والعملية والهدف والتوقيت والنتيجة والسبب عند الحاجة.</li>
+<li>‏حفظ التغيير المهم بصورة تسمح بفهم السابق والجديد، دون تخزين أسرار الحساب في السجل.</li>
+<li>‏تحديد العمليات التي تحتاج موافقة، مثل خصم استثنائي أو خروج أموال أو تعديل سجل مغلق.</li>
+<li>‏عرض صندوق طلبات يوضح الأثر والقيمة والمقدم والفرع وما يحتاج إجراء المراجع.</li>
+<li>‏قبول الطلب أو رفضه أو إعادته للتعديل، مع حفظ القرار وتمييز الموافقة عن التنفيذ.</li>
+<li>‏منع اعتماد الشخص طلبه عندما تتطلب السياسة استقلالًا، ومراعاة العمليات الخاصة به أو بطرف مرتبط.</li>
+<li>‏إتاحة البحث والمتابعة وتسجيل الوصول الحساس، مع منع حذف التاريخ الرقابي من الواجهة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> موظف يطلب خصمًا خارج الحد؛ يراجع المدير السبب والأثر ويوافق أو يرفض، ثم تظهر نتيجة التطبيق منفصلة عن قرار الموافقة.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> ليست كل عملية بحاجة لمدير؛ التسجيل والحضور العاديان لا يخضعان لموافقة عامة تلقائيًا. استثناء المؤسسة الصغيرة للموافقة الذاتية يتطلب سياسة وحماية وتوثيقًا، وحدود المبالغ لا تثبت دون قرار.</p>
+<h4 id="feature-C31" tabindex="-1">‏<a href="#feature-C31" class="feature-link" aria-label="عرض تفاصيل C31: استيراد البيانات الحالية من Excel وCSV">C31</a> — استيراد البيانات الحالية من Excel وCSV</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والاستقبال والمحاسب بحسب نوع البيانات وصلاحيات الاستيراد.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏تحميل قوالب الطلاب والمجموعات والتسجيلات والموظفين والوضع المالي المناسب.</li>
+<li>‏رفع ملف Excel أو CSV وربط أعمدته بالحقول، مع الحفاظ على أرقام الهاتف والأكواد بصورة صحيحة.</li>
+<li>‏فحص الملف والحقول والمراجع مثل الصف والفرع والمجموعة، والسعة والصلاحيات.</li>
+<li>‏كشف الصفوف المكررة والتطابقات المحتملة وعرض الخطأ برقم الصف والحقل وسبب المشكلة.</li>
+<li>‏معاينة ما سينشأ أو يحدث والإجماليات قبل التأكيد، وحل القرارات المطلوبة.</li>
+<li>‏استيراد بيانات الوضع الحالي: الطلاب والعلاقات التشغيلية والمجموعات والتسجيلات وسجلات الموظفين والمدرسين.</li>
+<li>‏نقل مستحقات ورصيد الطالب الافتتاحي بمصدر وتاريخ انتقال واضحين، ثم إصدار تقرير وسجل للاستيراد.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> ملف فيه 1000 طالب و20 صفًا غير صالح؛ تظهر المشكلات والمعاينة، ويمكن قبول الصفوف الصحيحة في الأنواع التي تسمح بذلك بعد تأكيد المستخدم.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> نقل الرصيد السابق لا ينشئ تحصيلًا جديدًا في خزنة اليوم. لا تستورد كلمات المرور أو درجات تحقق المنصة. قبول جزئي للبيانات المالية قرار مفتوح؛ الترحيل التاريخي الكامل ضمن <a href="#feature-A14" class="feature-link" aria-label="عرض تفاصيل A14: ترحيل تاريخي وتكاملات بيانات مباشرة">A14</a>.</p>
+<h4 id="feature-C32" tabindex="-1">‏<a href="#feature-C32" class="feature-link" aria-label="عرض تفاصيل C32: صفحات السناتر والمجموعات والبحث العام">C32</a> — صفحات السناتر والمجموعات والبحث العام</h4>
+<p>‏<strong>المستخدمون:</strong> إدارة المؤسسة لتحديد المنشور، والطالب وولي الأمر لتصفح البيانات العامة.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏إعداد صفحة عامة باسم السنتر وشعاره ونبذته وفروعه وعناوينه ووسائل تواصله المنشورة.</li>
+<li>‏عرض المواد والصفوف والمدرسين والمجموعات والمواعيد والأسعار عندما تختار المؤسسة نشرها.</li>
+<li>‏إظهار حالة توفر الأماكن أو فتح التسجيل وفق ما يسمح به السياق.</li>
+<li>‏اختيار الاستخدام المخفي أو الوصول برابط مباشر أو الظهور في البحث العام.</li>
+<li>‏البحث والتصفية بحسب المنطقة والصف والمادة وملاءمة البيانات المنشورة.</li>
+<li>‏التحقق من متطلبات النشر والظهور العام، ومنع نشر البيانات الداخلية للطلاب والمالية.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> سنتر يستخدم النظام داخليًا وهو مخفي، ثم ينشر مجموعة مراجعة برابط مباشر؛ يستطيع الطالب مشاهدة معلوماتها المسموحة دون رؤية الحضور أو مدفوعات طلابها.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> الظهور العام لا يعني ترخيصًا أو اعتمادًا حكوميًا. إدراج المجموعة لا يتجاوز حالة ظهور المؤسسة، والتحقق المطلوب للبحث العام يختلف عن مجرد استخدام النظام داخليًا.</p>
+<h4 id="feature-C33" tabindex="-1">‏<a href="#feature-C33" class="feature-link" aria-label="عرض تفاصيل C33: اشتراكات المؤسسات وخطط الاستخدام">C33</a> — اشتراكات المؤسسات وخطط الاستخدام</h4>
+<p>‏<strong>المستخدمون:</strong> مالك المؤسسة والممثل المخول بصلاحية الفوترة، ومسؤولو فوترة المنصة.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏عرض تجربة المؤسسة واستحقاقها وخطتها ودورة اشتراكها وحالتها.</li>
+<li>‏تحديد المميزات وحدود الطلاب النشطين والفروع والتخزين وفق خطة معلومة.</li>
+<li>‏متابعة الاستخدام وتنبيه المسؤول عند الاقتراب من الحد أو انتهاء الاشتراك.</li>
+<li>‏ترقية الخطة أو جدولة تخفيضها عندما يسمح الاستخدام وشروط الفوترة.</li>
+<li>‏منع إضافة استخدام يتجاوز الحد مع استمرار التشغيل الحالي إذا ظل الاشتراك صالحًا.</li>
+<li>‏التجديد والتعامل مع نهاية الخدمة وفترة السماح ثم إتاحة القراءة والتصدير وفق السياسة.</li>
+<li>‏الاحتفاظ بالبيانات التاريخية عند تغيير الخطة أو انتهاء الاشتراك وعدم حذفها كأثر تلقائي.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> مؤسسة وصلت لحد الطلاب في خطتها؛ يستمر حضور وتحصيل طلابها الحاليين، وتحتاج خطة مناسبة لتفعيل طالب جديد يؤدي لتجاوز الحد.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> أسعار الخطط وحدودها ومدة التجربة والخصومات أرقام تجارية تحتاج اعتمادًا. الاشتراك على المؤسسة، وليس على كل طالب أو فرع منفصل؛ الأمان والرقابة الأساسية لا تربط بخطة أعلى.</p>
+<h4 id="feature-C34" tabindex="-1">‏<a href="#feature-C34" class="feature-link" aria-label="عرض تفاصيل C34: لوحة إدارة EduCenterOS">C34</a> — لوحة إدارة EduCenterOS</h4>
+<p>‏<strong>المستخدمون:</strong> فريق EduCenterOS المخول بالدعم والمراجعة والفوترة والأمان وإدارة المنصة.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏متابعة المؤسسات وحالة استخدامها واشتراكها وظهورها العام وتكاملاتها المناسبة.</li>
+<li>‏مراجعة طلبات التحقق والنشر، وطلب معلومات إضافية أو رفض أو سحب التحقق بسبب واضح.</li>
+<li>‏تسجيل البلاغات عن الانتحال أو البيانات العامة المضللة ومراجعتها، دون اعتبار البلاغ إثباتًا وحده.</li>
+<li>‏متابعة حالات الدعم والنزاعات والإجراءات الاستثنائية وسجل التواصل والقرارات.</li>
+<li>‏تطبيق قيود محددة أو تعليق ورفع تعليق بحسب الحالة، مع فصل حالة الاشتراك عن حالة المنصة.</li>
+<li>‏تنفيذ إجراءات نقل السيطرة الأساسية أو استعادتها عند الحاجة وفق تحقق ومراجعة مناسبين.</li>
+<li>‏إدارة إعدادات المنصة المسموحة والمؤشرات العامة وحالات الفوترة الاستثنائية مع توثيق الأفعال.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> تراجع المنصة بلاغ انتحال عن صفحة سنتر؛ تفحص الأدلة وقد توقف النشر العام مؤقتًا بحسب السياسة، مع عدم إغلاق التشغيل الداخلي تلقائيًا لمجرد البلاغ.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> مسؤول المنصة ليس مالك السنتر ولا يملك وصولًا مفتوحًا لكل بياناته أو صلاحية تعديل مالية الطلاب بلا حدود. أدوات الدخول نيابة عن العميل والتحقق الآلي المتقدم ليست متطلبات أساسية.</p>
+<h4 id="feature-C35" tabindex="-1">‏<a href="#feature-C35" class="feature-link" aria-label="عرض تفاصيل C35: حماية الحسابات والبيانات وطلبات الخصوصية">C35</a> — حماية الحسابات والبيانات وطلبات الخصوصية</h4>
+<p>‏<strong>المستخدمون:</strong> كل المستخدمين، مع مسؤوليات إضافية للأدوار الإدارية والمالية ومسؤولي المنصة.</p>
+<p>‏<strong>الوظائف التفصيلية:</strong></p>
+<ul>
+<li>‏فرض مصادقة متعددة العوامل للحسابات أو الصلاحيات الحساسة، وتحقق حديث إضافي للعمليات المحددة.</li>
+<li>‏إدارة وسائل الاستعادة والجلسات وإبطال الوصول عند التعليق أو تغيير أمني مؤثر.</li>
+<li>‏عزل بيانات المؤسسات، والتحقق من صلاحية الاطلاع والتعديل والتصدير في كل سياق.</li>
+<li>‏تقليل البيانات الحساسة وعرضها بصورة مقيدة، وحماية مستندات الهوية وإثباتات الدفع والعقود والأعذار.</li>
+<li>‏توضيح استخدام البيانات وتسجيل الموافقات المناسبة للعملية، خاصة في سياقات القصر وأولياء الأمور.</li>
+<li>‏استقبال طلبات التصحيح أو تصدير البيانات أو حذف الحساب وفك علاقة خاطئة، مع تحقق من مقدم الطلب.</li>
+<li>‏تطبيق الاحتفاظ الملائم للبيانات والنسخ الاحتياطية وحمايتها والتحقق من إمكانية الاستعادة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> إلغاء عضوية محاسب يمنعه من استخدام صلاحيات المؤسسة، لكن الإيصالات والعمليات السابقة تظل محفوظة مع مرجع من نفذها. طلب حذف حساب لا يمحو مالية السنتر.</p>
+<p>‏<strong>حدود ونقاط للمراجعة:</strong> هذه حماية ملازمة للوظائف المختارة. حدود العمر والاحتفاظ والتوقيتات الأمنية ومواقع معالجة البيانات تحتاج تحققًا قبل الإنتاج؛ لا نعتمد أرقامًا من أمثلة المسودة كسياسات نهائية.</p>
+<h2 id="additional-features" tabindex="-1">‏المميزات الإضافية — Additional Features</h2>
+<h3 id="optional-integrations" tabindex="-1">‏أ. تكاملات اختيارية ضمن تصور المنتج الحالي</h3>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تضيفها</th>
+<th align="right">‏وضعها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-A01" class="feature-link" aria-label="عرض تفاصيل A01: الدفع الإلكتروني لطلاب السنتر">A01</a></td>
+<td align="right">‏الدفع الإلكتروني لطلاب السنتر</td>
+<td align="right">‏الدفع من خلال بوابة معتمدة، تأكيد نتيجة الدفع، الاسترداد الإلكتروني ومتابعة التسويات المرتبطة بالمزود.</td>
+<td align="right">‏اختيارية للمؤسسات المؤهلة؛ التشغيل النقدي والتحويل اليدوي يكفيان لاستخدام النظام.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A02" class="feature-link" aria-label="عرض تفاصيل A02: إشعارات WhatsApp">A02</a></td>
+<td align="right">‏إشعارات WhatsApp</td>
+<td align="right">‏رسائل التشغيل والتذكير من خلال تكامل رسمي معتمد.</td>
+<td align="right">‏اختيارية وتعتمد على توفر التكامل وتكلفته؛ ليست شرطًا لنجاح Core.</td>
+</tr>
+</tbody></table>
+<h3>‏تفاصيل التكاملات الاختيارية</h3>
+<p>‏هذه التكاملات موصوفة في تصور المنتج، ويحتاج تنفيذها الفعلي اختيار المزود والنطاق المناسبين.</p>
+<h4 id="feature-A01" tabindex="-1">‏<a href="#feature-A01" class="feature-link" aria-label="عرض تفاصيل A01: الدفع الإلكتروني لطلاب السنتر">A01</a> — الدفع الإلكتروني لطلاب السنتر</h4>
+<p>‏<strong>المستخدمون:</strong> الطالب أو الدافع، والمحاسب والإدارة المخولة بإعداد التحصيل.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏بدء محاولة دفع مرتبطة بالطالب والمبلغ والمستحقات المناسبة.</li>
+<li>‏انتقال الدافع إلى وسيلة الدفع التي يتيحها مزود الخدمة المعتمد.</li>
+<li>‏تأكيد الدفع من نتيجة موثوقة للمزود، ثم تسجيل الدفعة وتوزيعها وإتاحتها في كشف الحساب.</li>
+<li>‏متابعة الفشل أو النتيجة المتأخرة دون إنشاء دفعة ثانية بسبب إعادة المحاولة.</li>
+<li>‏تنفيذ الاسترداد الإلكتروني عند استحقاقه ومتابعة النتيجة ورسوم وتسويات المزود.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> ولي أمر يسدد مستحق الطالب إلكترونيًا؛ يظهر الدفع مؤكدًا بعد تحقق النتيجة، ولا يدخل المبلغ النقدي في درج موظف الاستقبال.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> اختيارية داخل تصور V1. تحتاج مزودًا معتمدًا وملف تحصيل مؤهلًا؛ نجاح صفحة العودة وحده لا يؤكد الدفع. نحدد طرق الدفع الحقيقية وما سيعرض تجريبيًا.</p>
+<h4 id="feature-A02" tabindex="-1">‏<a href="#feature-A02" class="feature-link" aria-label="عرض تفاصيل A02: إشعارات WhatsApp">A02</a> — إشعارات WhatsApp</h4>
+<p>‏<strong>المستخدمون:</strong> الطلاب وأولياء الأمور والمدرسون والموظفون المستحقون للرسائل.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏إرسال تنبيهات تشغيل مناسبة على WhatsApp مثل تغيير موعد الحصة أو تذكير المستحق.</li>
+<li>‏استخدام قوالب معتمدة وربط رسمي يسمح بالإرسال وفق قواعد المزود.</li>
+<li>‏اختيار الجمهور حسب الصلاحيات وعلاقات ولي الأمر وتفضيلات القنوات.</li>
+<li>‏متابعة حالة التسليم والمحاولات الفاشلة واستهلاك الرسائل الخارجية.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> يتغير موعد حصة ويرسل إشعار WhatsApp للمستحقين، مع بقاء الحدث والإشعار الداخلي ظاهرين داخل النظام.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> اختيارية عند توفر التكامل واعتماده. لا تتضمن دردشة أو روبوت محادثة تلقائيًا، ولا تعتمد على تشغيل WhatsApp Web بحساب موظف شخصي.</p>
+<h3 id="deferred-extensions" tabindex="-1">‏ب. تحسينات وتوسعات مؤجلة لنظام السناتر</h3>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تضيفها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-A03" class="feature-link" aria-label="عرض تفاصيل A03: حضور QR وBarcode">A03</a></td>
+<td align="right">‏حضور QR وBarcode</td>
+<td align="right">‏تسجيل أو تأكيد الحضور بكود الطالب أو بطاقة بدل الإدخال اليدوي، وفق تحقق مناسب.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A04" class="feature-link" aria-label="عرض تفاصيل A04: أجهزة حضور NFC أو قياسات حيوية">A04</a></td>
+<td align="right">‏أجهزة حضور NFC أو قياسات حيوية</td>
+<td align="right">‏تكامل بطاقات أو أجهزة حضور؛ يحتاج تصميمًا خاصًا للهوية والخصوصية والأجهزة قبل اختياره.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A05" class="feature-link" aria-label="عرض تفاصيل A05: إنشاء جداول واختيار قاعات تلقائيًا">A05</a></td>
+<td align="right">‏إنشاء جداول واختيار قاعات تلقائيًا</td>
+<td align="right">‏اقتراح أو تحسين توزيع المواعيد والقاعات والمدرسين؛ يتجاوز فحص التعارض الأساسي.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A06" class="feature-link" aria-label="عرض تفاصيل A06: تحليلات وتوقعات متقدمة">A06</a></td>
+<td align="right">‏تحليلات وتوقعات متقدمة</td>
+<td align="right">‏توقع الطلب أو الانسحاب أو التحصيل، والتخطيط التنبؤي أو كشف الأنماط غير المعتادة.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A07" class="feature-link" aria-label="عرض تفاصيل A07: مدرس مساعد دائم أو مشاركة التدريس">A07</a></td>
+<td align="right">‏مدرس مساعد دائم أو مشاركة التدريس</td>
+<td align="right">‏أكثر من مدرس مشارك في تقديم المجموعة، مع قواعد مستقلة للتشغيل والصلاحيات والمستحقات.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A08" class="feature-link" aria-label="عرض تفاصيل A08: مجموعات وحصص Online أو Hybrid">A08</a></td>
+<td align="right">‏مجموعات وحصص Online أو Hybrid</td>
+<td align="right">‏تعليم مباشر عبر الإنترنت أو حضور مختلط، يتطلب توسعة نموذج الحصص والحضور.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A09" class="feature-link" aria-label="عرض تفاصيل A09: تسجيل وتجديد وباقات متقدمة">A09</a></td>
+<td align="right">‏تسجيل وتجديد وباقات متقدمة</td>
+<td align="right">‏أولويات انتظار متقدمة، تسجيل متكرر، اقتراح المجموعة الأنسب، نقل تلقائي أو تسجيل باقة عدة مجموعات؛ لكل وظيفة موافقات وقواعد جديدة قبل تنفيذها.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A10" class="feature-link" aria-label="عرض تفاصيل A10: حساب مالي عائلي وتحصيل دوري">A10</a></td>
+<td align="right">‏حساب مالي عائلي وتحصيل دوري</td>
+<td align="right">‏رصيد مشترك للإخوة، نقل رصيد بين الطلاب أو خصم دوري من البطاقات؛ ليست سلوكًا مسموحًا افتراضيًا في مالية Core.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A11" class="feature-link" aria-label="عرض تفاصيل A11: تقارير ولوحات قابلة للتخصيص والإرسال المجدول">A11</a></td>
+<td align="right">‏تقارير ولوحات قابلة للتخصيص والإرسال المجدول</td>
+<td align="right">‏بناء تقارير خاصة، تخصيص لوحة المتابعة، جدولة إرسال التقارير، وتكاملات تحليلات خارجية.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A12" class="feature-link" aria-label="عرض تفاصيل A12: محادثات وصندوق تواصل وتسويق متقدم">A12</a></td>
+<td align="right">‏محادثات وصندوق تواصل وتسويق متقدم</td>
+<td align="right">‏دردشة مع المؤسسة، صندوق رسائل، حملات وتسلسلات تواصل وتقسيم جمهور؛ تختلف عن الإشعارات والإعلانات التشغيلية الأساسية.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A13" class="feature-link" aria-label="عرض تفاصيل A13: مسارات موافقات متقدمة">A13</a></td>
+<td align="right">‏مسارات موافقات متقدمة</td>
+<td align="right">‏تفويض وتصعيد ومهل معالجة وموافقات جماعية أو متعددة المراحل وقابلة للتخصيص.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A14" class="feature-link" aria-label="عرض تفاصيل A14: ترحيل تاريخي وتكاملات بيانات مباشرة">A14</a></td>
+<td align="right">‏ترحيل تاريخي وتكاملات بيانات مباشرة</td>
+<td align="right">‏استيراد الحضور والمدفوعات والورديات والتسويات القديمة، وربط Google Sheets أو API أو استيراد مجدول.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A15" class="feature-link" aria-label="عرض تفاصيل A15: ميزانيات ومشتريات وتسويات بنكية متقدمة">A15</a></td>
+<td align="right">‏ميزانيات ومشتريات وتسويات بنكية متقدمة</td>
+<td align="right">‏ميزانيات مصروفات وأوامر شراء وإدارة موردين ومطابقة حسابات بنكية ومحافظ بصورة أوسع.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A16" class="feature-link" aria-label="عرض تفاصيل A16: عقود وتسويات مدرسين متقدمة">A16</a></td>
+<td align="right">‏عقود وتسويات مدرسين متقدمة</td>
+<td align="right">‏معادلات عمولات معقدة، سلف أو قروض أو حوافز متقدمة، قوالب عقود وتوقيع إلكتروني؛ تتجاوز نماذج الحساب المحددة في Core.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A17" class="feature-link" aria-label="عرض تفاصيل A17: تكاملات محاسبة ورواتب وضرائب">A17</a></td>
+<td align="right">‏تكاملات محاسبة ورواتب وضرائب</td>
+<td align="right">‏ربط محاسبي أو رواتب أو فواتير إلكترونية؛ بناء نظام محاسبة أو HR كامل توسع مستقل خارج النطاق الأساسي.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-A18" class="feature-link" aria-label="عرض تفاصيل A18: إدارة منصة وتحقق ومخاطر متقدمة">A18</a></td>
+<td align="right">‏إدارة منصة وتحقق ومخاطر متقدمة</td>
+<td align="right">‏دمج المؤسسات، تكامل سجلات حكومية، تحقق آلي متقدم، تقييم مخاطر متقدم، ومسارات دعم واستئناف أوسع.</td>
+</tr>
+</tbody></table>
+<p>‏هذه قائمة مجمعة للتوسعات المفيدة للنقاش. البنود الكبيرة مثل <a href="#feature-A08" class="feature-link" aria-label="عرض تفاصيل A08: مجموعات وحصص Online أو Hybrid">A08</a> و<a href="#feature-A17" class="feature-link" aria-label="عرض تفاصيل A17: تكاملات محاسبة ورواتب وضرائب">A17</a> تتطلب توسيع نطاق المنتج نفسه، ولا ينبغي اعتبارها إضافات صغيرة.</p>
+<h3>‏تفاصيل التوسعات المؤجلة</h3>
+<p>‏هذه التوسعات مؤجلة واتجاهها العام قابل للمراجعة. الوظائف والأمثلة التالية تصور وظيفي للمراجعة مبني على تلك الاتجاهات؛ ليست مواصفات نهائية أو قواعد جديدة معتمدة. اختيار أي توسع يتبعه تعريف نطاقه وسياساته قبل التنفيذ.</p>
+<h4 id="feature-A03" tabindex="-1">‏<a href="#feature-A03" class="feature-link" aria-label="عرض تفاصيل A03: حضور QR وBarcode">A03</a> — حضور QR وBarcode</h4>
+<p>‏<strong>المستخدمون:</strong> موظف الحضور أو الطالب في مسار تسجيل ذاتي مسموح.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏ربط كود أو بطاقة بالطالب بطريقة تمنع استخدام سجل طالب آخر دون تحقق مناسب.</li>
+<li>‏قراءة الكود لتحديد الطالب وتسجيل أو تأكيد حضوره للحصة الصحيحة.</li>
+<li>‏فحص أهلية الحضور وحالة التسجيل قبل اعتماد نتيجة القراءة.</li>
+<li>‏منع تكرار حضور الطالب لنفس الحصة وإبقاء مسار الإدخال والمراجعة المناسبين.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> يمرر الموظف بطاقة الطالب عند دخول الحصة، فتظهر بياناته المناسبة وتسجيل الحضور بدل البحث عن اسمه يدويًا.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة. يجب اختيار هل القراءة بواسطة الموظف أم تسجيل ذاتي، وكيف نتحقق من صاحب الكود. قراءة كود وحدها لا تثبت وجود الطالب، ولا تستبدل اعتماد الحضور.</p>
+<h4 id="feature-A04" tabindex="-1">‏<a href="#feature-A04" class="feature-link" aria-label="عرض تفاصيل A04: أجهزة حضور NFC أو قياسات حيوية">A04</a> — أجهزة حضور NFC أو قياسات حيوية</h4>
+<p>‏<strong>المستخدمون:</strong> موظفو الحضور والإدارة، مع جهاز أو بطاقة معتمدة للطالب.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏ربط بطاقة NFC أو وسيلة حضور مدعومة بالطالب في مسار تسجيل محدد.</li>
+<li>‏استقبال حدث القراءة من الجهاز وربطه بالحصة والطالب والوقت.</li>
+<li>‏التحقق من أهلية الحضور ومنع الحدث المكرر، وعرض الأحداث التي تحتاج مراجعة.</li>
+<li>‏إدارة حالات تعطل الجهاز أو فقد البطاقة ومسار تسجيل بديل مناسب.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> يستخدم الطالب بطاقة عند جهاز في الفرع، ثم يربط الحدث بالحصة المستحقة ويظهر في سجل الحضور للمراجعة المناسبة.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> توسع مؤجل يعتمد على أجهزة وتصميم خصوصية وأمان. NFC والقياسات الحيوية بدائل مختلفة؛ لا نفترض جمع بصمة أو وجه كجزء من دعم البطاقات.</p>
+<h4 id="feature-A05" tabindex="-1">‏<a href="#feature-A05" class="feature-link" aria-label="عرض تفاصيل A05: إنشاء جداول واختيار قاعات تلقائيًا">A05</a> — إنشاء جداول واختيار قاعات تلقائيًا</h4>
+<p>‏<strong>المستخدمون:</strong> إدارة الفروع والمسؤولون عن تخطيط الجداول.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏إدخال القيود المطلوبة للمجموعات والمدرسين والقاعات والأوقات الممكنة.</li>
+<li>‏توليد بدائل جدول تستوفي القيود بدل إدخال كل موعد يدويًا.</li>
+<li>‏اقتراح توزيع مناسب للقاعات والمواعيد وفق معايير نختارها، مثل السعة أو الاستفادة من الموارد.</li>
+<li>‏عرض أسباب عدم الوصول لبديل مناسب وإتاحة تعديل القيود.</li>
+<li>‏مراجعة واعتماد المقترح بواسطة الإدارة قبل تحويله لجدول تشغيل.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> تطلب الإدارة جدولًا لعدة مجموعات مع أيام محددة للمدرسين؛ تظهر بدائل متاحة للاختيار بدل الاكتفاء برفض التعارضات بعد الإدخال.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة. نحدد القيود وما يعنيه أفضل جدول؛ فحص التعارض الأساسي موجود في <a href="#feature-C10" class="feature-link" aria-label="عرض تفاصيل C10: إدارة القاعات والجداول وفحص التعارض">C10</a> ويظل مطلوبًا حتى مع التوليد التلقائي.</p>
+<h4 id="feature-A06" tabindex="-1">‏<a href="#feature-A06" class="feature-link" aria-label="عرض تفاصيل A06: تحليلات وتوقعات متقدمة">A06</a> — تحليلات وتوقعات متقدمة</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمستخدمون المخولون بالتحليل.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏تحليل تاريخ الطلب والتسجيل والحضور والتحصيل لتحديد أنماط قابلة للتفسير.</li>
+<li>‏عرض توقعات للطلب أو احتمالات عدم التجديد أو التحصيل حسب الحالة المختارة.</li>
+<li>‏إظهار أسباب المؤشر وحدوده بدل تقديم النتيجة كحقيقة مؤكدة.</li>
+<li>‏تحديد تنبيهات أو فرص تحتاج مراجعة من الإدارة دون تنفيذ قرار تلقائي.</li>
+<li>‏مقارنة التوقع بالنتيجة الفعلية للتحقق من جدوى الميزة المختارة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> تعرض الإدارة توقعًا بزيادة الطلب على مادة في فترة مراجعات، وتستخدمه مع السعة والموارد لاتخاذ قرار تجهيز مجموعة.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة وتعتمد على تاريخ بيانات كافٍ. نختار حالة استخدام واحدة ومعيارًا لتقييمها؛ مؤشرات الطلب الحالية واقتراحات <a href="#feature-C13" class="feature-link" aria-label="عرض تفاصيل C13: قياس الطلب والمساعدة في فتح مجموعات">C13</a> لا تحتاج هذا التوسع.</p>
+<h4 id="feature-A07" tabindex="-1">‏<a href="#feature-A07" class="feature-link" aria-label="عرض تفاصيل A07: مدرس مساعد دائم أو مشاركة التدريس">A07</a> — مدرس مساعد دائم أو مشاركة التدريس</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمدرس الأساسي والمساعد والمحاسب.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏تعيين مساعد أو مدرس مشارك للمجموعة أو لفترة محددة.</li>
+<li>‏تحديد مسؤولية كل مدرس وصلاحياته في الحصص والحضور والملاحظات.</li>
+<li>‏تسجيل المشاركين الفعليين في الحصة عند إتاحة هذا النموذج.</li>
+<li>‏تعريف قواعد مستقلة لمستحقات كل مشارك ومنع تكرار استحقاق بلا أساس.</li>
+<li>‏حفظ تاريخ المشاركة والتغييرات المرتبطة بها.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> مجموعة كبيرة يقدمها مدرس أساسي ومعه مساعد دائم؛ توزع مسؤولية التسجيل والملاحظات والمستحقات وفق اتفاق صريح.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة. المساعد الدائم يختلف عن البديل المؤقت الموجود في <a href="#feature-C16" class="feature-link" aria-label="عرض تفاصيل C16: إدارة الحصص الفعلية والاستثناءات">C16</a>، ويحتاج نموذجًا وظيفيًا وماليًا جديدًا قبل التنفيذ.</p>
+<h4 id="feature-A08" tabindex="-1">‏<a href="#feature-A08" class="feature-link" aria-label="عرض تفاصيل A08: مجموعات وحصص Online أو Hybrid">A08</a> — مجموعات وحصص Online أو Hybrid</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمدرسون والطلاب، وأولياء الأمور بحسب الخدمة.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏تعريف مجموعة مباشرة عبر الإنترنت أو مجموعة تجمع حضورًا بالفرع ومشاركة عن بعد.</li>
+<li>‏ربط الحصة بوسيلة الاجتماع المناسبة وإتاحة الرابط للمستحقين.</li>
+<li>‏تمييز الحضور الحضوري عن حضور الإنترنت وفق قواعد واضحة.</li>
+<li>‏معالجة الإلغاء والتعويض والمشكلات المرتبطة بالاتصال أو وسيلة الاجتماع.</li>
+<li>‏إعادة تعريف السعة والتسجيل والخصوصية بما يلائم النموذج المختار.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> بعض طلاب المجموعة يحضرون بالقاعة وبعضهم ينضم عبر الإنترنت؛ يلزم تعريف استحقاق الدخول والحضور والسعة لكل نوع.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة كتوسيع لنطاق التشغيل. ليس مجرد إضافة رابط اجتماع؛ التسجيل المسجل وبيعه في السوق موضوع مختلف عن الحصص المباشرة.</p>
+<h4 id="feature-A09" tabindex="-1">‏<a href="#feature-A09" class="feature-link" aria-label="عرض تفاصيل A09: تسجيل وتجديد وباقات متقدمة">A09</a> — تسجيل وتجديد وباقات متقدمة</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والاستقبال والطالب أو ولي الأمر صاحب القرار.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏تعريف أولويات انتظار أكثر تعقيدًا من الترتيب الأولي، وفق سياسة معلومة وقابلة للمراجعة.</li>
+<li>‏اقتراح مجموعة مناسبة للطالب بناءً على الأهلية والوقت والطلب عندما نختار ذلك.</li>
+<li>‏تجديد أو تسجيل متكرر بموافقة صريحة وقواعد للالتزام المالي والإلغاء.</li>
+<li>‏تنفيذ نقل تلقائي في حالات محددة فقط بعد اعتماد شروط الموافقة والسعة والمالية.</li>
+<li>‏تسجيل باقة لعدة مجموعات مع تسعير وأهلية وسعة لكل جزء منها.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> يشترك الطالب في باقة مواد، وتراجع أماكن كل مجموعة والسعر والموافقة المطلوبة بدل معاملتها كعملية تسجيل بسيطة في مجموعة واحدة.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> كل وظيفة هنا توسع مستقل قابل للاختيار، وليست حزمة يجب تنفيذها كلها. لا نفترض نقلًا أو تجديدًا تلقائيًا أو تجاوزًا للسعة قبل تغيير القواعد المعتمدة.</p>
+<h4 id="feature-A10" tabindex="-1">‏<a href="#feature-A10" class="feature-link" aria-label="عرض تفاصيل A10: حساب مالي عائلي وتحصيل دوري">A10</a> — حساب مالي عائلي وتحصيل دوري</h4>
+<p>‏<strong>المستخدمون:</strong> ولي الأمر أو الدافع والمحاسب والإدارة المخولة.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏إنشاء تصور مالي للأسرة يحدد الطلاب المشاركين ومن يملك حق إدارة الأموال.</li>
+<li>‏توزيع دفعة على مستحقات أكثر من طالب مع أثر واضح في حساب كل واحد.</li>
+<li>‏إتاحة نقل رصيد بين الطلاب فقط إذا اعتمد نموذج وصلاحيات وموافقات مناسبة.</li>
+<li>‏تعريف من يستلم الاسترداد ومن يوافق على استخدام الرصيد المشترك.</li>
+<li>‏دعم تحصيل دوري من البطاقة كاختيار مستقل إذا أتاحه المزود وتوفرت الموافقات.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> ولي أمر يريد دفع رسوم طفلين بعملية واحدة واستخدام رصيد زائد بينهما؛ هذا يحتاج نموذجًا جديدًا يتجاوز دفعة الطالب الواحد في Core.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة. علاقة ولي الأمر لا تمنح وحدها سلطة على كل رصيد، والمحاسبة العائلية والتحصيل الدوري ميزتان مستقلتان لا نخلط شروطهما.</p>
+<h4 id="feature-A11" tabindex="-1">‏<a href="#feature-A11" class="feature-link" aria-label="عرض تفاصيل A11: تقارير ولوحات قابلة للتخصيص والإرسال المجدول">A11</a> — تقارير ولوحات قابلة للتخصيص والإرسال المجدول</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمحاسب والمستخدمون المخولون بالتقارير.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏اختيار عناصر لوحة متابعة وترتيبها بحسب الدور والاحتياج.</li>
+<li>‏إنشاء تقرير من حقول وفلاتر ومقاييس معتمدة بدل الاقتصار على التقارير الجاهزة.</li>
+<li>‏حفظ اختيارات متكررة وجدولة تقرير لفترة معينة أو لإرسال دوري.</li>
+<li>‏إرسال التقرير للمستحقين بعد إعادة فحص صلاحياتهم وقت الإرسال.</li>
+<li>‏إتاحة تكامل تحليلات خارجي إذا اختير ضمن نطاق واضح وصلاحيات مناسبة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> المحاسب يحدد تقرير متأخرات أسبوعيًا يصل للمخولين، ويتوقف وصوله لشخص انتهت عضويته قبل موعد الإرسال.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة. التخصيص لا يسمح بكشف بيانات خارج نطاق المستخدم، ونحتاج تعريف الحقول والمقاييس المتاحة. التقارير الأساسية في <a href="#feature-C27" class="feature-link" aria-label="عرض تفاصيل C27: لوحات المتابعة والتقارير والتصدير">C27</a> مستقلة عن هذه الإضافة.</p>
+<h4 id="feature-A12" tabindex="-1">‏<a href="#feature-A12" class="feature-link" aria-label="عرض تفاصيل A12: محادثات وصندوق تواصل وتسويق متقدم">A12</a> — محادثات وصندوق تواصل وتسويق متقدم</h4>
+<p>‏<strong>المستخدمون:</strong> الطلاب وأولياء الأمور وموظفو التواصل المخولون.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏إتاحة محادثات وصندوق وارد ترتبط بالمؤسسة أو الطالب أو سياق خدمة محدد.</li>
+<li>‏توزيع مسؤولية الرد ومتابعة الرسائل وفق نطاق الموظف.</li>
+<li>‏فصل التواصل التشغيلي عن الحملات التسويقية وموافقاتها.</li>
+<li>‏إتاحة تقسيم جمهور أو تسلسلات رسائل كاختيار إضافي مستقل.</li>
+<li>‏تطبيق تفضيلات التواصل ومنع استهداف طلاب مؤسسة خارج سياقها بدون أساس مناسب.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> ولي أمر يفتح محادثة مع السنتر بخصوص تغيير مجموعة، ويستلمها الموظف المسؤول داخل نطاق المؤسسة.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة. الدردشة والحملات والتسلسلات ليست نفس الميزة، ويلزم اختيار نطاق كل منها. الإعلانات التشغيلية المحدودة موجودة بالفعل في <a href="#feature-C28" class="feature-link" aria-label="عرض تفاصيل C28: مركز الإشعارات والتنبيهات والإعلانات">C28</a>.</p>
+<h4 id="feature-A13" tabindex="-1">‏<a href="#feature-A13" class="feature-link" aria-label="عرض تفاصيل A13: مسارات موافقات متقدمة">A13</a> — مسارات موافقات متقدمة</h4>
+<p>‏<strong>المستخدمون:</strong> مقدمو الطلبات والمراجعون والإدارة.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏تعريف مراحل موافقة إضافية حسب نوع الطلب وقيمته ونطاقه.</li>
+<li>‏تفويض مراجع بديل ضمن حدود واضحة عند غياب المسؤول.</li>
+<li>‏تصعيد الطلب بعد مهلة معلومة أو متابعة زمن المعالجة.</li>
+<li>‏إتاحة قرارات جماعية أو معالجة مجموعة طلبات عندما يكون ذلك آمنًا ومحددًا.</li>
+<li>‏عرض تاريخ المراحل ومن اتخذ القرار والتغييرات التي تستدعي إعادة المراجعة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> طلب مصروف يتجاوز حدًا معينًا يمر بمدير الفرع ثم مسؤول المؤسسة، ويصعد عند تأخر المعالجة وفق سياسة يختارها الفريق.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة. المهل والحدود والمراحل أمثلة وليست سياسات معتمدة. لا تعني الإضافة السماح بالموافقة على طلبات مالية دون فهم أثر كل طلب أو تجاوز قواعد الاستقلال.</p>
+<h4 id="feature-A14" tabindex="-1">‏<a href="#feature-A14" class="feature-link" aria-label="عرض تفاصيل A14: ترحيل تاريخي وتكاملات بيانات مباشرة">A14</a> — ترحيل تاريخي وتكاملات بيانات مباشرة</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمحاسب وفريق المساعدة في نقل البيانات.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏نقل سجلات تاريخية مختارة للحضور أو المالية أو الخزن أو تسويات المدرسين.</li>
+<li>‏تحديد نقطة انتقال النظام ومصادر البيانات وكيفية منع تكرار الأثر المالي.</li>
+<li>‏ربط بيانات من Google Sheets أو خدمة أو واجهة أخرى في حال اختيار تكامل معين.</li>
+<li>‏معاينة نتائج الترحيل ومطابقة الإجماليات وحل المراجع والتكرار.</li>
+<li>‏جدولة الاستيراد أو حفظ إعدادات الربط إذا أثبت الاحتياج ذلك.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> سنتر يريد الحفاظ على سجل حضور ومدفوعات السنوات السابقة داخل النظام؛ ينقلها كتاريخ موثق بدل تحويلها إلى تحصيل جديد في الوردية الحالية.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة وأكبر من استيراد الوضع الحالي في <a href="#feature-C31" class="feature-link" aria-label="عرض تفاصيل C31: استيراد البيانات الحالية من Excel وCSV">C31</a>. نختار البيانات والفترة والتكامل بدقة؛ لا نفترض دعمًا تلقائيًا لكل نظام منافس أو دمجًا تلقائيًا للهويات.</p>
+<h4 id="feature-A15" tabindex="-1">‏<a href="#feature-A15" class="feature-link" aria-label="عرض تفاصيل A15: ميزانيات ومشتريات وتسويات بنكية متقدمة">A15</a> — ميزانيات ومشتريات وتسويات بنكية متقدمة</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمحاسب والمسؤولون عن المشتريات.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏تحديد ميزانية تشغيل لفترة أو فرع أو تصنيف مصروف.</li>
+<li>‏متابعة المصروف الفعلي مقابل الميزانية والتنبيه عند تجاوز قواعد محددة.</li>
+<li>‏تسجيل طلب أو أمر شراء وربطه بالمورد والمصروف والمستندات المناسبة.</li>
+<li>‏مطابقة التحويلات وحركات البنك أو المحفظة مع السجلات الداخلية عند اختيار هذا التكامل.</li>
+<li>‏عرض فروق المطابقة ومتابعتها دون إعادة كتابة الحركات القديمة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> تراجع الإدارة مصروف الصيانة مقابل الميزانية الشهرية، أو يطابق المحاسب التحويلات المسجلة مع كشف الحساب بعد اعتماد هذا التوسع.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة. الميزانية والمشتريات والمطابقة البنكية نطاقات مختلفة قابلة للاختيار. إدارة المصروفات والتحويل النقدي الأساسية في <a href="#feature-C24" class="feature-link" aria-label="عرض تفاصيل C24: المصروفات والتحويلات والإغلاق اليومي">C24</a> لا تتطلبها.</p>
+<h4 id="feature-A16" tabindex="-1">‏<a href="#feature-A16" class="feature-link" aria-label="عرض تفاصيل A16: عقود وتسويات مدرسين متقدمة">A16</a> — عقود وتسويات مدرسين متقدمة</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمحاسب والمدرسون المستحقون.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏تعريف عقود أو عمولات متعددة الشرائح وقواعد مشاركة إيرادات أوسع من النماذج الأساسية.</li>
+<li>‏دعم سلف أو قروض مدرسين كمسار مالي منفصل إذا اختير واعتمد.</li>
+<li>‏إدارة حوافز أو مكافآت مرتبطة بأهداف محددة عند وجود تعريف واضح لها.</li>
+<li>‏توفير قوالب عقود متقدمة وتوقيع إلكتروني عند تحديد متطلباته.</li>
+<li>‏الحفاظ على تفسير كل تسوية ومصدر كل خصم أو سداد حتى مع زيادة تعقيد العقد.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> عقد يمنح نسبة مختلفة بعد تجاوز مستوى تحصيل محدد؛ يحتاج قواعد وشرائح واضحة بدل إضافة نسبة واحدة إلى العقد الأساسي.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة. لا نضيف معادلات غير محدودة أو سلفًا أو خصومات عقابية دون نموذج مستقل. صلاحية التوقيع وشروط السلفة ليست محسومة لمجرد ورود اسم الميزة.</p>
+<h4 id="feature-A17" tabindex="-1">‏<a href="#feature-A17" class="feature-link" aria-label="عرض تفاصيل A17: تكاملات محاسبة ورواتب وضرائب">A17</a> — تكاملات محاسبة ورواتب وضرائب</h4>
+<p>‏<strong>المستخدمون:</strong> الإدارة والمحاسب والمسؤولون عن الأنظمة المالية أو الموظفين.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏تحديد تكامل مع برنامج محاسبة خارجي أو نطاق محاسبي جديد إذا كان مطلوبًا.</li>
+<li>‏ربط التقارير والحركات التشغيلية بحقول وحسابات متفق عليها.</li>
+<li>‏إضافة فواتير إلكترونية أو تكامل ضريبي عند وجود متطلبات ونموذج معتمدين.</li>
+<li>‏إضافة نظام رواتب أو ربط حضور الموظفين بالاستحقاق كمسار HR مستقل.</li>
+<li>‏متابعة نتيجة نقل البيانات والفروق دون خلطها بمدفوعات الطلاب أو مستحقات المدرسين الأصلية.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> يصدر السنتر بيانات تحصيله لبرنامج المحاسبة الذي يستخدمه، أو يطلب لاحقًا إصدار مستند إلكتروني من خلال التكامل المعتمد.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> توسع مؤجل ومستقل؛ Core ليس نظام محاسبة أو رواتب كاملًا. نحدد جهة التكامل ونوع المستند قبل الوعد به؛ لا نحول الإيصال التشغيلي لفاتورة قانونية بالاسم فقط.</p>
+<h4 id="feature-A18" tabindex="-1">‏<a href="#feature-A18" class="feature-link" aria-label="عرض تفاصيل A18: إدارة منصة وتحقق ومخاطر متقدمة">A18</a> — إدارة منصة وتحقق ومخاطر متقدمة</h4>
+<p>‏<strong>المستخدمون:</strong> فريق الدعم والمراجعة والأمان وإدارة المنصة المخول.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏إنشاء مسار دمج مؤسسات مكررة بعد إثبات العلاقة ومراجعة بياناتها وصلاحياتها.</li>
+<li>‏ربط مصادر تحقق خارجية أو سجلات حكومية عند توفر أساس وتكامل مناسبين.</li>
+<li>‏تطوير تقييم مخاطر أو كشف إساءة استخدام أوسع بعد وجود بيانات فعلية.</li>
+<li>‏تطوير تفويض ومهل واستئنافات وحالات دعم أكثر تفصيلًا.</li>
+<li>‏إتاحة أدوات دعم استثنائية مقيدة ومؤقتة فقط إذا اعتمدت حاجة وصلاحيات وتصميمًا مناسبًا.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> تثبت المؤسسة وجود تسجيلين لها بالخطأ، فتستخدم مسار دمج معتمدًا بعد مراجعة الاشتراكات والبيانات والمسؤوليات.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة. التشابه في الاسم ليس إذنًا لدمج المؤسسات أو منع تجربة؛ إدارة المخاطر لا تعطي موظف المنصة وصولًا مطلقًا لبيانات العملاء.</p>
+<h3 id="recorded-marketplace" tabindex="-1">‏ج. سوق الكورسات والمحاضرات المسجلة — توسع مستقل Phase 2</h3>
+<p>‏<strong>كل البنود <a href="#feature-M01" class="feature-link" aria-label="عرض تفاصيل M01: ملفات المدرسين المستقلين ونشر المحتوى">M01</a>–<a href="#feature-M05" class="feature-link" aria-label="عرض تفاصيل M05: التقييمات والمراجعة والإشراف">M05</a> مؤجلة مع وحدة السوق بالكامل.</strong></p>
+<table>
+<thead>
+<tr>
+<th align="right">‏الكود</th>
+<th align="right">‏الميزة</th>
+<th align="right">‏الوظائف التي تشملها</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">‏<a href="#feature-M01" class="feature-link" aria-label="عرض تفاصيل M01: ملفات المدرسين المستقلين ونشر المحتوى">M01</a></td>
+<td align="right">‏ملفات المدرسين المستقلين ونشر المحتوى</td>
+<td align="right">‏تجهيز وتحقق ملف المدرس، إنشاء كورسات ومحاضرات وفيديوهات ومواد تعليمية، تنظيم الدروس ومراجعة المحتوى ونشره.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-M02" class="feature-link" aria-label="عرض تفاصيل M02: استكشاف المحتوى وشراؤه">M02</a></td>
+<td align="right">‏استكشاف المحتوى وشراؤه</td>
+<td align="right">‏البحث والتصفية والمعاينات والأسعار، إنشاء الطلب والدفع، وتحديد المشتري والطالب المستفيد والموافقة المناسبة.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-M03" class="feature-link" aria-label="عرض تفاصيل M03: الوصول للمحتوى ومتابعة التعلم">M03</a></td>
+<td align="right">‏الوصول للمحتوى ومتابعة التعلم</td>
+<td align="right">‏مكتبة المحتوى المشترى، صلاحية الوصول ومدته، تشغيل الدروس، متابعة التقدم والاختبارات المرتبطة بالمحتوى.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-M04" class="feature-link" aria-label="عرض تفاصيل M04: عمولات السوق وأرباح المدرسين والاسترداد">M04</a></td>
+<td align="right">‏عمولات السوق وأرباح المدرسين والاسترداد</td>
+<td align="right">‏سجل مبيعات وعمولة ورسوم مزود الدفع، أرباح معلقة ومتاحة للسحب، تحويل المستحقات والاستردادات وتقارير السوق.</td>
+</tr>
+<tr>
+<td align="right">‏<a href="#feature-M05" class="feature-link" aria-label="عرض تفاصيل M05: التقييمات والمراجعة والإشراف">M05</a></td>
+<td align="right">‏التقييمات والمراجعة والإشراف</td>
+<td align="right">‏تقييمات من عمليات شراء مؤهلة، بلاغات ومراجعة محتوى وتقييمات، وتعليق أو إزالة الوصول وفق السياسة.</td>
+</tr>
+</tbody></table>
+<p>‏الفصل المطلوب: مالية السوق منفصلة عن خزنة السنتر ومستحقات مدرسه، وبيانات طلاب السنتر لا تستخدم تلقائيًا لتسويق كورسات المدرسين المستقلين. شهادات الإكمال واشتراكات المحتوى والتدريس الفردي المباشر ليست متطلبات للنسخة الأساسية من السوق.</p>
+<h3>‏تفاصيل سوق المحتوى المسجل</h3>
+<p>‏هذه تفاصيل تصور Phase 2. جميعها خارج الالتزام الأساسي الحالي، وتظل خاضعة لاختيار نطاق السوق والتحقق من القرارات المفتوحة قبل التنفيذ.</p>
+<h4 id="feature-M01" tabindex="-1">‏<a href="#feature-M01" class="feature-link" aria-label="عرض تفاصيل M01: ملفات المدرسين المستقلين ونشر المحتوى">M01</a> — ملفات المدرسين المستقلين ونشر المحتوى</h4>
+<p>‏<strong>المستخدمون:</strong> المدرس المستقل ومراجع المحتوى ومسؤولو المنصة المخولون.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏تجهيز ملف مدرس مستقل ببيانات التواصل والمعلومات المهنية والتحقق المطلوب للسوق.</li>
+<li>‏إنشاء كورس أو محاضرة مسجلة أو مواد مساعدة، وتنظيمها في أقسام ودروس واختبارات مناسبة.</li>
+<li>‏رفع الفيديو والملفات التعليمية وتحديد الوصف والصف والمادة والسعر ومدة الوصول.</li>
+<li>‏حفظ المحتوى كمسودة ثم إرساله للمراجعة عندما تكون مطلوبة.</li>
+<li>‏نشر المحتوى أو إتاحته برابط أو تعليقه أو أرشفته وفق الحالات والسياسة.</li>
+<li>‏تتبع تعديل المنتج ونسخه، مع حفظ ما يلزم لحماية تفسير المشتريات السابقة.</li>
+<li>‏تحديد مسؤولية حقوق المحتوى ومراجعة البلاغات عن المخالفة.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> مدرس مستقل ينشئ كورس رياضيات به أربع وحدات وفيديوهات وملفات مراجعة، ويجهزه ويحدد سعره ثم ينشره بعد استكمال شروط المراجعة.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة مع Phase 2. عضوية المدرس في سنتر لا تفعّل ملف البائع المستقل وحدها، وبيع المؤسسة باسمها ليس ضمن النسخة الأساسية المقترحة للسوق.</p>
+<h4 id="feature-M02" tabindex="-1">‏<a href="#feature-M02" class="feature-link" aria-label="عرض تفاصيل M02: استكشاف المحتوى وشراؤه">M02</a> — استكشاف المحتوى وشراؤه</h4>
+<p>‏<strong>المستخدمون:</strong> الطالب المؤهل أو ولي الأمر أو الدافع، والمدرس لتحديد العرض المسموح.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏البحث عن المحتوى وتصفية النتائج بحسب النظام التعليمي والصف والمادة والمدرس والسعر والنوع.</li>
+<li>‏عرض وصف المنتج وما يتيح نشره من معاينة وبنية المحتوى ومدة الوصول والسعر.</li>
+<li>‏تمييز صاحب الطلب والدافع عن الطالب الذي سيستفيد من المحتوى.</li>
+<li>‏فحص أهلية المستفيد والموافقات المطلوبة للعملية، خصوصًا عند وجود طالب قاصر.</li>
+<li>‏إنشاء طلب مع تثبيت السعر وشروطه وقت الشراء ثم بدء محاولة الدفع.</li>
+<li>‏تفعيل الحق في المحتوى بعد تأكيد الدفع من مصدر موثوق، ومعالجة النتيجة المتأخرة أو الفشل دون تكرار الشراء بلا داعٍ.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> ولي أمر يشتري كورسًا ليستفيد منه ابنه؛ يحفظ النظام هوية الدافع والمستفيد بصورة منفصلة، ويمنح الوصول للطالب وفق المسار المختار.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة مع السوق. العمر والأهلية والموافقة ليست مستنتجة من الصف الدراسي، ولا تشترط استفادة الطفل وجود حساب دخول مستقل له في كل الحالات. نجاح صفحة الدفع لا يؤكد التحصيل وحده.</p>
+<h4 id="feature-M03" tabindex="-1">‏<a href="#feature-M03" class="feature-link" aria-label="عرض تفاصيل M03: الوصول للمحتوى ومتابعة التعلم">M03</a> — الوصول للمحتوى ومتابعة التعلم</h4>
+<p>‏<strong>المستخدمون:</strong> الطالب المستفيد وولي الأمر وفق صلاحيات الوصول، والمدرس في البيانات المسموحة.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏عرض المحتوى الذي يحق للطالب الوصول إليه ومدته وحالة الحق.</li>
+<li>‏إتاحة مشاهدة الدروس والوصول للملفات المسموحة للمستفيد الصحيح.</li>
+<li>‏تسجيل الدروس التي شاهدها أو أكملها والمحاولات والتقدم في الكورس.</li>
+<li>‏إتاحة اختبارات مرتبطة بالكورس عند اختيارها ضمن النطاق.</li>
+<li>‏معالجة انتهاء الوصول أو إلغائه وفق السبب والسياسة المناسبة.</li>
+<li>‏تحديد قواعد الأجهزة ومشاركة الحساب والوصول المتزامن قبل اعتمادها.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> طالب اشترى كورسًا يستكمل الدرس الذي توقف عنده ويرى تقدمه، بينما لا يفتح له كورس آخر لم يشتره لمجرد امتلاك حساب في المنصة.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة مع السوق. تقدم التعلم مستقل عن صلاحية الوصول، ونتائج اختبار السوق لا تنتقل تلقائيًا إلى ملفه داخل السنتر. شهادات الإكمال وDRM المتقدمة إضافات لاحقة وليست متطلبات للنسخة الأساسية.</p>
+<h4 id="feature-M04" tabindex="-1">‏<a href="#feature-M04" class="feature-link" aria-label="عرض تفاصيل M04: عمولات السوق وأرباح المدرسين والاسترداد">M04</a> — عمولات السوق وأرباح المدرسين والاسترداد</h4>
+<p>‏<strong>المستخدمون:</strong> المدرس البائع ومسؤولو مالية السوق والدافع المستحق للاسترداد.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏تسجيل قيمة البيع ورسوم الدفع وعمولة المنصة وصافي استحقاق المدرس بصورة منفصلة.</li>
+<li>‏حفظ نسبة العمولة وشروط الحساب المرتبطة بالعملية دون إعادة حساب التاريخ بقواعد جديدة.</li>
+<li>‏عرض أرباح معلقة أو محجوزة أو متاحة للسحب حسب فترة وسياسة الاستحقاق.</li>
+<li>‏بدء تحويل الأرباح المتاحة والتحقق من بيانات الاستلام ثم متابعة النتيجة الفعلية.</li>
+<li>‏استقبال طلب استرداد مرتبط بطلب السوق ومراجعته وتنفيذه وفق شروطه.</li>
+<li>‏تسجيل أثر الاسترداد أو عكس المزود على أرباح المدرس، بما في ذلك الحالات بعد صرفها.</li>
+<li>‏عرض المبيعات والعمولات والمبالغ المتاحة والمصروفة والتعديلات في تقارير مالية خاصة بالسوق.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> عند بيع كورس يظهر تفصيل الثمن والرسوم والعمولة والاستحقاق؛ قد يظل استحقاق المدرس محجوزًا حتى استيفاء سياسة الإتاحة، ثم يصرف من خلال المسار المعتمد.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة مع السوق. نسبة العمولة ومدة الاسترداد وحجز الأرباح والمزودون لم تعتمد نهائيًا. لا تستخدم خزنة السنتر لصرف أرباح السوق ولا تدمجها بتسويات مدرس المؤسسة.</p>
+<h4 id="feature-M05" tabindex="-1">‏<a href="#feature-M05" class="feature-link" aria-label="عرض تفاصيل M05: التقييمات والمراجعة والإشراف">M05</a> — التقييمات والمراجعة والإشراف</h4>
+<p>‏<strong>المستخدمون:</strong> المشتري المؤهل للتقييم، ومراجعو المحتوى والبلاغات، والمدرس ضمن صلاحياته.</p>
+<p>‏<strong>الوظائف المرشحة:</strong></p>
+<ul>
+<li>‏إتاحة تقييم ورأي نصي بعد عملية شراء مؤهلة وفق سياسة التقييم.</li>
+<li>‏عرض ملخص التقييمات ومعالجة تعديلها أو مراجعتها بحسب السياسة.</li>
+<li>‏استقبال بلاغات عن المحتوى أو الحقوق أو المراجعات المخالفة.</li>
+<li>‏مراجعة البلاغ والأدلة واتخاذ إجراء محدد مثل تقييد النشر أو تعليق المحتوى عند استحقاقه.</li>
+<li>‏معالجة استمرار وصول المشترين أو تغييره عند تحديث أو إيقاف المنتج وفق سياسة واضحة.</li>
+<li>‏توثيق قرارات المراجعة والإشعارات وفصلها عن قرارات الاسترداد والصرف المالي.</li>
+</ul>
+<p>‏<strong>مثال عملي:</strong> طالب اشترى كورسًا يقدم مراجعة عنه؛ إذا أبلغ المدرس عن مخالفة في النص تراجعها المنصة، ولا يحذف المدرس التقييم من تلقاء نفسه.</p>
+<p>‏<strong>الوضع وحدود المراجعة:</strong> مؤجلة مع السوق. الشراء المؤهل شرط في تصور التقييم، والبلاغ لا يثبت المخالفة وحده. تحديث أو تعليق المنتج يحتاج معالجة حقوق المشترين؛ الإشراف الآلي المتقدم ليس ضمن النسخة الأساسية.</p>
+
+</div>
+
+</main>
+</div><script>
+(() => {
+  const links = Array.from(document.querySelectorAll('.document-index nav a'));
+  const topics = links.map(link => ({ link, heading: document.getElementById(link.hash.slice(1)) }));
+  const parent = links.find(link => link.hash === '#additional-features');
+  let scheduled = false;
+
+  function updateCurrentTopic() {
+    scheduled = false;
+    let current = topics[0];
+    for (const topic of topics) {
+      if (topic.heading.getBoundingClientRect().top <= 64) current = topic;
+    }
+    for (const topic of topics) {
+      if (topic === current) topic.link.setAttribute('aria-current', 'location');
+      else topic.link.removeAttribute('aria-current');
+    }
+    parent.classList.toggle('toc-parent-active', ['#optional-integrations', '#deferred-extensions', '#recorded-marketplace'].includes(current.link.hash));
+  }
+
+  function scheduleUpdate() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(updateCurrentTopic);
+  }
+
+  window.addEventListener('scroll', scheduleUpdate, { passive: true });
+  window.addEventListener('resize', scheduleUpdate);
+  window.addEventListener('hashchange', scheduleUpdate);
+  window.addEventListener('load', scheduleUpdate);
+  updateCurrentTopic();
+})();
+</script>
+</body>
+</html>

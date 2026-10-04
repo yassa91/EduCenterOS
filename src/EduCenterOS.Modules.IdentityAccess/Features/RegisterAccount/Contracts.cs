@@ -8,4 +8,5 @@ internal sealed class RegisterAccountRequest
     public required string? Password { get; init; }
     public string? EmailAddress { get; init; }
 }
+
 internal sealed record RegisterAccountResponse(Guid UserAccountId, Guid PersonIdentityId, DateTimeOffset CreatedAtUtc);

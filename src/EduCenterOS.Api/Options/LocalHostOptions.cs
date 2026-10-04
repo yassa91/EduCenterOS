@@ -9,8 +9,10 @@ internal sealed class LocalHostOptions
         try
         {
             var options = configuration.GetSection("Platform:Host").Get<LocalHostOptions>(binder => binder.ErrorOnUnknownConfiguration = true) ?? new();
+
             if (options.Port is < 1024 or > 65535)
                 throw new InvalidOperationException();
+
             return options;
         }
         catch (Exception exception) when (exception is InvalidOperationException or ArgumentException or FormatException)

@@ -14,7 +14,6 @@ internal static class ApiServiceRegistration
             .Configure(options => options.Port = hostOptions.Port)
             .Validate(options => options.Port is >= 1024 and <= 65535, "Platform:Host:Port must be between 1024 and 65535.")
             .ValidateOnStart();
-
         builder.Logging.ClearProviders();
         builder.Logging.AddJsonConsole(options =>
         {
@@ -31,7 +30,6 @@ internal static class ApiServiceRegistration
         builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
         builder.Logging.AddFilter("Npgsql", LogLevel.None);
         builder.Logging.AddFilter("Microsoft.Extensions.Hosting", LogLevel.None);
-
         builder.Services.AddOpenApi(ApiOpenApi.Configure);
         builder.Services.AddSingleton<IRuntimeSnapshotSource>(new EnvironmentSnapshotSource(environment));
         builder.Services.AddOptions<DatabaseProbeOptions>()

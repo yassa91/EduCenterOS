@@ -1,0 +1,1416 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EduCenterOS - Agreed Features</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #20242c;
+            --muted: #515965;
+            --line: #d9dde3;
+            --accent: #1d4ed8;
+        }
+        * { box-sizing: border-box; }
+        html { direction: rtl; text-align: right; scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            direction: rtl;
+            text-align: right;
+            background: #f3f4f6;
+            color: var(--ink);
+            font-family: "Geeza Pro", Tahoma, Arial, sans-serif;
+            font-size: 19px;
+            line-height: 1.95;
+            overflow-wrap: anywhere;
+        }
+        main {
+            width: min(1120px, calc(100% - 112px));
+            margin: 32px auto;
+            padding: clamp(24px, 4vw, 48px);
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+        h1, h2, h3 { color: #161b24; line-height: 1.65; text-wrap: balance; }
+        h1 { font-size: 30px; margin-block: 0 40px; }
+        h2 {
+            font-size: 26px; margin: 0; padding-block-end: 20px;
+            border-block-end: 1px solid #a7b2c3;
+            scroll-margin-block-start: 24px;
+        }
+        h3 { font-size: 23px; margin-block: 0 24px; }
+        p { margin-block: 18px; text-wrap: pretty; }
+        .agreed-feature > p, .agreed-feature > ul {
+            width: 100%; max-width: none;
+            text-align: right;
+        }
+        .feature-description { font-size: 20px; margin-block: 0 24px; }
+        .feature-users { color: var(--muted); font-size: 17px; }
+        ul { margin-block: 16px 24px; padding-inline-start: 28px; padding-inline-end: 0; }
+        .agreed-feature li { padding-inline-start: 4px; }
+        .agreed-feature li + li { margin-block-start: 12px; }
+        .feature-example {
+            padding: 16px 20px; background: #f5f7fa;
+            border-radius: 8px; margin-block: 24px 20px;
+        }
+        .feature-rules { color: #47515f; font-size: 17px; line-height: 1.95; }
+        a { color: var(--accent); text-underline-offset: 3px; }
+        a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+        .feature-group { margin-block-start: 72px; }
+        .feature-group:first-of-type { margin-block-start: 0; }
+        .agreed-feature {
+            padding-block: 36px 40px;
+            border-block-end: 1px solid var(--line);
+            scroll-margin-block-start: 24px;
+        }
+        .agreed-feature:last-child { border-block-end: 0; padding-block-end: 0; }
+        .agreed-feature:focus { outline: none; }
+        .feature-code {
+            display: inline-block; padding: 2px 10px; border-radius: 6px;
+            background: #edf2ff; text-decoration: none; font-size: 18px;
+            vertical-align: baseline; white-space: nowrap;
+        }
+        .feature-code:hover { background: #dfe8ff; }
+        .sr-only {
+            position: absolute; width: 1px; height: 1px;
+            padding: 0; margin: -1px; overflow: hidden;
+            clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+        }
+        /* A quiet reading rail on the physical right edge. */
+        .document-index {
+            position: fixed; inset-inline-start: 8px; top: 50%;
+            transform: translateY(-50%);
+            width: 40px; height: min(768px, calc(100vh - 48px));
+            height: min(768px, calc(100dvh - 48px));
+            z-index: 10;
+        }
+        .index-track {
+            display: flex; flex-direction: column;
+            height: 100%; margin: 0; padding: 0;
+            list-style: none; overflow-y: auto;
+            scrollbar-width: none; overscroll-behavior: contain;
+        }
+        .index-track::-webkit-scrollbar { display: none; }
+        .index-track li { flex: 1 0 24px; min-height: 24px; }
+        .index-track a {
+            display: flex; align-items: center; justify-content: flex-start;
+            height: 100%; min-height: 24px; padding-inline-start: 4px;
+            text-decoration: none; position: relative;
+        }
+        .index-mark {
+            display: block; width: 32px; height: 3px;
+            background: #858b94;
+            transform: scaleX(.25); transform-origin: right center;
+            transition: transform 160ms ease-out, background-color 160ms ease-out;
+        }
+        .index-track [data-group-start="true"] .index-mark { transform: scaleX(.5); }
+        .index-track a[data-near="2"] .index-mark { transform: scaleX(.5); }
+        .index-track a[data-near="1"] .index-mark { transform: scaleX(.75); background: #626a76; }
+        .index-track a:hover .index-mark, .index-track a:focus-visible .index-mark {
+            transform: scaleX(.875); background: #20242c;
+        }
+        .index-track a[aria-current="location"] .index-mark {
+            height: 4px; transform: scaleX(1); background: #20242c;
+        }
+        .index-track a:focus-visible { outline-offset: -2px; border-radius: 4px; }
+        .index-preview {
+            position: fixed; inset-inline-start: 64px; top: 24px;
+            width: min(420px, calc(100vw - 88px));
+            max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px);
+            overflow-y: auto; overscroll-behavior: contain;
+            padding: 20px 24px; border-radius: 14px;
+            background: #262626; color: #f5f5f5;
+            box-shadow: 0 4px 8px #00000029;
+            font-size: 15px; line-height: 1.85; z-index: 20;
+        }
+        .index-preview[hidden] { display: none; }
+        .preview-group { font-size: 12px; color: #d1d5db; margin: 0 0 8px; }
+        .preview-title { margin: 0 0 12px; font-size: 17px; color: #fff; line-height: 1.7; }
+        .preview-title bdi { font-size: 15px; margin-inline-end: 6px; }
+        .preview-description, .preview-example {
+            display: -webkit-box; -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3; overflow: hidden;
+            margin: 0; color: #d1d5db;
+        }
+        .preview-example { -webkit-line-clamp: 2; margin-block-start: 16px; color: #c4c8ce; }
+        .skip-link { position: fixed; top: -100px; inset-inline-start: 64px; z-index: 30; background: #fff; padding: 10px 16px; }
+        .skip-link:focus { top: 16px; }
+        @media (max-width: 700px) {
+            body { font-size: 17px; }
+            main { width: calc(100% - 80px); margin: 16px auto; padding: 24px 20px; }
+            h1 { font-size: 25px; margin-block-end: 32px; }
+            h2 { font-size: 22px; padding-block-end: 16px; }
+            h3 { font-size: 20px; margin-block-end: 20px; }
+            .feature-description { font-size: 18px; }
+            .feature-users, .feature-rules { font-size: 16px; }
+            .feature-group { margin-block-start: 48px; }
+            .agreed-feature { padding-block: 28px 32px; }
+            .feature-example { padding: 12px 16px; }
+            .document-index { inset-inline-start: 0; width: 40px; }
+            .index-track a { padding-inline-start: 4px; }
+            .index-mark { width: 28px; }
+            .index-preview { inset-inline-start: 48px; width: calc(100vw - 64px); padding: 16px 20px; }
+        }
+        @media (pointer: coarse) {
+            .document-index { width: 44px; }
+            .index-track li, .index-track a { min-height: 44px; }
+            .index-track li { flex-basis: 44px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .index-mark { transition: none; }
+        }
+        @media print {
+            html { scroll-behavior: auto; }
+            body { background: #fff; font-size: 11pt; }
+            main { width: 100%; margin: 0; max-width: none; padding: 0; border: 0; }
+            .document-index, .index-preview, .skip-link { display: none !important; }
+            h1, h2, h3 { break-after: avoid; }
+            h1 { font-size: 20pt; }
+            h2 { font-size: 16pt; }
+            h3 { font-size: 13pt; }
+            .feature-description { font-size: 11pt; }
+            .feature-users, .feature-rules { font-size: 10pt; }
+            .feature-group { margin-block-start: 24px; }
+            .agreed-feature { padding-block: 16px 24px; }
+            .feature-example { background: none; padding: 0; }
+            .feature-code { background: none; color: #111827; padding: 0; font-size: 11pt; }
+            @page { size: A4; margin: 16mm; }
+        }
+        /* Annotation controls sit on the physical left; ink follows the document. */
+        main { position: relative; }
+        .annotation-layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 5; }
+        .annotation-layer[data-tool="pen"], .annotation-layer[data-tool="laser"] { pointer-events: auto; touch-action: none; cursor: crosshair; }
+        .annotation-layer[data-tool="eraser"] { pointer-events: auto; touch-action: none; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='14' cy='14' r='11' fill='white' fill-opacity='.6' stroke='%23515b6a' stroke-width='1.5'/%3E%3C/svg%3E") 14 14, crosshair; }
+        .annotation-tools {
+            position: fixed; inset-inline-end: 8px; top: 50%; transform: translateY(-50%);
+            width: 68px; max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px);
+            overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+            padding: 8px 6px; border: 1px solid var(--line); border-radius: 10px;
+            background: #fff; z-index: 30; text-align: center; font-size: 11px; line-height: 1.5;
+        }
+        .annotation-tools[hidden] { display: none; }
+        .annotation-tools h2 { font-size: 11px; padding: 0; margin: 0 0 8px; border: 0; color: var(--muted); }
+        .annotation-tool-list { display: flex; flex-direction: column; gap: 4px; }
+        .annotation-tools button {
+            display: flex; align-items: center; justify-content: center; gap: 3px;
+            width: 100%; min-height: 44px; padding: 5px 2px; border: 0; border-radius: 6px;
+            background: transparent; color: var(--ink); font: inherit; cursor: pointer;
+        }
+        .annotation-tool-list button, .annotation-save { flex-direction: column; }
+        .annotation-tools button:hover { background: #f0f2f5; }
+        .annotation-tools button[aria-pressed="true"] { background: #edf2ff; color: #1d4ed8; }
+        .annotation-tools button:disabled { color: #858b94; cursor: default; opacity: .5; }
+        .annotation-tools button:disabled:hover { background: transparent; }
+        .annotation-tools :is(button, select):focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+        .annotation-tools svg { width: 20px; height: 20px; flex: 0 0 auto; }
+        .annotation-palette { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding-block: 10px; margin-block: 8px; border-block: 1px solid var(--line); }
+        .annotation-palette button { min-height: 28px; padding: 2px; border-radius: 5px; }
+        .annotation-swatch { display: block; width: 20px; height: 20px; border: 1px solid #8f97a3; border-radius: 50%; background: var(--swatch); }
+        .annotation-palette button[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: -2px; }
+        .annotation-size { display: block; margin-block: 6px 10px; color: var(--muted); }
+        .annotation-size select { display: block; width: 100%; min-height: 40px; margin-block-start: 4px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); font: inherit; }
+        .annotation-history { display: flex; gap: 2px; padding-block-start: 8px; border-block-start: 1px solid var(--line); }
+        .annotation-history button { min-width: 0; }
+        .annotation-tools .annotation-save { margin-block-start: 4px; }
+        .annotation-status { margin: 6px 0 0; font-size: 10px; line-height: 1.5; color: var(--muted); }
+        .annotation-laser { pointer-events: none; }
+        .annotation-laser.is-fading { animation: annotation-laser-fade 1100ms ease-out 250ms forwards; }
+        @keyframes annotation-laser-fade { from { opacity: 1; } to { opacity: 0; } }
+        @media (pointer: coarse) {
+            .annotation-palette { grid-template-columns: 1fr; }
+            .annotation-palette button { min-height: 44px; }
+        }
+        @media (max-width: 700px) {
+            .annotation-tools { inset-inline-end: 2px; width: 52px; padding: 6px 3px; font-size: 10px; }
+            .annotation-tools h2 { font-size: 10px; }
+            .annotation-palette { grid-template-columns: 1fr; }
+            .annotation-history { flex-direction: column; }
+        }
+        @media (prefers-reduced-motion: reduce) { .annotation-laser.is-fading { animation-duration: 1ms; animation-delay: 700ms; } }
+        @media print {
+            .annotation-tools { display: none !important; }
+            .annotation-layer { pointer-events: none !important; }
+            .annotation-laser { display: none !important; }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="annotation-tools" id="annotation-tools" aria-label="أدوات الكتابة اليدوية" hidden>
+        <h2>الكتابة</h2>
+        <div class="annotation-tool-list" role="group" aria-label="اختيار الأداة">
+            <button type="button" data-annotation-tool="browse" aria-pressed="true" title="تصفح" aria-label="تصفح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 3l14 10-7 1-3 7-4-18z"/></svg><span>تصفح</span></button>
+            <button type="button" data-annotation-tool="pen" aria-pressed="false" title="قلم" aria-label="قلم"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 20l4-1 12-12-3-3L5 16l-1 4zM14 7l3 3M13 20h7"/></svg><span>قلم</span></button>
+            <button type="button" data-annotation-tool="eraser" aria-pressed="false" title="أستيكة" aria-label="أستيكة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 14l9-10a2 2 0 012.8 0l4.2 4.2a2 2 0 010 2.8L12 20H9l-5-5a1 1 0 010-1zM8 10l7 7M12 20h9"/></svg><span>أستيكة</span></button>
+            <button type="button" data-annotation-tool="laser" aria-pressed="false" title="ليزر" aria-label="ليزر"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg><span>ليزر</span></button>
+        </div>
+        <div class="annotation-palette" role="group" aria-label="ألوان الكتابة والليزر">
+            <button type="button" data-annotation-color="#111827" aria-label="لون أسود" title="أسود" aria-pressed="false"><span class="annotation-swatch" style="--swatch: #111827" aria-hidden="true"></span></button>
+            <button type="button" data-annotation-color="#2563eb" aria-label="لون أزرق" title="أزرق" aria-pressed="true"><span class="annotation-swatch" style="--swatch: #2563eb" aria-hidden="true"></span></button>
+            <button type="button" data-annotation-color="#dc2626" aria-label="لون أحمر" title="أحمر" aria-pressed="false"><span class="annotation-swatch" style="--swatch: #dc2626" aria-hidden="true"></span></button>
+            <button type="button" data-annotation-color="#16a34a" aria-label="لون أخضر" title="أخضر" aria-pressed="false"><span class="annotation-swatch" style="--swatch: #16a34a" aria-hidden="true"></span></button>
+            <button type="button" data-annotation-color="#ea580c" aria-label="لون برتقالي" title="برتقالي" aria-pressed="false"><span class="annotation-swatch" style="--swatch: #ea580c" aria-hidden="true"></span></button>
+            <button type="button" data-annotation-color="#eab308" aria-label="لون أصفر" title="أصفر" aria-pressed="false"><span class="annotation-swatch" style="--swatch: #eab308" aria-hidden="true"></span></button>
+            <button type="button" data-annotation-color="#9333ea" aria-label="لون بنفسجي" title="بنفسجي" aria-pressed="false"><span class="annotation-swatch" style="--swatch: #9333ea" aria-hidden="true"></span></button>
+            <button type="button" data-annotation-color="#ffffff" aria-label="لون أبيض" title="أبيض" aria-pressed="false"><span class="annotation-swatch" style="--swatch: #ffffff" aria-hidden="true"></span></button>
+        </div>
+        <label class="annotation-size">السُمك
+            <select id="annotation-width" aria-label="سُمك القلم">
+                <option value="2">رفيع</option>
+                <option value="4" selected>وسط</option>
+                <option value="8">عريض</option>
+            </select>
+        </label>
+        <div class="annotation-history" role="group" aria-label="التراجع والإعادة">
+            <button type="button" id="annotation-undo" title="تراجع" aria-label="تراجع عن آخر شخبطة" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 5L3 10l5 5M4 10h10a6 6 0 010 12" transform="translate(0 -3)"/></svg></button>
+            <button type="button" id="annotation-redo" title="إعادة" aria-label="إعادة الشخبطة" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 5l5 5-5 5M20 10H10a6 6 0 000 12" transform="translate(0 -3)"/></svg></button>
+        </div>
+        <button class="annotation-save" type="button" id="annotation-save" title="حفظ ملف HTML مع الشخبطة" aria-label="حفظ نسخة من الملف مع الكتابة اليدوية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12M8 11l4 4 4-4M4 16v5h16v-5"/></svg><span>حفظ نسخة</span></button>
+        <p class="annotation-status" id="annotation-status" role="status" aria-live="polite">جاهز</p>
+    </aside>
+
+    <a class="skip-link" href="#document-content">انتقل إلى المحتوى</a>
+    <nav class="document-index" id="document-index" aria-label="فهرس المميزات — اختر علامة لعرض ملخص الميزة أو الانتقال إليها">
+        <ol class="index-track">
+            <li data-group-start="true"><a href="#feature-F01" aria-label="F01 — إنشاء الحساب وتسجيل الدخول واستعادته" aria-current="location">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F01</bdi> — إنشاء الحساب وتسجيل الدخول واستعادته</span>
+            </a></li>
+            <li><a href="#feature-F02" aria-label="F02 — الأدوار والصلاحيات وعضويات المؤسسة">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F02</bdi> — الأدوار والصلاحيات وعضويات المؤسسة</span>
+            </a></li>
+            <li><a href="#feature-F03" aria-label="F03 — إنشاء وإدارة المؤسسات والفروع">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F03</bdi> — إنشاء وإدارة المؤسسات والفروع</span>
+            </a></li>
+            <li data-group-start="true"><a href="#feature-F04" aria-label="F04 — إدارة ملفات الطلاب">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F04</bdi> — إدارة ملفات الطلاب</span>
+            </a></li>
+            <li><a href="#feature-F05" aria-label="F05 — ربط أولياء الأمور بالطلاب">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F05</bdi> — ربط أولياء الأمور بالطلاب</span>
+            </a></li>
+            <li><a href="#feature-F06" aria-label="F06 — مساحة الطالب وولي الأمر">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F06</bdi> — مساحة الطالب وولي الأمر</span>
+            </a></li>
+            <li><a href="#feature-F07" aria-label="F07 — إدارة سجلات الموظفين والمدرسين">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F07</bdi> — إدارة سجلات الموظفين والمدرسين</span>
+            </a></li>
+            <li data-group-start="true"><a href="#feature-F08" aria-label="F08 — إدارة الهيكل الأكاديمي والسنوات">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F08</bdi> — إدارة الهيكل الأكاديمي والسنوات</span>
+            </a></li>
+            <li><a href="#feature-F09" aria-label="F09 — إدارة المجموعات الدراسية">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F09</bdi> — إدارة المجموعات الدراسية</span>
+            </a></li>
+            <li><a href="#feature-F10" aria-label="F10 — إدارة القاعات والجداول وفحص التعارض">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F10</bdi> — إدارة القاعات والجداول وفحص التعارض</span>
+            </a></li>
+            <li data-group-start="true"><a href="#feature-F11" aria-label="F11 — حجز المقاعد والتسجيل في المجموعات">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F11</bdi> — حجز المقاعد والتسجيل في المجموعات</span>
+            </a></li>
+            <li><a href="#feature-F12" aria-label="F12 — قوائم الانتظار وعروض المقاعد">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F12</bdi> — قوائم الانتظار وعروض المقاعد</span>
+            </a></li>
+            <li><a href="#feature-F13" aria-label="F13 — قياس الطلب والمساعدة في فتح مجموعات">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F13</bdi> — قياس الطلب والمساعدة في فتح مجموعات</span>
+            </a></li>
+            <li><a href="#feature-F14" aria-label="F14 — الحجز المبكر وتجديد التسجيل">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F14</bdi> — الحجز المبكر وتجديد التسجيل</span>
+            </a></li>
+            <li><a href="#feature-F15" aria-label="F15 — نقل الطالب وتجميد التسجيل والانسحاب">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F15</bdi> — نقل الطالب وتجميد التسجيل والانسحاب</span>
+            </a></li>
+            <li data-group-start="true"><a href="#feature-F16" aria-label="F16 — إدارة الحصص الفعلية والاستثناءات">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F16</bdi> — إدارة الحصص الفعلية والاستثناءات</span>
+            </a></li>
+            <li><a href="#feature-F17" aria-label="F17 — تسجيل الحضور والغياب واعتماده">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F17</bdi> — تسجيل الحضور والغياب واعتماده</span>
+            </a></li>
+            <li data-group-start="true"><a href="#feature-F18" aria-label="F18 — التسعير وإنشاء المستحقات ومتابعة المتأخرات">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F18</bdi> — التسعير وإنشاء المستحقات ومتابعة المتأخرات</span>
+            </a></li>
+            <li><a href="#feature-F19" aria-label="F19 — تسجيل المدفوعات والإيصالات">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F19</bdi> — تسجيل المدفوعات والإيصالات</span>
+            </a></li>
+            <li><a href="#feature-F20" aria-label="F20 — الاسترداد والتصحيح وكشف الحساب">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F20</bdi> — الاسترداد والتصحيح وكشف الحساب</span>
+            </a></li>
+            <li><a href="#feature-F21" aria-label="F21 — إدارة الخزن وورديات التحصيل">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F21</bdi> — إدارة الخزن وورديات التحصيل</span>
+            </a></li>
+            <li><a href="#feature-F22" aria-label="F22 — المصروفات والتحويلات والإغلاق اليومي">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F22</bdi> — المصروفات والتحويلات والإغلاق اليومي</span>
+            </a></li>
+            <li><a href="#feature-F23" aria-label="F23 — عقود المدرسين وقواعد حساب مستحقاتهم">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F23</bdi> — عقود المدرسين وقواعد حساب مستحقاتهم</span>
+            </a></li>
+            <li><a href="#feature-F24" aria-label="F24 — تسويات المدرسين ودفع المستحقات والاعتراضات">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F24</bdi> — تسويات المدرسين ودفع المستحقات والاعتراضات</span>
+            </a></li>
+            <li data-group-start="true"><a href="#feature-F25" aria-label="F25 — لوحات المتابعة والتقارير والتصدير">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F25</bdi> — لوحات المتابعة والتقارير والتصدير</span>
+            </a></li>
+            <li><a href="#feature-F26" aria-label="F26 — مركز الإشعارات والتنبيهات والإعلانات">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F26</bdi> — مركز الإشعارات والتنبيهات والإعلانات</span>
+            </a></li>
+            <li><a href="#feature-F27" aria-label="F27 — إرسال البريد الإلكتروني ومتابعة حالته">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F27</bdi> — إرسال البريد الإلكتروني ومتابعة حالته</span>
+            </a></li>
+            <li><a href="#feature-F28" aria-label="F28 — سجل العمليات والموافقات الحساسة">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F28</bdi> — سجل العمليات والموافقات الحساسة</span>
+            </a></li>
+            <li data-group-start="true"><a href="#feature-F29" aria-label="F29 — صفحات السناتر والمجموعات والبحث العام">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F29</bdi> — صفحات السناتر والمجموعات والبحث العام</span>
+            </a></li>
+            <li><a href="#feature-F30" aria-label="F30 — اشتراكات المؤسسات وخطط الاستخدام">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F30</bdi> — اشتراكات المؤسسات وخطط الاستخدام</span>
+            </a></li>
+            <li><a href="#feature-F31" aria-label="F31 — لوحة إدارة EduCenterOS">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F31</bdi> — لوحة إدارة EduCenterOS</span>
+            </a></li>
+            <li><a href="#feature-F32" aria-label="F32 — حماية الحسابات والبيانات وطلبات الخصوصية">
+                <span class="index-mark" aria-hidden="true"></span>
+                <span class="sr-only"><bdi>F32</bdi> — حماية الحسابات والبيانات وطلبات الخصوصية</span>
+            </a></li>
+        </ol>
+    </nav>
+    <div class="index-preview" id="index-preview" role="tooltip" hidden>
+        <p class="preview-group"></p>
+        <h3 class="preview-title"><bdi></bdi><span></span></h3>
+        <p class="preview-description"></p>
+        <p class="preview-example"></p>
+    </div>
+    <main id="document-content">
+        <svg class="annotation-layer" id="annotation-layer" xmlns="http://www.w3.org/2000/svg" data-tool="browse" aria-hidden="true"></svg>
+        <h1>EduCenterOS — Features</h1>
+        <!-- AGREED_FEATURES_START -->
+        <section class="feature-group" aria-labelledby="group-accounts">
+            <h2 id="group-accounts">الحسابات والصلاحيات والمؤسسات</h2>
+        <section class="agreed-feature" id="feature-F01" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F01" aria-label="رابط ميزة F01"><bdi>F01</bdi></a> — إنشاء الحساب وتسجيل الدخول واستعادته</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتسمح للمستخدم <strong>ينشئ حسابه ويدخل عليه ويسترجعه لو فقد الوصول ليه</strong>، ويوصل لمساحات العمل المسموح له بها من نفس الحساب.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> كل المستخدمين: الإدارة والموظفون والمدرسون والطلاب وأولياء الأمور.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏إنشاء حساب برقم موبايل وبريد إلكتروني، وتوثيق البريد بإرسال كود تحقق OTP فعلي إليه. في مرحلة التطوير، تختبر خطوة كود الهاتف بعرض الكود في شاشة اختبار مخصصة للفريق، دون إرسال SMS، ثم تربط بمزود إرسال فعلي مستقبلًا.</li>
+                <li>‏تسجيل الدخول ببيانات الحساب المعتمدة، مع تحقق إضافي في الحالات التي تحددها سياسة الأمان.</li>
+                <li>‏عرض مساحات العمل المستحقة: طالب أو ولي أمر أو عضوية داخل مؤسسة أو أكثر، والتبديل بينها.</li>
+                <li>‏استرجاع الحساب عند فقد كلمة المرور، وإرسال أكواد وروابط الاسترجاع والتحقق الإضافي وتأكيد تغيير بيانات الاتصال إلى البريد الإلكتروني الموثق، مع تطبيق طريقة اختبار كود الهاتف عند تغييره خلال مرحلة التطوير.</li>
+                <li>‏عرض الجلسات النشطة وإنهاء جلسة معينة أو تسجيل الخروج من كل الجلسات.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> شخص يعمل مدرسًا في سنتر وولي أمر لطالب في سنتر آخر يستخدم حسابًا واحدًا،
+                ويختار مساحة العمل المناسبة لكل استخدام.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> لا يحصل المستخدم على صلاحية مدرس أو مدير بمجرد اختيارها أثناء التسجيل.
+                البريد الإلكتروني الموثق هو قناة رسائل الأمان والاسترجاع في النطاق الحالي. كود الهاتف التجريبي يختبر خطوات النظام فقط، ولا يثبت أن المستخدم يمتلك الرقم؛ يظل الرقم غير موثق فعليًا حتى التحقق عبر مزود SMS الحقيقي. عرض كود الهاتف مخصص لبيئة التطوير ويوقف عند التشغيل الفعلي. يجهز مسار إرسال كود الهاتف بحيث يمكن ربطه بالمزود مستقبلًا. تسجيل الدخول بحسابات Google أو Facebook ليس متطلبًا أساسيًا.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F02" tabindex="-1"><h3><a class="feature-code" href="#feature-F02" aria-label="رابط ميزة F02"><bdi>F02</bdi></a> — الأدوار والصلاحيات وعضويات المؤسسة</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتحدد <strong>كل مستخدم يقدر يشوف إيه ويعمل إيه، وفي أي سنتر أو فرع</strong>، حسب دوره وصلاحياته. وبتنظم دعوته للعمل وإيقاف وصوله لما عضويته تنتهي.</p>
+        <p class="feature-users">‏<strong>المستخدمون:</strong> مالك المؤسسة والممثل المخول والمديرون، والموظف أو المدرس المدعو.</p>
+        <p>‏<strong>الوظائف التفصيلية:</strong></p>
+        <ul>
+        <li>‏إرسال دعوة مرتبطة بالمؤسسة والدور ونطاق الفرع والصلاحيات الاختيارية المسموحة.</li>
+        <li>‏قبول الدعوة بعد التحقق من حساب الشخص وأهليته، وإلغاء أو إعادة إرسال الدعوات وفق السياسة.</li>
+        <li>‏إسناد أدوار معروفة مثل مدير مؤسسة أو فرع، استقبال، محاسب، مدرس، أو موظف حضور.</li>
+        <li>‏تحديد الوصول على مستوى المؤسسة أو فرع محدد، وتفعيل صلاحيات اختيارية داخل حدود الدور.</li>
+        <li>‏تعليق العضوية أو إنهاؤها عند انتهاء العمل، مع الاحتفاظ بالعمليات التي نفذها الشخص سابقًا.</li>
+        <li>‏منع المستخدم من اعتماد عملية حساسة نفّذها بنفسه، عندما تتطلب العملية مراجعة من شخص آخر، حتى لو كان يمتلك أكثر من دور.</li>
+        </ul>
+        <p class="feature-example">‏<strong>مثال عملي:</strong> موظف استقبال يعمل في الفرع الأول يستطيع تسجيل طلابه وتحصيل المدفوعات المسموحة، ولا يطلع تلقائيًا على خزنة الفرع الثاني أو يعتمد استردادًا خارج صلاحياته.</p>
+        <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> المؤسسة تستخدم الأدوار والصلاحيات المعروفة؛ لا تنشئ صلاحيات جديدة خارج النظام. تعدد الأدوار لا يسمح بتجاوز الفصل المطلوب بين التنفيذ والمراجعة.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F03" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F03" aria-label="رابط ميزة F03"><bdi>F03</bdi></a> — إنشاء وإدارة المؤسسات والفروع</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتنظم <strong>بيانات السنتر وفروعه والمسؤولين عن إدارته</strong>، وبتربط التشغيل بالفرع المناسب. ولو نفس الشخص بيدير أكثر من سنتر مستقل، كل سنتر تفضل بياناته منفصلة.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> صاحب السنتر والممثل المخول ومديرو المؤسسة والفروع.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏إنشاء مؤسسة ببياناتها الأساسية واستكمال التواصل المطلوب والإقرار بصحة البيانات.</li>
+                <li>‏إنشاء الفرع الرئيسي مع المؤسسة، وإضافة فروع أخرى حسب الصلاحيات وحدود الاشتراك.</li>
+                <li>‏تحديد مسؤول السيطرة الأساسية على المؤسسة، والتفويضات الممنوحة لممثلها المخول.</li>
+                <li>‏ربط القاعات والمجموعات والخزن والتشغيل بالفرع المناسب.</li>
+                <li>‏إدارة المؤسسات المستقلة بصورة منفصلة حتى لو كان نفس الشخص مسؤولًا عنها.</li>
+                <li>‏حفظ تاريخ الفروع والعمليات عند إيقاف التشغيل أو الأرشفة بدل حذف التاريخ.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> صاحب سنتر له فرعان يديرهما تحت مؤسسة واحدة ويراجع تقارير كل فرع منفردًا أو مجمعة، بينما سنتر آخر مستقل له بيانات واشتراك منفصلان.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong></p>
+            <p>‏<strong>١. المسؤول عن السنتر في النظام مش بالضرورة مالكه الحقيقي.</strong><br>
+                ممكن صاحب السنتر يخلّي موظف يدير حساب المؤسسة. الموظف عنده صلاحيات الإدارة داخل المنصة، لكن ده ما يثبتش إنه المالك القانوني للسنتر.</p>
+            <p>‏<strong>٢. تشغيل السنتر منفصل عن ظهوره للناس في البحث.</strong><br>
+                السنتر يقدر يبدأ يضيف طلاب ومجموعات ويسجل الحضور والمدفوعات فور تجهيز حسابه. ولو ظهوره في البحث العام محتاج موافقة من إدارة المنصة، يقدر يشتغل داخليًا أثناء انتظار الموافقة.</p>
+        </section>
+        </section>
+        <section class="feature-group" aria-labelledby="group-people">
+            <h2 id="group-people">الطلاب وأولياء الأمور وفريق العمل</h2>
+        <section class="agreed-feature" id="feature-F04" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F04" aria-label="رابط ميزة F04"><bdi>F04</bdi></a> — إدارة ملفات الطلاب</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتجمع <strong>بيانات الطالب وتسجيلاته ومجموعاته وحضوره وحسابه المالي في سجل واضح</strong>، حتى لو معندوش حساب دخول. ولو أنشأ حسابًا بعد كده، نقدر نربطه بسجله بعد التحقق.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الاستقبال ومدير الفرع والمستخدمون المخولون بإدارة الطلاب.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏إنشاء سجل طالب داخل المؤسسة مع البيانات الأساسية والتواصل والصف الدراسي المناسب.</li>
+                <li>‏إدارة الطالب حتى إذا لم يمتلك حساب دخول أو رقمًا قوميًّا، في العمليات التي لا تتطلب تحققًا أعلى.</li>
+                <li>‏البحث عن الطالب والوصول إلى تسجيلاته ومجموعاته وحضوره وكشف حسابه بحسب الصلاحية.</li>
+                <li>‏كشف السجلات المكررة أو المتشابهة لعرضها للمراجعة قبل إنشاء سجل جديد أو ربطه.</li>
+                <li>‏ربط حساب ينشئه الطالب لاحقًا بسجله الموجود عن طريق تحقق مناسب.</li>
+                <li>‏تحديث البيانات الحالية مع الحفاظ على السياق التاريخي للتسجيلات القديمة.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> الاستقبال يضيف طالبًا صغير السن ويربطه بولي أمره، ويسجله في مجموعة ويحصّل رسومه؛ لا يتوقف التشغيل على إنشاء حساب شخصي للطفل.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> تشابه الاسم أو رقم الهاتف ليس إذنًا لدمج الهوية تلقائيًا. نحدد البيانات الإلزامية وطريقة ربط الحساب بالسجل أثناء اختيار نطاق التنفيذ.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F05" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F05" aria-label="رابط ميزة F05"><bdi>F05</bdi></a> — ربط أولياء الأمور بالطلاب</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتحدد <strong>ولي الأمر المرتبط بكل طالب والبيانات والطلبات المتاحة له</strong>. وبتسمح لولي أمر يتابع أكثر من طالب، أو لأكثر من ولي أمر يتابعوا نفس الطالب، حسب العلاقة والصلاحيات.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الموظف المخول داخل المؤسسة، وولي الأمر؛ وإدارة المنصة للحالات التي تحتاج تحققًا أعلى.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏تسجيل علاقة ولي الأمر بالطالب ونوعها وحالتها ونطاقها.</li>
+                <li>‏ربط ولي الأمر بأكثر من طالب، أو ربط أكثر من ولي أمر بطالب واحد.</li>
+                <li>‏تحديد ولي الأمر الأساسي عند الحاجة، وصلاحيات الاطلاع والطلبات المتاحة لكل علاقة.</li>
+                <li>‏تمييز العلاقة التي تحققت منها مؤسسة عن العلاقة الموثقة على مستوى المنصة.</li>
+                <li>‏تفعيل العلاقة أو إنهاؤها وتصحيح الربط الخاطئ بإجراء موثق.</li>
+                <li>‏توجيه الاطلاع والإشعارات والطلبات بحسب نطاق العلاقة وإعدادات المستخدم والمؤسسة.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> ولي أمر مرتبط بطالبين داخل سنتر يمكنه متابعة كل طفل، لكن العلاقة داخل هذا السنتر لا تفتح تلقائيًا سجلاتهما في مؤسسة أخرى.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> قوة الإثبات المطلوبة تعتمد على العملية والعمر والمخاطر؛ موافقة الطفل وحدها ليست إثباتًا كافيًا لكل الحالات. نختار مستوى التحقق الذي يحتاجه نطاق المشروع.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F06" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F06" aria-label="رابط ميزة F06"><bdi>F06</bdi></a> — مساحة الطالب وولي الأمر</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي المساحة اللي الطالب أو ولي الأمر يدخل عليها علشان <strong>يتابع المجموعات والمواعيد والحضور والحساب والإشعارات</strong>، ويقدم الطلبات المسموحة ويتابع نتيجتها.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الطالب صاحب الحساب وولي الأمر المرتبط بعلاقة صالحة.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏عرض المجموعات المسجل فيها الطالب ومواعيد الحصص وما طرأ عليها من إلغاء أو تغيير.</li>
+                <li>‏متابعة الحضور والغياب والتأخير والأعذار المعتمدة.</li>
+                <li>‏عرض المستحقات والمدفوعات والمتأخرات والإيصالات وكشف الحساب الشخصي.</li>
+                <li>‏قراءة الإشعارات المتعلقة بالخدمات التي يحق للمستخدم الوصول إليها.</li>
+                <li>‏بدء طلب تسجيل أو نقل أو تجميد أو انسحاب أو استرداد عندما تسمح الأهلية والسياسة.</li>
+                <li>‏تقديم عذر أو مستند مناسب، ومتابعة نتيجة الطلبات التي تحتاج مراجعة المؤسسة.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> ولي الأمر يرى أن حصة ابنه أعيدت جدولتها، يراجع الموعد الجديد، ويرسل طلب نقل لمجموعة أخرى. الطلب لا ينفذ إلا بعد مراجعة السعة والقواعد.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> تقديم الطلب لا يساوي الموافقة أو التنفيذ. المستخدم يرى البيانات المسموحة فقط؛ وحدة امتحانات ودرجات كاملة ليست معرفة ضمن هذا النطاق.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F07" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F07" aria-label="رابط ميزة F07"><bdi>F07</bdi></a> — إدارة سجلات الموظفين والمدرسين</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتجمع <strong>بيانات الموظف أو المدرس وتربطها بحسابه ودوره وعمله داخل السنتر</strong>. والمدرس يقدر يتابع مجموعاته وحصصه وجدوله ومستحقاته ضمن صلاحياته.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الإدارة والموظفون والمدرسون، كل حسب صلاحياته.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏تسجيل بيانات الموظف أو المدرس ووسائل التواصل ومعلومات العمل اللازمة.</li>
+                <li>‏الاحتفاظ بسجل داخلي قبل وجود حساب دخول ثم ربطه بالحساب الصحيح لاحقًا.</li>
+                <li>‏تعيين العضوية والدور ونطاق الفروع بعد الدعوة أو الإجراء المعتمد.</li>
+                <li>‏ربط المدرس بالمجموعات التي يتولى مسؤوليتها وبالحصص التي قدمها فعليًا.</li>
+                <li>‏إتاحة جدول المدرس وحصصه وما يخصه من تسويات ومستحقات بحسب الصلاحيات.</li>
+                <li>‏إنهاء صلاحيات الموظف عند انتهاء العمل مع حفظ سجلات التشغيل والعقود السابقة.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> مدرس جديد يسجل أولًا كبيانات داخلية، ثم يقبل دعوة المؤسسة ليستخدم مساحته الشخصية ويراجع جدوله ومستحقاته.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> سجل المدرس لا يفعّل صلاحيات الدخول وحده، ودور المدرس لا يحدد اتفاقه المالي. إدارة رواتب وحضور كل الموظفين كنظام HR كامل توسع إضافي.</p>
+        </section>
+        </section>
+        <section class="feature-group" aria-labelledby="group-academics">
+            <h2 id="group-academics">الإعداد الأكاديمي والمجموعات والجداول</h2>
+        <section class="agreed-feature" id="feature-F08" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F08" aria-label="رابط ميزة F08"><bdi>F08</bdi></a> — إدارة الهيكل الأكاديمي والسنوات</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتنظم <strong>الأنظمة التعليمية والمراحل والصفوف والمواد والسنوات الدراسية</strong>، وبتسمح بتجهيز السنة القادمة أثناء تشغيل الحالية، مع حفظ تاريخ السنوات السابقة.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> إدارة المؤسسة والمسؤولون عن الإعداد الأكاديمي.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏اختيار النظام التعليمي والمراحل والصفوف والمواد المرجعية التي تعمل بها المؤسسة.</li>
+                <li>‏تحديد تقديم المادة للصف المناسب، مع مشاركة فروع المؤسسة للكتالوج الأكاديمي الخاص بها.</li>
+                <li>‏إنشاء السنة الدراسية والفترات التابعة لها، مثل الترمين أو المراجعات.</li>
+                <li>‏إدارة سنة واحدة نشطة للتشغيل وسنة مستقبلية واحدة للتجهيز المبكر.</li>
+                <li>‏تجهيز مجموعات وجداول السنة القادمة دون بدء حضور أو حصص فعلية قبل التفعيل.</li>
+                <li>‏إغلاق السنة وترقية الصفوف للحالات المؤهلة، مع حفظ التاريخ وعدم تسجيل الطلاب تلقائيًا في مجموعات جديدة.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> تجهز الإدارة مجموعات الصف الثالث الثانوي للسنة المقبلة بينما يستمر التشغيل في السنة الحالية، ثم تفعل السنة الجديدة بعد الإجراءات المطلوبة.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> النطاق الأساسي قبل الجامعي؛ الكتالوج الأولي يشمل المصري العام العربي واللغات والأزهري. ترقية الصف لا تنقل المدفوعات أو تجدد التسجيل تلقائيًا.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F09" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F09" aria-label="رابط ميزة F09"><bdi>F09</bdi></a> — إدارة المجموعات الدراسية</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتنظم <strong>كل مجموعة دراسية: مادتها وصفها وفرعها ومدرسها وسعتها وحالتها</strong>، وبتسمح بفتح التسجيل أو إغلاقه وتغيير المدرس ونسخ الإعدادات لتجهيز مجموعة جديدة.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> مدير المؤسسة أو الفرع، والمستخدمون المخولون بإعداد المجموعات.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏إنشاء مجموعة وربطها بمادة وصف وفرع وسنة وفترة مناسبة، وإسناد مدرس أساسي واحد فعال.</li>
+                <li>‏تحديد السعة والجدول ونوع المجموعة وشروط التسجيل المناسبة.</li>
+                <li>‏إدارة تشغيل المجموعة من التجهيز إلى النشاط أو التوقف أو الإكمال أو الإلغاء والأرشفة.</li>
+                <li>‏إدارة حالة فتح التسجيل وحالة الظهور بصورة مستقلة عن حالة التشغيل.</li>
+                <li>‏تغيير المدرس الأساسي بتاريخ سريان وسبب، مع حفظ تعيين المدرس السابق.</li>
+                <li>‏نسخ إعدادات مجموعة لتجهيز مجموعة جديدة، وإعادة فحص المدرس والقاعة والتعارضات.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> مجموعة فيزياء نشطة أغلقت التسجيل لاكتمال السعة؛ تستمر حصصها بصورة طبيعية ويظل الطلاب الجدد في قائمة الانتظار.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> نسخ المجموعة لا ينسخ الطلاب أو الحضور أو المدفوعات. المجموعة الأساسية تتبع فرعًا واحدًا ومادة واحدة وصفًا واحدًا، ونموذجها حضوري.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F10" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F10" aria-label="رابط ميزة F10"><bdi>F10</bdi></a> — إدارة القاعات والجداول وفحص التعارض</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتنظم <strong>القاعات ومواعيد المجموعات</strong>، وبتفحص التعارض علشان نفس القاعة أو المدرس أو المجموعة ما يكونوش مرتبطين بمواعيد متداخلة.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> المسؤولون عن الجداول والقاعات ومديرو الفروع.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏تسجيل القاعة وفرعها وسعتها وحالتها وتجهيزاتها التشغيلية.</li>
+                <li>‏تحديد موعد أسبوعي أو أكثر للمجموعة: يوم ووقت بداية ونهاية وقاعة وتاريخ سريان عند الحاجة.</li>
+                <li>‏فحص تداخل استخدام نفس القاعة في أكثر من موعد.</li>
+                <li>‏فحص تداخل مواعيد المدرس، بما في ذلك عمله في فروع المؤسسة المختلفة.</li>
+                <li>‏منع وجود موعدين متداخلين لنفس المجموعة، ومراعاة الوقت الفاصل عندما تحدده السياسة.</li>
+                <li>‏إعادة فحص التعارض عند تغيير الوقت أو القاعة أو المدرس، دون إعادة كتابة الحصص التاريخية.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> عند محاولة وضع مجموعتين في القاعة نفسها من الخامسة للسابعة، يرفض النظام التعارض ويتيح للإدارة اختيار موعد أو قاعة مناسبة.</p>
+        </section>
+        </section>
+        <section class="feature-group" aria-labelledby="group-enrollment">
+            <h2 id="group-enrollment">التسجيل والمقاعد وإدارة الطلب</h2>
+        <section class="agreed-feature" id="feature-F11" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F11" aria-label="رابط ميزة F11"><bdi>F11</bdi></a> — حجز المقاعد والتسجيل في المجموعات</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتنظم <strong>حجز مكان الطالب في المجموعة واستكمال تسجيله</strong>، من فحص الأهلية والسعة إلى الحجز المؤقت والتفعيل، مع منع التسجيل المكرر وتجاوز الأماكن المتاحة.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> موظف الاستقبال والمدير المخول، والطالب أو ولي الأمر عند إتاحة الخدمات الذاتية.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏اختيار الطالب والمجموعة وفحص الصف والأهلية وحالة التسجيل والسنة.</li>
+                <li>‏حساب الأماكن المشغولة، مع احتساب الحجوزات المؤقتة السارية على السعة.</li>
+                <li>‏إنشاء حجز مؤقت بمهلة واضحة عند الحاجة، وتحرير المكان عند انتهائه أو إلغائه.</li>
+                <li>‏تفعيل التسجيل عند استكمال الشروط: موافقة أو حد أدنى للدفع أو دفع كامل حسب السياسة.</li>
+                <li>‏منع التسجيل المكرر لنفس الطالب والمجموعة، ومنع تجاوز السعة حتى عند طلب آخر مكان في الوقت نفسه.</li>
+                <li>‏عرض حالة التسجيل وربطه بعرض السعر المناسب والتاريخ التشغيلي للطالب.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> آخر مقعد متاح في مجموعة يحاول طالبان حجزه في نفس الوقت؛ يثبت لطالب واحد فقط، ويعرض على الآخر الانتظار.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> الدفع والتسجيل عمليتان منفصلتان: يمكن وجود تسجيل مع مستحقات لم تدفع كاملة إذا كانت السياسة تسمح. مدة تثبيت المقعد وسياسة التفعيل نختارهما أثناء المراجعة.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F12" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F12" aria-label="رابط ميزة F12"><bdi>F12</bdi></a> — قوائم الانتظار وعروض المقاعد</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> تسجيل الطلاب الراغبين في الانضمام للمجموعات المكتملة، وإتاحة فرص التسجيل لهم عند توفر مقاعد أو فتح مجموعات مناسبة، مع تنظيم ترتيب العروض ومهلها ومتابعة قبولها أو انتهائها.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الطلاب وأولياء الأمور والاستقبال وإدارة المجموعات.</p>
+
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏إضافة الطالب إلى قائمة الانتظار عند اكتمال المجموعة، مع تحديد المجموعة أو سياق الطلب المناسب ووقت تقديم الطلب.</li>
+                <li>‏إتاحة إلغاء طلب الانتظار أو تحديث حالته؛ وجود الطلب في القائمة لا يعتبر تسجيلًا داخل المجموعة.</li>
+                <li>‏تقديم فرصة للتسجيل عند توفر مقعد، مثل انسحاب طالب أو انتهاء حجز مؤقت، أو عند إنشاء مجموعة جديدة مناسبة للطلب.</li>
+                <li>‏دعم طريقتين حسب سياسة السنتر: إخطار الطلاب المنتظرين بالمكان المتاح وتكون الأولوية لمن يستكمل الحجز أولًا، أو إرسال عروض مرتبة للطلاب حسب ترتيب الانتظار.</li>
+                <li>‏في العروض المرتبة، يبدأ الترتيب بأسبقية وقت تقديم طلب الانتظار. يعرض المقعد على الطالب التالي، وإذا انتهت مهلة العرض دون استكمال ينتقل العرض إلى من يليه.</li>
+                <li>‏توضيح مهلة العرض وأي حجز مؤقت مرتبط به، ومتابعة قبول الفرصة أو انتهائها. بعد قبول الطالب يبدأ الحجز والتسجيل وفق الأهلية والسعة وشروط التفعيل المعتمدة.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> مجموعة رياضيات سعتها 30 طالبًا ومكتملة. محمد وأحمد ومريم قدموا طلبات انتظار بهذا الترتيب. عند انسحاب طالب، يرسل النظام عرضًا لمحمد إذا كانت السياسة تستخدم العروض المرتبة. محمد يبدأ الحجز ويستكمل شروط التسجيل؛ وإذا انتهت مهلة العرض دون استكمال، يرسل النظام العرض إلى أحمد، ثم مريم بالطريقة نفسها.</p>
+            <p>‏<strong>الفرق بين الحالات:</strong></p>
+            <ul>
+                <li>‏<strong>الانتظار:</strong> الطالب مهتم بالانضمام ويريد إبلاغه عند توفر فرصة؛ لا يوجد مقعد محجوز باسمه.</li>
+                <li>‏<strong>الحجز المؤقت:</strong> المقعد متثبت للطالب لفترة محددة لاستكمال الإجراءات.</li>
+                <li>‏<strong>التسجيل:</strong> الطالب استكمل شروط الانضمام للمجموعة.</li>
+            </ul>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> الانتظار لا يحجز المقعد ولا يضمنه، والإشعار العام وحده لا يثبت المكان. لا يتحول الطالب تلقائيًا من الانتظار إلى التسجيل؛ يجب أن يقبل الفرصة ويستكمل الإجراءات. عند التنافس على مكان واحد، يضمن النظام تثبيته لطالب واحد فقط وفق قواعد الحجز.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F13" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F13" aria-label="رابط ميزة F13"><bdi>F13</bdi></a> — قياس الطلب والمساعدة في فتح مجموعات</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتوضح <strong>الطلاب محتاجين مجموعات إيه، وهل المدرسين والقاعات والمواعيد المتاحة تسمح بفتحها</strong>. وبتعرض فرصًا للإدارة تساعدها تتخذ قرار فتح مجموعات مناسبة للطلب.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> مديرو المؤسسة والفروع والمسؤولون عن تخطيط المجموعات.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏تجميع الطلب غير المستوعب حسب المادة والصف والمدرس والفرع والتوقيت.</li>
+                <li>‏عرض عدد المنتظرين والمجموعات الممتلئة والمجالات التي يزيد فيها الطلب على السعة.</li>
+                <li>‏مقارنة الطلب بجدول المدرسين والقاعات والقدرة المتاحة.</li>
+                <li>‏عرض فرصة تشغيلية لفتح مجموعة جديدة مع أسبابها والموارد التي تسمح بها.</li>
+                <li>‏تمكين الإدارة من اتخاذ قرار إنشاء المجموعة وربطها بالطلب السابق.</li>
+                <li>‏توجيه فرص التسجيل للمنتظرين المناسبين وفق سياسة الانتظار المعتمدة.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> يوجد 28 طالبًا ينتظرون فيزياء للصف الثالث، ومدرس وقاعة سعتها 30 متاحان في توقيت مناسب؛ تظهر فرصة للإدارة لفتح مجموعة جديدة.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> هذه مساعدة مبنية على بيانات وقواعد واضحة؛ لا تفترض تعلمًا آليًا. لا تفتح المجموعة أو تسجل الطلاب دون قرار وإجراء مخول.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F14" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F14" aria-label="رابط ميزة F14"><bdi>F14</bdi></a> — الحجز المبكر وتجديد التسجيل</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتسمح للطالب <strong>يحجز للسنة القادمة قبل بدايتها، أو يختار تجديد التسجيل لفترة تعليمية جديدة</strong>، مع مراجعة الشروط والسعر والسعة وحفظ التسجيل السابق.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الإدارة والاستقبال والطالب أو ولي الأمر المسموح له بالحجز والتجديد.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏فتح حجز مبكر لمجموعة مكتملة التجهيز في السنة المستقبلية.</li>
+                <li>‏حفظ المكان أو الرغبة وفق سياسة الحجز والسعة والمهلة المحددة.</li>
+                <li>‏متابعة الحجوزات المبكرة وتحويلها إلى تسجيلات عند تفعيل السنة واستكمال الشروط.</li>
+                <li>‏تقديم فرصة تجديد لخدمة تعليمية جديدة بعد انتهاء التسجيل السابق.</li>
+                <li>‏إعادة فحص السعة والأسعار والأهلية عند التجديد بدل مد التسجيل القديم بصمت.</li>
+                <li>‏الاحتفاظ بتاريخ التسجيل السابق والحجز أو التجديد الجديد بصورة مستقلة.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> طالب يحجز مكانه للسنة القادمة، وبعد تفعيل السنة يستكمل شروط التسجيل. عند انتهاء دورة أخرى يختار تجديدًا جديدًا بدل إنشاء التزام مالي تلقائي.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> الحجز المبكر لا يبدأ مستحقات دراسية تشغيلية افتراضيًا قبل التفعيل. التجديد التلقائي المتكرر جزء إضافي يحتاج موافقة ونموذج فوترة مستقلًا.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F15" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F15" aria-label="رابط ميزة F15"><bdi>F15</bdi></a> — نقل الطالب وتجميد التسجيل والانسحاب</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتنظم <strong>نقل الطالب لمجموعة أو فرع آخر، أو إيقاف تسجيله مؤقتًا، أو إنهاءه</strong>، مع متابعة أثر القرار على المقعد والحساب المالي وحفظ تاريخ التسجيل.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الطالب أو ولي الأمر مقدم الطلب، والاستقبال والمدير والمحاسب بحسب الأثر.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏تقديم طلب نقل لمجموعة أخرى أو لفرع آخر داخل المؤسسة والتحقق من السعة والأهلية والصلاحيات.</li>
+                <li>‏تأمين المقعد الجديد قبل إنهاء التسجيل القديم، ثم حفظ تاريخ التسجيلين وعلاقة النقل.</li>
+                <li>‏حساب فرق السعر أو الرصيد أو المستحق الإضافي أو الاسترداد حسب السياسة المالية.</li>
+                <li>‏تجميد التسجيل لفترة مع توضيح هل يحتفظ الطالب بالمقعد أم يحرر للآخرين.</li>
+                <li>‏إعادة التفعيل وفق تاريخ العودة والسعة والسياسة، خصوصًا إذا كان المقعد قد تحرر.</li>
+                <li>‏تسجيل الانسحاب أو الإلغاء بتاريخ وسبب، وتحرير المكان ومعالجة الحقوق المالية وفق القواعد.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> طالب ينقل من مجموعة الثلاثاء إلى الخميس؛ يتحقق النظام من المكان الجديد ويعالج فرق السعر، بينما يظل حضوره ومدفوعاته القديمة ظاهرين في سياقهم الأصلي.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> التجميد والانسحاب والإلغاء حالات مختلفة. لا يضمن التجميد العودة لنفس المجموعة إذا كانت سياسته تحرير المقعد. الانسحاب لا يعني استردادًا كاملًا تلقائيًا.</p>
+        </section>
+        </section>
+        <section class="feature-group" aria-labelledby="group-sessions">
+            <h2 id="group-sessions">الحصص والحضور</h2>
+        <section class="agreed-feature" id="feature-F16" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F16" aria-label="رابط ميزة F16"><bdi>F16</bdi></a> — إدارة الحصص الفعلية والاستثناءات</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتتابع <strong>كل حصة بتاريخها ومدرسها وقاعتها وحالتها الفعلية</strong>، وبتنظم تغيير الموعد والإلغاء والتعويض وتعيين مدرس بديل، مع حفظ اللي حصل في الحصة.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> إدارة الفرع والمسؤول عن الحصص والمدرسون ضمن صلاحياتهم.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏إنشاء حصص فعلية لها تاريخ ووقت وقاعة من الجدول الأسبوعي خلال فترة توليد محددة.</li>
+                <li>‏متابعة حالة الحصة من الموعد المجدول إلى بدء التنفيذ والإكمال والإغلاق.</li>
+                <li>‏تسجيل المدرس المتوقع والمدرس الذي قدم الحصة فعلًا، وتعيين بديل مؤقت مع فحص الأهلية والتعارض.</li>
+                <li>‏إلغاء الحصة بسبب واضح، أو إعادة جدولتها مع الاحتفاظ بالموعد الأصلي والتغيير الذي حدث.</li>
+                <li>‏إنشاء حصة تعويضية مرتبطة بسبب أو حصة سابقة، ومتابعة الحاجة إلى التعويض.</li>
+                <li>‏تسجيل ملاحظات تشغيلية وموضوعات أو واجب الحصة، وإخطار الأطراف المتأثرة بالتغييرات.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> المدرس الأساسي يتعذر حضوره يوم السبت؛ تعين الإدارة بديلًا لهذه الحصة فقط، ويسجل النظام من قدمها لتطبيق قاعدة مستحقاته المناسبة.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> البديل المؤقت لا يغير المدرس الأساسي للمجموعة. إلغاء الحصة أو تعويضها لا يمحو الأصل؛ الأثر المالي على الطالب والمدرس تحدده السياسات والعقد.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F17" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F17" aria-label="رابط ميزة F17"><bdi>F17</bdi></a> — تسجيل الحضور والغياب واعتماده</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتسجل <strong>حالة كل طالب في الحصة: حاضر أو غائب أو متأخر أو غياب بعذر</strong>، وبتسمح بمراجعة الأعذار واعتماد الحضور وتصحيح الأخطاء مع حفظ تاريخ التغييرات.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> موظف الحضور والمدرس المخول والمدير المراجع، والطالب أو ولي الأمر عند تقديم عذر.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏عرض الطلاب المستحقين للحضور في تاريخ الحصة، مع مراعاة الانضمام والنقل والانسحاب والتجميد.</li>
+                <li>‏تسجيل حاضر أو غائب أو متأخر أو غياب بعذر؛ حالة الانصراف المبكر تضيفها حاجة تشغيلية معتمدة.</li>
+                <li>‏تمييز الطالب الذي لم يسجل حضوره بعد عن غياب نهائي معتمد.</li>
+                <li>‏استقبال عذر أو مستند ومراجعته قبل تحويل الحالة إلى غياب بعذر.</li>
+                <li>‏إرسال الحضور للمراجعة أو اعتماده وإغلاقه وفق سير العمل المسموح.</li>
+                <li>‏إعادة فتح السجل النهائي عند الحاجة بصلاحية وسبب، مع تسجيل الحالة القديمة والجديدة وإشعار مناسب.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> طالب سجل غائبًا ثم قدم ولي أمره عذرًا مقبولًا؛ يصحح المسؤول الحالة بإجراء ظاهر في التاريخ، ولا تختفي حالة التسجيل الأولى.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> رفع عذر لا يعني قبوله آليًا، ولا ترسل رسالة غياب نهائي قبل اعتماد الحالة. الغياب لا يلغي الرسوم تلقائيًا؛ التسعير يحدد الأثر المالي.</p>
+        </section>
+        </section>
+        <section class="feature-group" aria-labelledby="group-finance">
+            <h2 id="group-finance">المالية والخزن ومستحقات المدرسين</h2>
+        <section class="agreed-feature" id="feature-F18" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F18" aria-label="رابط ميزة F18"><bdi>F18</bdi></a> — التسعير وإنشاء المستحقات ومتابعة المتأخرات</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتحدد <strong>الطالب مطلوب منه يدفع كام، والدفع يغطي أنهي حصة أو شهر أو ترم</strong>، وبتتابع المستحقات وحالة السداد. المبلغ بيتسدد كاملًا بدون أقساط، والشهر بيبدأ من تاريخ اشتراك الطالب.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الإدارة والمحاسب والاستقبال المخول، مع عرض النتائج للطالب وولي الأمر.</p>
+            <p>‏<strong>طرق الدفع المتفق عليها:</strong></p>
+            <ul>
+                <li>‏<strong>الدفع بالحصة:</strong> يحدد سعر الحصة، ويلتزم الطالب بسداد قيمتها بالكامل قبل حضورها.</li>
+                <li>‏<strong>الدفع بالشهر:</strong> يبدأ الاشتراك الشهري من تاريخ بداية اشتراك الطالب ويغطي شهرًا كاملًا محسوبًا من هذا التاريخ، بما يشمله من حصص. يسدد الطالب سعر الشهر كاملًا مرة واحدة، دون أقساط.</li>
+                <li>‏<strong>الدفع بالترم:</strong> يحدد سعر الترم كاملًا، ويسدد الطالب المبلغ كاملًا مرة واحدة مقابل الحصص التي يغطيها اشتراك الترم، دون أقساط.</li>
+            </ul>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏تحديد السعر وطريقة السداد للتسجيل من الطرق الثلاث المتفق عليها: الحصة أو الشهر أو الترم الكامل.</li>
+                <li>‏حفظ السعر وشروط التغطية المرتبطة بالتسجيل، حتى لا يؤدي تعديل الأسعار لاحقًا إلى تغيير الالتزامات السابقة.</li>
+                <li>‏إنشاء مستحق واضح القيمة والمصدر والموعد، مرتبط بالحصة أو الشهر أو الترم حسب طريقة السداد.</li>
+                <li>‏متابعة حالة السداد والتغطية، وتوضيح الحصص أو الفترة التي يشملها الدفع؛ والتحقق من سداد الحصة قبل حضورها في نموذج الدفع بالحصة.</li>
+                <li>‏تسجيل تاريخ بداية الاشتراك الشهري ونهايته وتحديد الحصص المشمولة خلاله؛ يبدأ الشهر من تاريخ اشتراك الطالب. وتحدد قواعد الانضمام أثناء الترم وفق السياسة المعتمدة، دون تقسيم المستحق إلى أقساط.</li>
+                <li>‏فصل المستحق حاليًا عن المتأخر والمستحق مستقبلًا والرصيد لصالح الطالب.</li>
+                <li>‏تطبيق سياسة واضحة للمتأخرات، مثل التنبيه أو اشتراط مراجعة عند تسجيل جديد، وفق ما يحدد للسنتر.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> مجموعة لها سعر للحصة وسعر للشهر وسعر للترم. الطالب الذي يختار الدفع بالحصة يسدد قيمة كل حصة قبل حضورها. ومن يختار الشهر يسدد سعر الشهر كاملًا مرة واحدة؛ مثلًا إذا بدأ اشتراكه يوم 15 أكتوبر، يغطي الاشتراك الفترة من 15 أكتوبر حتى 14 نوفمبر. ومن يختار الترم يسدد سعر الترم كاملًا مرة واحدة.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> يقتصر نطاق التسعير على الحصة والشهر والترم الكامل. الأقساط والباقات خارج النطاق المتفق عليه. الاشتراك الشهري والاشتراك بالترم لا يقسمان إلى دفعات مجدولة، ولا يفترض النظام غرامات تأخير أو فوائد تلقائية.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F19" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F19" aria-label="رابط ميزة F19"><bdi>F19</bdi></a> — تسجيل المدفوعات والإيصالات</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتسجل <strong>الفلوس اللي السنتر استلمها، ومين دفعها، وإيه المستحقات اللي اتسددت بها</strong>، وبتربط التحصيل بالخزنة أو إثبات التحويل وبتصدر إيصالًا واضحًا لكل عملية.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الاستقبال أو المحصل والمحاسب، والطالب أو ولي الأمر الذي يقدم إثبات تحويل.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏تسجيل المبلغ وطريقة الدفع والتاريخ والفرع والطالب والشخص الدافع، ورقم عملية التحويل عند الحاجة.</li>
+                <li>‏تحصيل النقد داخل وردية مفتوحة ومسؤول معلوم، وربطه بحركة الخزنة.</li>
+                <li>‏استقبال بيانات التحويل اليدوي وإثباته، وتركه قيد التحقق حتى يراجعه مستخدم مخول، قبل اعتبار المبلغ محصلًا.</li>
+                <li>‏ربط الدفعة بمستحق واحد أو أكثر، مع سداد كل مستحق مختار بالكامل، وإظهار المستحقات التي غطتها الدفعة.</li>
+                <li>‏حفظ أي مبلغ زائد كرصيد واضح لصالح الطالب، مع توثيق مصدره.</li>
+                <li>‏إصدار إيصال تحصيل تشغيلي مرقم وإتاحته للمستخدم المسموح له، مع حفظ سجل العملية الأصلية ومنع تكرار تسجيل نفس التحصيل.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> الطالب يسدد اشتراك الشهر كاملًا مرة واحدة. يسجل الموظف المبلغ وطريقة الدفع، ويربط النظام الدفعة بفترة اشتراك الطالب ويصدر إيصالًا يوضح المبلغ وطريقة السداد والفترة المشمولة.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> لا يدعم هذا النطاق دفعات جزئية أو تقسيم المستحق إلى أقساط؛ تسدد قيمة الحصة أو الشهر أو الترم بالكامل وفق طريقة الدفع المختارة. صورة التحويل وحدها لا تؤكد التحصيل قبل المراجعة. الدفع الإلكتروني عبر بوابة دفع تكامل إضافي مستقل.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F20" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F20" aria-label="رابط ميزة F20"><bdi>F20</bdi></a> — الاسترداد والتصحيح وكشف الحساب</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتنظم <strong>رد الفلوس المستحقة للطالب وتصحيح الأخطاء المالية</strong>، وبتعرض كشف حساب يوضح المستحقات والمدفوعات والاستردادات والتصحيحات وحركة المبالغ الزائدة المحفوظة لصالحه.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الاستقبال أو المحاسب مقدم الطلب، والمراجع المخول، والشخص الذي يحق له الاسترداد.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏استقبال طلب استرداد كامل أو جزئي وربطه بالدفع والخدمة وسبب الاسترداد.</li>
+                <li>‏فحص المبلغ المسموح برده مع احتساب الاستردادات السابقة، ومراجعة القرار قبل التنفيذ لمنع تجاوز القيمة المؤهلة.</li>
+                <li>‏متابعة حالة طلب الاسترداد من المراجعة إلى الاعتماد ثم التنفيذ، وتأكيد خروج الأموال فعلًا قبل اعتباره منفذًا.</li>
+                <li>‏إرجاع المبلغ للدافع أو لوسيلة الدفع الأصلية عندما تسمح الطريقة، دون تحويل الاسترداد إلى رصيد للاستخدام لاحقًا.</li>
+                <li>‏تصحيح دفعة أو مستحق مسجل بالخطأ بحركة عكس مرتبطة بالأصل، مع حفظ سبب التصحيح والمراجعة المطلوبة وتاريخ العملية.</li>
+                <li>‏عرض كشف حساب يوضح المستحقات والمدفوعات والاستردادات والتصحيحات، وأي مبلغ زائد محفوظ لصالح الطالب ضمن تسجيل المدفوعات.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> إذا سجل الموظف نفس الدفعة النقدية مرتين، تصحح النسخة الزائدة بحركة عكس موثقة، دون رد أموال للطالب. أما رد مبلغ للطالب عن خدمة ملغاة فهو استرداد فعلي يسجل معه خروج الأموال.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> الموافقة على الاسترداد لا تعني خروج الأموال، والتصحيح المحاسبي لا يعد استردادًا. لا يمكن استرداد أكثر من القيمة المؤهلة، ولا تصحح العمليات المالية المؤكدة بحذفها أو بتغيير الرصيد يدويًا. الاسترداد الجزئي يختلف عن الدفع بالأقساط. لا يشمل هذا النطاق وظائف الخصومات والمنح أو تحويل الاسترداد إلى رصيد للاستخدام لاحقًا.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F21" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F21" aria-label="رابط ميزة F21"><bdi>F21</bdi></a> — إدارة الخزن وورديات التحصيل</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتتابع <strong>الكاش الموجود في السنتر، ومين مسؤول عنه، وهل المبلغ الفعلي مطابق للمسجل</strong>. والوردية هي فترة عمل المحصل، من استلامه درج التحصيل لحد تسليمه.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> المحصل أو أمين الخزنة والمحاسب ومدير الفرع.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏إنشاء خزن وأدراج تحصيل تتبع فروعًا محددة وتحديد حالتها.</li>
+                <li>‏فتح وردية مرتبطة بمستخدم ودرج مع مبلغ البداية عند الحاجة.</li>
+                <li>‏تسجيل دخول وخروج النقد من مصادر واضحة: تحصيل أو استرداد أو مصروف أو تحويل.</li>
+                <li>‏حساب النقد المتوقع من الحركات، وعدم استخدام رصيد يدوي منفصل عن أسباب تغيره.</li>
+                <li>‏إغلاق الوردية بإدخال النقد المعدود ومقارنته بالمتوقع وتسجيل العجز أو الزيادة.</li>
+                <li>‏مراجعة أسباب الفرق ومعالجته بالعملية الصحيحة، ثم إثبات تسليم النقد أو نقله للخزنة الرئيسية.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> المتوقع في درج التحصيل 5000 جنيه والمعدود 4950؛ يظهر عجز 50 جنيهًا للمراجعة دون تقليل مدفوعات الطلاب لإخفائه.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> لا توجد حسابات تحصيل مشتركة مجهولة المسؤولية. التحويل الإلكتروني لا يدخل النقد الموجود في الدرج. إعادة فتح وردية مغلقة إجراء بصلاحية وسبب.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F22" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F22" aria-label="رابط ميزة F22"><bdi>F22</bdi></a> — المصروفات والتحويلات والإغلاق اليومي</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتنظم <strong>مصروفات السنتر ونقل الكاش بين الخزن أو الفروع، ومراجعة الحركات المالية في نهاية اليوم</strong>، مع متابعة الموافقة والصرف وتسليم النقد واستلامه وأي فروق تحتاج مراجعة.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> موظف مقدم مصروف والمدير المعتمد والمحاسب وأمين الخزنة.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏تسجيل المصروف وفرعه وتصنيفه وسببه وقيمته ومستنداته المناسبة.</li>
+                <li>‏طلب الموافقة بحسب القيمة أو النوع، ثم تسجيل الدفع منفصلًا عن اعتماد المصروف.</li>
+                <li>‏ربط الدفع النقدي بخروج المال من الخزنة المناسبة، وتمييز الدفع غير النقدي.</li>
+                <li>‏بدء تحويل نقد بين الخزن أو الفروع مع تسجيل من سلم والمبلغ ووقت الإرسال.</li>
+                <li>‏تأكيد الاستلام بواسطة المستخدم المخول، وعرض اختلاف المبلغ للتحقيق بدل قبول قيمة جديدة بصمت.</li>
+                <li>‏مراجعة اليوم المالي: الورديات والتحصيل والاستردادات والمصروفات والتحويلات والفروق غير المحسومة.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> الفرع الأول يرسل 10000 جنيه للثاني؛ يسجل التسليم والاستلام. إذا أكد المستلم 9900 يفتح فرق للمراجعة مع بقاء قيمة الإرسال واضحة.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> المصروف ليس حركة خروج نقد دائمًا؛ قد يكون مستحقًا لم يدفع بعد. ميزانيات المصروفات وأوامر الشراء وإدارة الموردين الكاملة ضمن التوسعات الإضافية.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F23" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F23" aria-label="رابط ميزة F23"><bdi>F23</bdi></a> — عقود المدرسين وقواعد حساب مستحقاتهم</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتسجل <strong>اتفاق السنتر مع المدرس: هيتحاسب على أساس إيه، وبكام، والاتفاق يسري من إمتى</strong>، علشان النظام يحسب مستحقاته وفق الاتفاق الصحيح ويحفظ شروط الحساب السابقة.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الإدارة والمحاسب، والمدرس للاطلاع على ما يسمح به من اتفاقه ومستحقاته.</p>
+            <p>‏<strong>نماذج الحساب المتفق عليها:</strong></p>
+            <ul>
+                <li>‏<strong>مبلغ لكل حصة:</strong> يحدد مبلغ الحصة، ويحتسب للمدرس عن كل حصة منفذة ومستحقة قدمها وفق شروط الاتفاق.</li>
+                <li>‏<strong>نسبة من التحصيل:</strong> تحدد نسبة المدرس من التحصيل المؤكد المخصص لمجموعاته، وفق نطاق الاتفاق وفترة الحساب.</li>
+            </ul>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏تسجيل عقد المدرس مع المؤسسة وفترة سريانه والمجموعات أو الخدمات التي يشملها.</li>
+                <li>‏اختيار أحد النموذجين المتفق عليهما، وتحديد مبلغ الحصة أو نسبة التحصيل المناسبة للاتفاق.</li>
+                <li>‏تحديد أساس النسبة صراحة بأنه التحصيل المؤكد المخصص لمجموعات المدرس، وربط المبالغ بمصادرها.</li>
+                <li>‏تحديد الحصص أو مبالغ التحصيل المؤهلة للحساب وتوقيت احتسابها، وفق شروط الاتفاق.</li>
+                <li>‏تحديد أثر الإلغاء والتعويض والمدرس البديل والاسترداد على المستحقات، وفق النموذج المختار.</li>
+                <li>‏تطبيق شروط العقد السارية وقت الاستحقاق، وحفظ شروط الحساب والتاريخ عند تغيير الاتفاق مستقبلًا.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> مدرس متفق على 300 جنيه لكل حصة منفذة ومستحقة قدمها؛ إذا قدم أربع حصص تنطبق عليها الشروط، يصبح مستحقه 1200 جنيه. وفي نموذج النسبة يطبق النظام النسبة المتفق عليها على التحصيل المؤكد المخصص لمجموعاته، وفق قواعد الاتفاق.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> يقتصر نطاق الحساب على المبلغ لكل حصة أو النسبة من التحصيل المؤكد المخصص للمجموعات. المبلغ الثابت للفترة والحساب لكل طالب والتركيب بين النماذج خارج النطاق المتفق عليه. تعديل العقد لا يغير الحسابات السابقة، والنسبة لا تحسب من مستحقات لم تحصل. الغرامات العقابية والقروض ومعادلات التعويض المفتوحة ليست ضمن النطاق.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F24" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F24" aria-label="رابط ميزة F24"><bdi>F24</bdi></a> — تسويات المدرسين ودفع المستحقات والاعتراضات</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتجمع <strong>مستحقات المدرس عن فترة معينة، وتعرض تفاصيل حسابها للمراجعة، ثم تسجل المبلغ اللي اتصرف له والمتبقي</strong>. والتسوية هي كشف بالمستحقات والحسابات الخاصة بالفترة دي.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> المحاسب ومراجع التسوية والمدرس والمسؤول عن دفعها.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏اختيار فترة التسوية وتجميع الاستحقاقات الناتجة من العقود والحصص والمالية المؤهلة.</li>
+                <li>‏عرض بنود توضح الحصص والأعداد والأسعار أو النسب والتعديلات ومصدر كل مبلغ.</li>
+                <li>‏مراجعة التسوية واعتمادها قبل دفعها، وحفظ شروط الحساب عند الاعتماد.</li>
+                <li>‏دفع التسوية كليًا أو على دفعات إذا سمحت السياسة، وإظهار المدفوع والمتبقي.</li>
+                <li>‏إتاحة اعتراض المدرس على حصة ناقصة أو حساب غير صحيح ومراجعة الاعتراض.</li>
+                <li>‏تصحيح الأخطاء بعد اعتماد أو إغلاق التسوية بحركة تعديل واضحة بدل تغيير البنود القديمة بصمت.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> التسوية 7200 جنيه مقابل 24 حصة × 300؛ دفع 5000 فيظهر المتبقي 2200. إذا اكتشفت حصة مفقودة بعد الإغلاق تعالج كتعديل موثق.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> حساب المستحق يختلف عن دفعه، والمدرس لا يعتمد تسويته لنفسه كمراجع مستقل عندما تتطلب السياسة مراجعة مستقلة. الأرباح من سوق المحتوى تظل منفصلة. الصرف على دفعات يخص مستحقات المدرس وفق السياسة المسموحة؛ سداد الطالب للحصة أو الشهر أو الترم يظل كاملًا دون أقساط.</p>
+        </section>
+        </section>
+        <section class="feature-group" aria-labelledby="group-follow-up">
+            <h2 id="group-follow-up">التقارير والإشعارات وسجل العمليات</h2>
+        <section class="agreed-feature" id="feature-F25" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F25" aria-label="رابط ميزة F25"><bdi>F25</bdi></a> — لوحات المتابعة والتقارير والتصدير</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتجمع <strong>أهم أرقام التشغيل والمالية في مكان واحد</strong>، وتسمح للمسؤول يراجع التفاصيل ويطلع تقارير حسب صلاحياته.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> الإدارة ومديرو الفروع والمحاسب والاستقبال والمدرس؛ كل يرى التقارير والبيانات المسموحة له.</p>
+            <p>‏<strong>لوحة المتابعة:</strong> عرض الطلاب والمجموعات النشطة وحصص اليوم والسعة والانتظار، ضمن نطاق المؤسسة والفروع المسموح للمستخدم بالاطلاع عليها.</p>
+            <p>‏<strong>التقارير المتفق عليها:</strong></p>
+            <ul>
+                <li>‏<strong>الطلاب والتسجيلات:</strong> المجموعات المسجل فيها الطلاب وحالات التسجيل والنقل والتجميد والتجديد.</li>
+                <li>‏<strong>الحضور والغياب:</strong> الحضور والغياب والتأخير والأعذار خلال الفترة المختارة.</li>
+                <li>‏<strong>التحصيل وحسابات الطلاب:</strong> المستحقات والمدفوعات والمتأخرات والاستردادات والمبالغ الزائدة المحفوظة لصالح الطلاب.</li>
+                <li>‏<strong>الخزن والورديات:</strong> الحركات والمبالغ المتوقعة والمعدودة والعجز أو الزيادة.</li>
+                <li>‏<strong>المصروفات والتحويلات:</strong> المصروفات وحالات دفعها والتحويلات وتسليمها واستلامها.</li>
+                <li>‏<strong>مستحقات المدرسين:</strong> المستحق والمعتمد والمدفوع والمتبقي.</li>
+            </ul>
+            <p>‏<strong>الوظائف المشتركة:</strong></p>
+            <ul>
+                <li>‏تصفية البيانات بحسب المؤسسة أو الفرع والفترة والمجموعة أو المدرس عندما ينطبق ذلك.</li>
+                <li>‏الوصول إلى تفاصيل العمليات التي تفسر الإجماليات، ضمن صلاحيات المستخدم.</li>
+                <li>‏تصدير التقارير الأساسية المتفق عليها إلى Excel وPDF، بنفس نطاق الاطلاع المسموح داخل النظام.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> مدير الفرع يراجع حصص اليوم والمجموعات المكتملة، والمحاسب يطلع تقرير تحصيل الشهر ويراجع العمليات التي كونت إجمالي التحصيل.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> يقتصر نطاق التقارير على الأنواع الستة المحددة واللوحة المتفق عليها. المستخدم يرى ويصدر البيانات المسموحة له فقط. لا يعرض التحصيل ناقص المصروفات باعتباره ربحًا محاسبيًا نهائيًا.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F26" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F26" aria-label="رابط ميزة F26"><bdi>F26</bdi></a> — مركز الإشعارات والتنبيهات والإعلانات</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتوصل <strong>التغييرات والنتائج والمواعيد المهمة للمستخدم المناسب</strong>، وتجمعها في مكان يقدر يرجع له ويتابع منه حالة الطلبات والرسائل المتعلقة بخدماته.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> كل أصحاب الحسابات المستحقين للإشعار، والموظفون المخولون بإعلانات المؤسسة.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong>
+            </p>
+            <ul>
+                <li>‏مركز إشعارات بعناوين ورسائل وأوقات وحالة قراءة ورابط للعنصر المرتبط.</li>
+                <li>‏تنبيهات التسجيل والانتظار وقرب انتهاء عروض المقاعد وتغييرات مواعيد الحصص.</li>
+                <li>‏إشعارات الغياب بعد اعتماده، ونتائج الأعذار والمدفوعات والاستردادات والطلبات.</li>
+                <li>‏تذكيرات للمستحقات والمواعيد والموافقات المعلقة بحسب الحالة الحالية.</li>
+                <li>‏إرسال إعلان تشغيلي لجمهور محدد مثل مجموعة أو فرع من مستخدم مخول.</li>
+                <li>‏تفضيلات للقنوات وأنواع الرسائل وفترات الهدوء لغير العاجل، دون تعطيل رسائل الأمان الضرورية.</li>
+                <li>‏منع تكرار الرسالة ومراجعة المستحقين قبل الإرسال حتى لا تصل معلومات لطرف غير مخول.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> بعد إلغاء حصة تصل رسالة للطلاب وأولياء الأمور المستحقين توضح الإلغاء. إذا دفع الطالب قبل موعد تذكير المتأخرات، لا يرسل التذكير القديم.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> الإشعارات التشغيلية والإعلانات المحدودة لا تعني منصة حملات تسويقية. مسح الإشعار من الواجهة لا يحذف الحدث المالي أو سجل العملية الذي يتعلق به.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F27" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F27" aria-label="رابط ميزة F27"><bdi>F27</bdi></a> — إرسال البريد الإلكتروني ومتابعة حالته</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتوصل <strong>رسائل النظام وأكواد التحقق والتأكيدات والمستندات على البريد الإلكتروني</strong>، وتتابع محاولات إرسالها. البريد هو قناة الإرسال الخارجية المعتمدة حاليًا، وأي رسائل كانت مقترحة عبر SMS تنقل إليه، باستثناء اختبار كود الهاتف أثناء التطوير كما هو موضح في F01.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> المستخدمون المستلمون، والإدارة المخولة بمتابعة الإرسال وإعداد البريد.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏إرسال أكواد توثيق البريد ورسائل استرجاع الحساب والتحقق الإضافي إلى البريد، بدل الاعتماد على SMS في النطاق الحالي.</li>
+                <li>‏إرسال تأكيدات الحجز والدفع ونتائج الطلبات والتذكيرات والمستندات المناسبة إلى البريد الإلكتروني الموثق للمستلم المستحق.</li>
+                <li>‏اختيار المستلم واللغة وقالب البريد بحسب الحدث والصلاحيات وسياسة الإشعارات.</li>
+                <li>‏تسجيل محاولات الإرسال وعرض حالتها حسب المعلومات التي يوفرها المزود، مثل الإرسال أو التسليم أو الفشل.</li>
+                <li>‏إعادة المحاولة عند الأعطال المؤقتة وفق سياسة محددة، مع استمرار ظهور إشعار العملية داخل النظام عندما ينطبق ذلك.</li>
+                <li>‏متابعة حصة الإرسال والاستخدام ضمن خطة البريد المختارة، والتعامل مع بلوغ الحد المتاح دون فقد الرسائل المطلوب إرسالها.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> بعد تأكيد دفعة الطالب، يظهر تأكيد داخل النظام ويرسل تأكيد الدفع إلى بريده. لو تعطل إرسال البريد مؤقتًا، تظل الدفعة مؤكدة وتظهر محاولة الإرسال الفاشلة، ثم تعاد المحاولة وفق السياسة.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> يستخدم البريد بإرسال حقيقي ضمن حدود خطة مجانية مناسبة للتطوير والعرض، دون الالتزام بمزود بعينه الآن. الإرسال والتسليم والقراءة حالات مختلفة، ولا تعرض حالة لا يؤكدها المزود. لا يشمل النطاق الحالي إرسال SMS فعليًا أو Push أو WhatsApp. يؤجل ربط مزود SMS الحقيقي للمستقبل، ويظل كود الهاتف في التطوير اختبارًا للخطوات وليس إثباتًا لملكية الرقم؛ أما البريد الموثق فيتلقى رسائل الأمان والاسترجاع فعليًا.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F28" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F28" aria-label="رابط ميزة F28"><bdi>F28</bdi></a> — سجل العمليات والموافقات الحساسة</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتسجل <strong>مين عمل إيه وإمتى، وإيه اللي اتغير</strong>، وبتنظم مراجعة العمليات الحساسة قبل تنفيذها، بحيث نقدر نتابع القرارات ونفهم سبب كل تغيير مهم.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> منفذو العمليات والمراجعون والإدارة المخولة بالاطلاع على السجل.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏توثيق المستخدم والمؤسسة والفرع ونوع العملية والعنصر المرتبط بها والتوقيت والنتيجة والسبب عند الحاجة.</li>
+                <li>‏حفظ البيانات المهمة قبل التعديل وبعده بصورة تسمح بفهم التغيير، دون تسجيل كلمات المرور أو أكواد التحقق أو أسرار الحساب.</li>
+                <li>‏تحديد العمليات التي تحتاج مراجعة بحسب السياسة والصلاحيات، مثل صرف أموال أو استرداد مبلغ أو تعديل سجل مالي مغلق.</li>
+                <li>‏عرض طلبات الموافقة للمراجع، موضحًا مقدم الطلب والفرع والسبب والمبلغ والأثر المتوقع وما يحتاج إلى قرار.</li>
+                <li>‏قبول الطلب أو رفضه أو إعادته للتعديل، مع حفظ القرار وسببه عند الحاجة، والفصل بين الموافقة والتنفيذ الفعلي.</li>
+                <li>‏منع المستخدم من اعتماد عملية حساسة نفّذها بنفسه، عندما تتطلب العملية مراجعة من شخص آخر، حتى لو كان يمتلك أكثر من دور، ومراعاة العمليات الخاصة به أو بطرف مرتبط وفق السياسة.</li>
+                <li>‏إتاحة البحث والمتابعة في السجل ضمن صلاحيات المستخدم، وتسجيل الوصول الحساس، مع منع حذف التاريخ الرقابي من الواجهة.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> موظف يطلب استرداد مبلغ لطالب؛ يراجع المدير السبب والمبلغ والأثر ويوافق أو يرفض. بعد الموافقة وصرف المبلغ، يسجل النظام منفذ الصرف وتوقيته ونتيجته، بصورة منفصلة عن قرار الموافقة.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> ليست كل عملية بحاجة إلى موافقة مدير؛ التسجيل والحضور العاديان لا يخضعان لموافقة عامة تلقائيًا. تحدد العمليات الحساسة وحدود المبالغ التي تحتاج مراجعة ضمن سياسة المؤسسة. لا تسمح تعدد الأدوار أو صغر المؤسسة بتجاوز شرط المراجعة المستقلة للعملية التي تتطلبه، بما يتفق مع F02. الموافقة وحدها لا تعني أن العملية نفذت أو أن الأموال صرفت بالفعل.</p>
+        </section>
+        </section>
+        <section class="feature-group" aria-labelledby="group-platform">
+            <h2 id="group-platform">إدارة المنصة والظهور العام وحماية البيانات</h2>
+        <section class="agreed-feature" id="feature-F29" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F29" aria-label="رابط ميزة F29"><bdi>F29</bdi></a> — صفحات السناتر والمجموعات والبحث العام</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتخلي <strong>السنتر يعرض معلوماته والمجموعات المتاحة للطلاب وأولياء الأمور</strong>، بحيث يقدروا يلاقوا السنتر ويشوفوا تفاصيل الدراسة فيه، مع تحكم الإدارة في المعلومات المنشورة وطريقة ظهور السنتر.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> إدارة المؤسسة لتحديد المنشور، والطالب وولي الأمر لتصفح البيانات العامة.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏إعداد صفحة عامة باسم السنتر وشعاره ونبذته وفروعه وعناوينه ووسائل التواصل التي يختار نشرها.</li>
+                <li>‏عرض المواد والصفوف والمدرسين والمجموعات والمواعيد والأسعار عندما تختار المؤسسة نشرها.</li>
+                <li>‏إظهار حالة توفر الأماكن أو فتح التسجيل بحسب إعدادات النشر وحالة المجموعة.</li>
+                <li>‏اختيار أن يكون السنتر مخفيًا، أو متاحًا برابط مباشر، أو ظاهرًا في البحث العام.</li>
+                <li>‏إتاحة البحث والتصفية بحسب المنطقة والصف الدراسي والمادة، اعتمادًا على البيانات المنشورة المسموح بها.</li>
+                <li>‏التحقق من متطلبات النشر والظهور العام، ومنع نشر بيانات الطلاب والحضور والمدفوعات والبيانات المالية الداخلية.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> ولي أمر يبحث عن رياضيات للصف الثالث الثانوي في منطقته، فيجد السنتر ويشاهد المجموعات ومواعيدها ووسائل التواصل المنشورة، دون الاطلاع على حضور الطلاب أو مدفوعاتهم. ويمكن للسنتر مشاركة مجموعة برابط مباشر دون الظهور في البحث العام، وفق إعدادات ظهوره.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> يستطيع السنتر استخدام النظام داخليًا وهو مخفي أو أثناء انتظار الموافقة على الظهور في البحث العام. ظهور السنتر على المنصة لا يعني ترخيصًا أو اعتمادًا حكوميًا. ظهور المجموعة يلتزم بإعدادات ظهور المؤسسة ولا يتجاوزها، ومتطلبات الظهور في البحث تختلف عن متطلبات الاستخدام الداخلي. البحث والتصفية وظائف عادية لا تتطلب AI.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F30" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F30" aria-label="رابط ميزة F30"><bdi>F30</bdi></a> — اشتراكات المؤسسات وخطط الاستخدام</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتدير <strong>اشتراك السنتر نفسه في EduCenterOS</strong>؛ يعني الخطة اللي يستخدم المنصة على أساسها، وميعاد تجديدها، وحدود استخدامها. ده منفصل عن اشتراكات الطلاب في الحصص.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> مالك المؤسسة والممثل المخول بصلاحية الفوترة، ومسؤولو فوترة المنصة.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏عرض خطة المؤسسة وفترة التجربة واستحقاق استخدامها ودورة الاشتراك وبدايته ونهايته وحالته.</li>
+                <li>‏تحديد المميزات وحدود الطلاب النشطين والفروع والتخزين لكل خطة، بصورة معلومة للمؤسسة.</li>
+                <li>‏متابعة الاستخدام وتنبيه المسؤول عند الاقتراب من الحد المتاح أو انتهاء الاشتراك.</li>
+                <li>‏ترقية الخطة أو جدولة تخفيضها عندما يسمح الاستخدام الحالي وشروط الفوترة بذلك.</li>
+                <li>‏منع الإضافات التي تتجاوز حد الخطة، مع استمرار تشغيل البيانات الحالية طالما الاشتراك ساري.</li>
+                <li>‏إدارة التجديد وانتهاء الاشتراك وفترة السماح، ثم إتاحة القراءة والتصدير وفق السياسة المحددة.</li>
+                <li>‏الحفاظ على البيانات التاريخية عند تغيير الخطة أو انتهاء الاشتراك، وعدم حذفها تلقائيًا بسبب ذلك.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> مؤسسة وصلت إلى حد الطلاب النشطين في خطتها؛ يستمر تسجيل حضور ومدفوعات طلابها الحاليين طالما الاشتراك ساري، لكنها تحتاج إلى خطة مناسبة قبل تفعيل طالب جديد يؤدي إلى تجاوز الحد.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> الاشتراك على المؤسسة كلها، وليس اشتراكًا منفصلًا لكل طالب أو فرع. الأمان والصلاحيات والرقابة الأساسية متاحة في كل الخطط ولا تشترط الترقية إلى خطة أعلى. أسعار الخطط وحدودها ومدة التجربة وفترة السماح وشروط الفوترة والخصومات التجارية تحدد لاحقًا، ولا تعتمد أرقام نهائية ضمن هذه الميزة. خصومات اشتراك المؤسسة إن وجدت منفصلة عن خصومات الطلاب المؤجلة. لا يؤدي تغيير الخطة أو انتهاء الاشتراك إلى حذف البيانات التاريخية تلقائيًا.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F31" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F31" aria-label="رابط ميزة F31"><bdi>F31</bdi></a> — لوحة إدارة EduCenterOS</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي لوحة <strong>لفريق إدارة المنصة نفسها</strong>، يتابع منها السناتر المشتركة وطلبات النشر والدعم والمشكلات، بصلاحيات محددة، مع تسجيل الإجراءات والقرارات التي تؤثر على المؤسسات.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> فريق EduCenterOS المخول بالدعم والمراجعة والفوترة والأمان وإدارة المنصة.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏متابعة المؤسسات وحالة استخدامها واشتراكها وظهورها العام والتكاملات المفعلة المناسبة لنطاقها.</li>
+                <li>‏مراجعة طلبات التحقق والنشر، والموافقة عليها أو طلب معلومات إضافية أو رفضها أو سحب التحقق بسبب واضح ومحدد.</li>
+                <li>‏تسجيل البلاغات عن انتحال اسم مؤسسة أو نشر بيانات عامة مضللة، ومراجعة الأدلة قبل اتخاذ القرار، دون اعتبار البلاغ إثباتًا وحده.</li>
+                <li>‏متابعة حالات الدعم والنزاعات والإجراءات الاستثنائية، مع حفظ سجل التواصل والإجراءات والقرارات.</li>
+                <li>‏تطبيق قيود محددة أو تعليق الاستخدام أو الظهور ورفع التعليق بحسب الحالة والسياسة، مع فصل حالة الاشتراك عن حالة المؤسسة لدى المنصة.</li>
+                <li>‏نقل السيطرة على حساب المؤسسة أو استعادتها عند فقد الوصول أو حدوث نزاع على إدارته، بعد التحقق والمراجعة المناسبة.</li>
+                <li>‏إدارة إعدادات المنصة المسموحة والمؤشرات العامة وحالات الفوترة الاستثنائية، مع توثيق منفذ كل إجراء وتوقيته وسببه ونتيجته.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> يصل بلاغ بأن صفحة سنتر تنتحل اسم سنتر آخر؛ تراجع إدارة المنصة الأدلة، وقد توقف الظهور العام مؤقتًا بحسب السياسة، مع تسجيل السبب والقرار. لا يغلق التشغيل الداخلي تلقائيًا لمجرد وجود البلاغ.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> مسؤول المنصة ليس مالك السنتر، وصلاحياته محددة ولا تمنحه وصولًا مفتوحًا لكل بيانات المؤسسة أو تعديلًا ماليًا بلا قيود. استعادة السيطرة على حساب المؤسسة لا تثبت وحدها الملكية القانونية. انتهاء الاشتراك والتعليق الإداري حالتان منفصلتان، ونطاق أي قيد يحدد بحسب سببه. أدوات الدخول نيابة عن العميل والتحقق الآلي المتقدم ليست متطلبات أساسية لهذه الميزة.</p>
+        </section>
+        <section class="agreed-feature" id="feature-F32" tabindex="-1">
+            <h3><a class="feature-code" href="#feature-F32" aria-label="رابط ميزة F32"><bdi>F32</bdi></a> — حماية الحسابات والبيانات وطلبات الخصوصية</h3>
+            <p class="feature-description">‏<strong>وصف الميزة:</strong> دي بتحمي <strong>حسابات المستخدمين وبيانات كل سنتر</strong>، وبتنظم طلبات تصحيح البيانات أو الحصول على نسخة منها أو حذف الحساب، مع الحفاظ على السجلات التي يحتاجها تشغيل المؤسسة.</p>
+            <p class="feature-users">‏<strong>المستخدمون:</strong> كل المستخدمين، مع مسؤوليات إضافية للأدوار الإدارية والمالية ومسؤولي المنصة.</p>
+            <p>‏<strong>الوظائف التفصيلية:</strong></p>
+            <ul>
+                <li>‏فرض مصادقة متعددة العوامل للحسابات أو الصلاحيات الحساسة، وتحقق إضافي حديث قبل العمليات المحددة، دون الاعتماد على SMS في النطاق الحالي.</li>
+                <li>‏إدارة وسائل استعادة الحساب والجلسات، وإبطال الوصول عند التعليق أو حدوث تغيير أمني مؤثر.</li>
+                <li>‏عزل بيانات المؤسسات، والتحقق من صلاحية الاطلاع والتعديل والتصدير في كل سياق، بحيث لا يصل المستخدم إلا إلى البيانات المسموح له بها.</li>
+                <li>‏تقليل جمع البيانات الحساسة وتقييد عرضها والوصول إليها، وحماية مستندات الهوية وإثباتات الدفع والعقود والأعذار.</li>
+                <li>‏توضيح استخدام البيانات وتسجيل الموافقات المناسبة للعملية، خصوصًا في سياقات الطلاب القُصّر وعلاقة ولي الأمر بالطالب.</li>
+                <li>‏استقبال طلبات تصحيح البيانات أو تصديرها أو حذف الحساب أو فك ارتباط خاطئ، بعد التحقق من مقدم الطلب وصلاحيته.</li>
+                <li>‏تطبيق سياسة احتفاظ مناسبة للبيانات، وحفظ النسخ الاحتياطية وحمايتها والتحقق من إمكانية استعادة البيانات منها.</li>
+            </ul>
+            <p class="feature-example">‏<strong>مثال عملي:</strong> محاسب ترك السنتر؛ تلغى عضويته ووصوله إلى بيانات المؤسسة، لكن العمليات والإيصالات التي نفذها تظل محفوظة باسمه في سجل العمليات. وطلب حذف حسابه لا يمحو تلقائيًا السجلات المالية للسنتر.</p>
+            <p class="feature-rules">‏<strong>قواعد التشغيل:</strong> تطبق الحماية مع الوظائف المختارة تدريجيًا أثناء التنفيذ. تستمر رسائل الأمان والاسترجاع عبر البريد الموثق وفق F01 وF27، وتحدد وسيلة المصادقة متعددة العوامل للحسابات الحساسة دون الاعتماد على SMS. كود الهاتف التجريبي لا يعد إثباتًا لملكية الرقم أو وسيلة حماية فعلية للحسابات الحساسة. حذف الحساب لا يحذف تلقائيًا السجلات المالية والرقابية المرتبطة به. حدود العمر ومدد الاحتفاظ والتوقيتات الأمنية ومواقع معالجة البيانات تحتاج تحديدًا وتحققًا قبل التشغيل الفعلي، ولا تعتمد أرقام نهائية ضمن هذه الميزة.</p>
+        </section>
+        </section>
+        <!-- AGREED_FEATURES_END -->
+    </main>
+    <script type="application/json" id="index-data">[{"id":"feature-F01","code":"F01","title":"إنشاء الحساب وتسجيل الدخول واستعادته","group":"الحسابات والصلاحيات والمؤسسات","description":"دي بتسمح للمستخدم ينشئ حسابه ويدخل عليه ويسترجعه لو فقد الوصول ليه، ويوصل لمساحات العمل المسموح له بها من نفس الحساب.","example":"شخص يعمل مدرسًا في سنتر وولي أمر لطالب في سنتر آخر يستخدم حسابًا واحدًا،\n                ويختار مساحة العمل المناسبة لكل استخدام."},{"id":"feature-F02","code":"F02","title":"الأدوار والصلاحيات وعضويات المؤسسة","group":"الحسابات والصلاحيات والمؤسسات","description":"دي بتحدد كل مستخدم يقدر يشوف إيه ويعمل إيه، وفي أي سنتر أو فرع، حسب دوره وصلاحياته. وبتنظم دعوته للعمل وإيقاف وصوله لما عضويته تنتهي.","example":"موظف استقبال يعمل في الفرع الأول يستطيع تسجيل طلابه وتحصيل المدفوعات المسموحة، ولا يطلع تلقائيًا على خزنة الفرع الثاني أو يعتمد استردادًا خارج صلاحياته."},{"id":"feature-F03","code":"F03","title":"إنشاء وإدارة المؤسسات والفروع","group":"الحسابات والصلاحيات والمؤسسات","description":"دي بتنظم بيانات السنتر وفروعه والمسؤولين عن إدارته، وبتربط التشغيل بالفرع المناسب. ولو نفس الشخص بيدير أكثر من سنتر مستقل، كل سنتر تفضل بياناته منفصلة.","example":"صاحب سنتر له فرعان يديرهما تحت مؤسسة واحدة ويراجع تقارير كل فرع منفردًا أو مجمعة، بينما سنتر آخر مستقل له بيانات واشتراك منفصلان."},{"id":"feature-F04","code":"F04","title":"إدارة ملفات الطلاب","group":"الطلاب وأولياء الأمور وفريق العمل","description":"دي بتجمع بيانات الطالب وتسجيلاته ومجموعاته وحضوره وحسابه المالي في سجل واضح، حتى لو معندوش حساب دخول. ولو أنشأ حسابًا بعد كده، نقدر نربطه بسجله بعد التحقق.","example":"الاستقبال يضيف طالبًا صغير السن ويربطه بولي أمره، ويسجله في مجموعة ويحصّل رسومه؛ لا يتوقف التشغيل على إنشاء حساب شخصي للطفل."},{"id":"feature-F05","code":"F05","title":"ربط أولياء الأمور بالطلاب","group":"الطلاب وأولياء الأمور وفريق العمل","description":"دي بتحدد ولي الأمر المرتبط بكل طالب والبيانات والطلبات المتاحة له. وبتسمح لولي أمر يتابع أكثر من طالب، أو لأكثر من ولي أمر يتابعوا نفس الطالب، حسب العلاقة والصلاحيات.","example":"ولي أمر مرتبط بطالبين داخل سنتر يمكنه متابعة كل طفل، لكن العلاقة داخل هذا السنتر لا تفتح تلقائيًا سجلاتهما في مؤسسة أخرى."},{"id":"feature-F06","code":"F06","title":"مساحة الطالب وولي الأمر","group":"الطلاب وأولياء الأمور وفريق العمل","description":"دي المساحة اللي الطالب أو ولي الأمر يدخل عليها علشان يتابع المجموعات والمواعيد والحضور والحساب والإشعارات، ويقدم الطلبات المسموحة ويتابع نتيجتها.","example":"ولي الأمر يرى أن حصة ابنه أعيدت جدولتها، يراجع الموعد الجديد، ويرسل طلب نقل لمجموعة أخرى. الطلب لا ينفذ إلا بعد مراجعة السعة والقواعد."},{"id":"feature-F07","code":"F07","title":"إدارة سجلات الموظفين والمدرسين","group":"الطلاب وأولياء الأمور وفريق العمل","description":"دي بتجمع بيانات الموظف أو المدرس وتربطها بحسابه ودوره وعمله داخل السنتر. والمدرس يقدر يتابع مجموعاته وحصصه وجدوله ومستحقاته ضمن صلاحياته.","example":"مدرس جديد يسجل أولًا كبيانات داخلية، ثم يقبل دعوة المؤسسة ليستخدم مساحته الشخصية ويراجع جدوله ومستحقاته."},{"id":"feature-F08","code":"F08","title":"إدارة الهيكل الأكاديمي والسنوات","group":"الإعداد الأكاديمي والمجموعات والجداول","description":"دي بتنظم الأنظمة التعليمية والمراحل والصفوف والمواد والسنوات الدراسية، وبتسمح بتجهيز السنة القادمة أثناء تشغيل الحالية، مع حفظ تاريخ السنوات السابقة.","example":"تجهز الإدارة مجموعات الصف الثالث الثانوي للسنة المقبلة بينما يستمر التشغيل في السنة الحالية، ثم تفعل السنة الجديدة بعد الإجراءات المطلوبة."},{"id":"feature-F09","code":"F09","title":"إدارة المجموعات الدراسية","group":"الإعداد الأكاديمي والمجموعات والجداول","description":"دي بتنظم كل مجموعة دراسية: مادتها وصفها وفرعها ومدرسها وسعتها وحالتها، وبتسمح بفتح التسجيل أو إغلاقه وتغيير المدرس ونسخ الإعدادات لتجهيز مجموعة جديدة.","example":"مجموعة فيزياء نشطة أغلقت التسجيل لاكتمال السعة؛ تستمر حصصها بصورة طبيعية ويظل الطلاب الجدد في قائمة الانتظار."},{"id":"feature-F10","code":"F10","title":"إدارة القاعات والجداول وفحص التعارض","group":"الإعداد الأكاديمي والمجموعات والجداول","description":"دي بتنظم القاعات ومواعيد المجموعات، وبتفحص التعارض علشان نفس القاعة أو المدرس أو المجموعة ما يكونوش مرتبطين بمواعيد متداخلة.","example":"عند محاولة وضع مجموعتين في القاعة نفسها من الخامسة للسابعة، يرفض النظام التعارض ويتيح للإدارة اختيار موعد أو قاعة مناسبة."},{"id":"feature-F11","code":"F11","title":"حجز المقاعد والتسجيل في المجموعات","group":"التسجيل والمقاعد وإدارة الطلب","description":"دي بتنظم حجز مكان الطالب في المجموعة واستكمال تسجيله، من فحص الأهلية والسعة إلى الحجز المؤقت والتفعيل، مع منع التسجيل المكرر وتجاوز الأماكن المتاحة.","example":"آخر مقعد متاح في مجموعة يحاول طالبان حجزه في نفس الوقت؛ يثبت لطالب واحد فقط، ويعرض على الآخر الانتظار."},{"id":"feature-F12","code":"F12","title":"قوائم الانتظار وعروض المقاعد","group":"التسجيل والمقاعد وإدارة الطلب","description":"تسجيل الطلاب الراغبين في الانضمام للمجموعات المكتملة، وإتاحة فرص التسجيل لهم عند توفر مقاعد أو فتح مجموعات مناسبة، مع تنظيم ترتيب العروض ومهلها ومتابعة قبولها أو انتهائها.","example":"مجموعة رياضيات سعتها 30 طالبًا ومكتملة. محمد وأحمد ومريم قدموا طلبات انتظار بهذا الترتيب. عند انسحاب طالب، يرسل النظام عرضًا لمحمد إذا كانت السياسة تستخدم العروض المرتبة. محمد يبدأ الحجز ويستكمل شروط التسجيل؛ وإذا انتهت مهلة العرض دون استكمال، يرسل النظام العرض إلى أحمد، ثم مريم بالطريقة نفسها."},{"id":"feature-F13","code":"F13","title":"قياس الطلب والمساعدة في فتح مجموعات","group":"التسجيل والمقاعد وإدارة الطلب","description":"دي بتوضح الطلاب محتاجين مجموعات إيه، وهل المدرسين والقاعات والمواعيد المتاحة تسمح بفتحها. وبتعرض فرصًا للإدارة تساعدها تتخذ قرار فتح مجموعات مناسبة للطلب.","example":"يوجد 28 طالبًا ينتظرون فيزياء للصف الثالث، ومدرس وقاعة سعتها 30 متاحان في توقيت مناسب؛ تظهر فرصة للإدارة لفتح مجموعة جديدة."},{"id":"feature-F14","code":"F14","title":"الحجز المبكر وتجديد التسجيل","group":"التسجيل والمقاعد وإدارة الطلب","description":"دي بتسمح للطالب يحجز للسنة القادمة قبل بدايتها، أو يختار تجديد التسجيل لفترة تعليمية جديدة، مع مراجعة الشروط والسعر والسعة وحفظ التسجيل السابق.","example":"طالب يحجز مكانه للسنة القادمة، وبعد تفعيل السنة يستكمل شروط التسجيل. عند انتهاء دورة أخرى يختار تجديدًا جديدًا بدل إنشاء التزام مالي تلقائي."},{"id":"feature-F15","code":"F15","title":"نقل الطالب وتجميد التسجيل والانسحاب","group":"التسجيل والمقاعد وإدارة الطلب","description":"دي بتنظم نقل الطالب لمجموعة أو فرع آخر، أو إيقاف تسجيله مؤقتًا، أو إنهاءه، مع متابعة أثر القرار على المقعد والحساب المالي وحفظ تاريخ التسجيل.","example":"طالب ينقل من مجموعة الثلاثاء إلى الخميس؛ يتحقق النظام من المكان الجديد ويعالج فرق السعر، بينما يظل حضوره ومدفوعاته القديمة ظاهرين في سياقهم الأصلي."},{"id":"feature-F16","code":"F16","title":"إدارة الحصص الفعلية والاستثناءات","group":"الحصص والحضور","description":"دي بتتابع كل حصة بتاريخها ومدرسها وقاعتها وحالتها الفعلية، وبتنظم تغيير الموعد والإلغاء والتعويض وتعيين مدرس بديل، مع حفظ اللي حصل في الحصة.","example":"المدرس الأساسي يتعذر حضوره يوم السبت؛ تعين الإدارة بديلًا لهذه الحصة فقط، ويسجل النظام من قدمها لتطبيق قاعدة مستحقاته المناسبة."},{"id":"feature-F17","code":"F17","title":"تسجيل الحضور والغياب واعتماده","group":"الحصص والحضور","description":"دي بتسجل حالة كل طالب في الحصة: حاضر أو غائب أو متأخر أو غياب بعذر، وبتسمح بمراجعة الأعذار واعتماد الحضور وتصحيح الأخطاء مع حفظ تاريخ التغييرات.","example":"طالب سجل غائبًا ثم قدم ولي أمره عذرًا مقبولًا؛ يصحح المسؤول الحالة بإجراء ظاهر في التاريخ، ولا تختفي حالة التسجيل الأولى."},{"id":"feature-F18","code":"F18","title":"التسعير وإنشاء المستحقات ومتابعة المتأخرات","group":"المالية والخزن ومستحقات المدرسين","description":"دي بتحدد الطالب مطلوب منه يدفع كام، والدفع يغطي أنهي حصة أو شهر أو ترم، وبتتابع المستحقات وحالة السداد. المبلغ بيتسدد كاملًا بدون أقساط، والشهر بيبدأ من تاريخ اشتراك الطالب.","example":"مجموعة لها سعر للحصة وسعر للشهر وسعر للترم. الطالب الذي يختار الدفع بالحصة يسدد قيمة كل حصة قبل حضورها. ومن يختار الشهر يسدد سعر الشهر كاملًا مرة واحدة؛ مثلًا إذا بدأ اشتراكه يوم 15 أكتوبر، يغطي الاشتراك الفترة من 15 أكتوبر حتى 14 نوفمبر. ومن يختار الترم يسدد سعر الترم كاملًا مرة واحدة."},{"id":"feature-F19","code":"F19","title":"تسجيل المدفوعات والإيصالات","group":"المالية والخزن ومستحقات المدرسين","description":"دي بتسجل الفلوس اللي السنتر استلمها، ومين دفعها، وإيه المستحقات اللي اتسددت بها، وبتربط التحصيل بالخزنة أو إثبات التحويل وبتصدر إيصالًا واضحًا لكل عملية.","example":"الطالب يسدد اشتراك الشهر كاملًا مرة واحدة. يسجل الموظف المبلغ وطريقة الدفع، ويربط النظام الدفعة بفترة اشتراك الطالب ويصدر إيصالًا يوضح المبلغ وطريقة السداد والفترة المشمولة."},{"id":"feature-F20","code":"F20","title":"الاسترداد والتصحيح وكشف الحساب","group":"المالية والخزن ومستحقات المدرسين","description":"دي بتنظم رد الفلوس المستحقة للطالب وتصحيح الأخطاء المالية، وبتعرض كشف حساب يوضح المستحقات والمدفوعات والاستردادات والتصحيحات وحركة المبالغ الزائدة المحفوظة لصالحه.","example":"إذا سجل الموظف نفس الدفعة النقدية مرتين، تصحح النسخة الزائدة بحركة عكس موثقة، دون رد أموال للطالب. أما رد مبلغ للطالب عن خدمة ملغاة فهو استرداد فعلي يسجل معه خروج الأموال."},{"id":"feature-F21","code":"F21","title":"إدارة الخزن وورديات التحصيل","group":"المالية والخزن ومستحقات المدرسين","description":"دي بتتابع الكاش الموجود في السنتر، ومين مسؤول عنه، وهل المبلغ الفعلي مطابق للمسجل. والوردية هي فترة عمل المحصل، من استلامه درج التحصيل لحد تسليمه.","example":"المتوقع في درج التحصيل 5000 جنيه والمعدود 4950؛ يظهر عجز 50 جنيهًا للمراجعة دون تقليل مدفوعات الطلاب لإخفائه."},{"id":"feature-F22","code":"F22","title":"المصروفات والتحويلات والإغلاق اليومي","group":"المالية والخزن ومستحقات المدرسين","description":"دي بتنظم مصروفات السنتر ونقل الكاش بين الخزن أو الفروع، ومراجعة الحركات المالية في نهاية اليوم، مع متابعة الموافقة والصرف وتسليم النقد واستلامه وأي فروق تحتاج مراجعة.","example":"الفرع الأول يرسل 10000 جنيه للثاني؛ يسجل التسليم والاستلام. إذا أكد المستلم 9900 يفتح فرق للمراجعة مع بقاء قيمة الإرسال واضحة."},{"id":"feature-F23","code":"F23","title":"عقود المدرسين وقواعد حساب مستحقاتهم","group":"المالية والخزن ومستحقات المدرسين","description":"دي بتسجل اتفاق السنتر مع المدرس: هيتحاسب على أساس إيه، وبكام، والاتفاق يسري من إمتى، علشان النظام يحسب مستحقاته وفق الاتفاق الصحيح ويحفظ شروط الحساب السابقة.","example":"مدرس متفق على 300 جنيه لكل حصة منفذة ومستحقة قدمها؛ إذا قدم أربع حصص تنطبق عليها الشروط، يصبح مستحقه 1200 جنيه. وفي نموذج النسبة يطبق النظام النسبة المتفق عليها على التحصيل المؤكد المخصص لمجموعاته، وفق قواعد الاتفاق."},{"id":"feature-F24","code":"F24","title":"تسويات المدرسين ودفع المستحقات والاعتراضات","group":"المالية والخزن ومستحقات المدرسين","description":"دي بتجمع مستحقات المدرس عن فترة معينة، وتعرض تفاصيل حسابها للمراجعة، ثم تسجل المبلغ اللي اتصرف له والمتبقي. والتسوية هي كشف بالمستحقات والحسابات الخاصة بالفترة دي.","example":"التسوية 7200 جنيه مقابل 24 حصة × 300؛ دفع 5000 فيظهر المتبقي 2200. إذا اكتشفت حصة مفقودة بعد الإغلاق تعالج كتعديل موثق."},{"id":"feature-F25","code":"F25","title":"لوحات المتابعة والتقارير والتصدير","group":"التقارير والإشعارات وسجل العمليات","description":"دي بتجمع أهم أرقام التشغيل والمالية في مكان واحد، وتسمح للمسؤول يراجع التفاصيل ويطلع تقارير حسب صلاحياته.","example":"مدير الفرع يراجع حصص اليوم والمجموعات المكتملة، والمحاسب يطلع تقرير تحصيل الشهر ويراجع العمليات التي كونت إجمالي التحصيل."},{"id":"feature-F26","code":"F26","title":"مركز الإشعارات والتنبيهات والإعلانات","group":"التقارير والإشعارات وسجل العمليات","description":"دي بتوصل التغييرات والنتائج والمواعيد المهمة للمستخدم المناسب، وتجمعها في مكان يقدر يرجع له ويتابع منه حالة الطلبات والرسائل المتعلقة بخدماته.","example":"بعد إلغاء حصة تصل رسالة للطلاب وأولياء الأمور المستحقين توضح الإلغاء. إذا دفع الطالب قبل موعد تذكير المتأخرات، لا يرسل التذكير القديم."},{"id":"feature-F27","code":"F27","title":"إرسال البريد الإلكتروني ومتابعة حالته","group":"التقارير والإشعارات وسجل العمليات","description":"دي بتوصل رسائل النظام وأكواد التحقق والتأكيدات والمستندات على البريد الإلكتروني، وتتابع محاولات إرسالها. البريد هو قناة الإرسال الخارجية المعتمدة حاليًا، وأي رسائل كانت مقترحة عبر SMS تنقل إليه، باستثناء اختبار كود الهاتف أثناء التطوير كما هو موضح في F01.","example":"بعد تأكيد دفعة الطالب، يظهر تأكيد داخل النظام ويرسل تأكيد الدفع إلى بريده. لو تعطل إرسال البريد مؤقتًا، تظل الدفعة مؤكدة وتظهر محاولة الإرسال الفاشلة، ثم تعاد المحاولة وفق السياسة."},{"id":"feature-F28","code":"F28","title":"سجل العمليات والموافقات الحساسة","group":"التقارير والإشعارات وسجل العمليات","description":"دي بتسجل مين عمل إيه وإمتى، وإيه اللي اتغير، وبتنظم مراجعة العمليات الحساسة قبل تنفيذها، بحيث نقدر نتابع القرارات ونفهم سبب كل تغيير مهم.","example":"موظف يطلب استرداد مبلغ لطالب؛ يراجع المدير السبب والمبلغ والأثر ويوافق أو يرفض. بعد الموافقة وصرف المبلغ، يسجل النظام منفذ الصرف وتوقيته ونتيجته، بصورة منفصلة عن قرار الموافقة."},{"id":"feature-F29","code":"F29","title":"صفحات السناتر والمجموعات والبحث العام","group":"إدارة المنصة والظهور العام وحماية البيانات","description":"دي بتخلي السنتر يعرض معلوماته والمجموعات المتاحة للطلاب وأولياء الأمور، بحيث يقدروا يلاقوا السنتر ويشوفوا تفاصيل الدراسة فيه، مع تحكم الإدارة في المعلومات المنشورة وطريقة ظهور السنتر.","example":"ولي أمر يبحث عن رياضيات للصف الثالث الثانوي في منطقته، فيجد السنتر ويشاهد المجموعات ومواعيدها ووسائل التواصل المنشورة، دون الاطلاع على حضور الطلاب أو مدفوعاتهم. ويمكن للسنتر مشاركة مجموعة برابط مباشر دون الظهور في البحث العام، وفق إعدادات ظهوره."},{"id":"feature-F30","code":"F30","title":"اشتراكات المؤسسات وخطط الاستخدام","group":"إدارة المنصة والظهور العام وحماية البيانات","description":"دي بتدير اشتراك السنتر نفسه في EduCenterOS؛ يعني الخطة اللي يستخدم المنصة على أساسها، وميعاد تجديدها، وحدود استخدامها. ده منفصل عن اشتراكات الطلاب في الحصص.","example":"مؤسسة وصلت إلى حد الطلاب النشطين في خطتها؛ يستمر تسجيل حضور ومدفوعات طلابها الحاليين طالما الاشتراك ساري، لكنها تحتاج إلى خطة مناسبة قبل تفعيل طالب جديد يؤدي إلى تجاوز الحد."},{"id":"feature-F31","code":"F31","title":"لوحة إدارة EduCenterOS","group":"إدارة المنصة والظهور العام وحماية البيانات","description":"دي لوحة لفريق إدارة المنصة نفسها، يتابع منها السناتر المشتركة وطلبات النشر والدعم والمشكلات، بصلاحيات محددة، مع تسجيل الإجراءات والقرارات التي تؤثر على المؤسسات.","example":"يصل بلاغ بأن صفحة سنتر تنتحل اسم سنتر آخر؛ تراجع إدارة المنصة الأدلة، وقد توقف الظهور العام مؤقتًا بحسب السياسة، مع تسجيل السبب والقرار. لا يغلق التشغيل الداخلي تلقائيًا لمجرد وجود البلاغ."},{"id":"feature-F32","code":"F32","title":"حماية الحسابات والبيانات وطلبات الخصوصية","group":"إدارة المنصة والظهور العام وحماية البيانات","description":"دي بتحمي حسابات المستخدمين وبيانات كل سنتر، وبتنظم طلبات تصحيح البيانات أو الحصول على نسخة منها أو حذف الحساب، مع الحفاظ على السجلات التي يحتاجها تشغيل المؤسسة.","example":"محاسب ترك السنتر؛ تلغى عضويته ووصوله إلى بيانات المؤسسة، لكن العمليات والإيصالات التي نفذها تظل محفوظة باسمه في سجل العمليات. وطلب حذف حسابه لا يمحو تلقائيًا السجلات المالية للسنتر."}]</script>
+    <script>
+    (() => {
+        const index = document.getElementById('document-index');
+        const track = index.querySelector('.index-track');
+        const preview = document.getElementById('index-preview');
+        const data = JSON.parse(document.getElementById('index-data').textContent);
+        const links = [...index.querySelectorAll('a[href^="#feature-"]')];
+        const features = links.map((link, i) => ({ link, section: document.getElementById(data[i].id), data: data[i] }));
+        const group = preview.querySelector('.preview-group');
+        const code = preview.querySelector('.preview-title bdi');
+        const title = preview.querySelector('.preview-title span');
+        const description = preview.querySelector('.preview-description');
+        const example = preview.querySelector('.preview-example');
+        let activeIndex = -1;
+        let previewLink = null;
+        let hideTimer = null;
+        let scheduled = false;
+        let suppressed = false;
+        const hidePreview = () => {
+            clearTimeout(hideTimer);
+            if (previewLink) previewLink.removeAttribute('aria-describedby');
+            previewLink = null;
+            preview.hidden = true;
+        };
+        const deferHide = () => {
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(hidePreview, 160);
+        };
+        const positionPreview = () => {
+            if (!previewLink) return;
+            const row = previewLink.getBoundingClientRect();
+            const height = preview.getBoundingClientRect().height;
+            const viewportHeight = document.documentElement.clientHeight;
+            const top = Math.max(16, Math.min(row.top + row.height / 2 - height / 2, viewportHeight - height - 16));
+            preview.style.top = `${top}px`;
+        };
+        const showPreview = link => {
+            if (suppressed) return;
+            clearTimeout(hideTimer);
+            if (previewLink && previewLink !== link) previewLink.removeAttribute('aria-describedby');
+            const feature = features.find(item => item.link === link);
+            if (!feature) return;
+            group.textContent = feature.data.group;
+            code.textContent = feature.data.code;
+            title.textContent = '— ' + feature.data.title;
+            description.textContent = feature.data.description;
+            example.textContent = feature.data.example ? 'مثال: ' + feature.data.example : '';
+            example.hidden = !feature.data.example;
+            previewLink = link;
+            link.setAttribute('aria-describedby', 'index-preview');
+            preview.hidden = false;
+            positionPreview();
+        };
+        const revealActive = () => {
+            const row = links[activeIndex].getBoundingClientRect();
+            const frame = track.getBoundingClientRect();
+            if (row.top < frame.top || row.bottom > frame.bottom) {
+                hidePreview();
+                track.scrollTop += row.top - frame.top - frame.height / 2 + row.height / 2;
+            }
+        };
+        const setActive = nextIndex => {
+            if (nextIndex === activeIndex) return;
+            activeIndex = nextIndex;
+            links.forEach((link, i) => {
+                const distance = Math.abs(i - nextIndex);
+                if (distance === 0) link.setAttribute('aria-current', 'location');
+                else link.removeAttribute('aria-current');
+                if (distance === 1 || distance === 2) link.dataset.near = String(distance);
+                else delete link.dataset.near;
+            });
+            revealActive();
+        };
+        const updateActive = () => {
+            scheduled = false;
+            let nextIndex = 0;
+            const threshold = Math.min(160, document.documentElement.clientHeight * .22);
+            for (let i = 0; i < features.length; i++) {
+                if (features[i].section.getBoundingClientRect().top <= threshold) nextIndex = i;
+                else break;
+            }
+            if (window.scrollY + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 2) nextIndex = features.length - 1;
+            setActive(nextIndex);
+        };
+        const scheduleUpdate = () => {
+            if (scheduled) return;
+            scheduled = true;
+            requestAnimationFrame(updateActive);
+        };
+        links.forEach((link, i) => {
+            link.addEventListener('pointerenter', event => {
+                suppressed = false;
+                if (event.pointerType !== 'touch') showPreview(link);
+            });
+            link.addEventListener('focus', () => { suppressed = false; showPreview(link); });
+            link.addEventListener('click', () => {
+                suppressed = true;
+                hidePreview();
+                setActive(i);
+                features[i].section.focus({ preventScroll: true });
+            });
+        });
+        index.addEventListener('pointerleave', deferHide);
+        index.addEventListener('focusout', event => {
+            if (!index.contains(event.relatedTarget)) hidePreview();
+        });
+        preview.addEventListener('pointerenter', () => clearTimeout(hideTimer));
+        preview.addEventListener('pointerleave', deferHide);
+        track.addEventListener('scroll', positionPreview, { passive: true });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') { suppressed = true; hidePreview(); }
+        });
+        window.addEventListener('scroll', scheduleUpdate, { passive: true });
+        window.addEventListener('resize', () => { hidePreview(); scheduleUpdate(); }, { passive: true });
+        window.addEventListener('hashchange', scheduleUpdate);
+        window.addEventListener('pageshow', scheduleUpdate);
+        updateActive();
+    })();
+    </script>
+    <script type="application/json" id="annotation-data">{"version":1,"updatedAt":0,"strokes":[]}</script>
+    <script id="annotation-script">
+    (() => {
+        const main = document.getElementById('document-content');
+        const layer = document.getElementById('annotation-layer');
+        const toolbar = document.getElementById('annotation-tools');
+        const status = document.getElementById('annotation-status');
+        const widthControl = document.getElementById('annotation-width');
+        const undoButton = document.getElementById('annotation-undo');
+        const redoButton = document.getElementById('annotation-redo');
+        const toolButtons = [...toolbar.querySelectorAll('[data-annotation-tool]')];
+        const colorButtons = [...toolbar.querySelectorAll('[data-annotation-color]')];
+        const namespace = 'http://www.w3.org/2000/svg';
+        const storageKey = 'educenteros:handwriting:v1:' + window.location.pathname;
+        const anchors = [main, ...main.querySelectorAll('.agreed-feature')];
+        const anchorIds = new Set(anchors.map(anchor => anchor.id));
+        let strokes = [];
+        let redoStack = [];
+        let active = null;
+        let tool = 'browse';
+        let penColor = '#2563eb';
+        let laserColor = '#dc2626';
+        let penWidth = 4;
+        let sequence = 0;
+        let frame = null;
+        let saveTimer = null;
+        let metrics = null;
+        let storageAvailable = true;
+        const lasers = new Set();
+        const create = (tag, attributes = {}) => {
+            const node = document.createElementNS(namespace, tag);
+            Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, String(value)));
+            return node;
+        };
+        const definitions = create('defs');
+        const ink = create('g');
+        const laserLayer = create('g', { class: 'annotation-laser-layer' });
+        const hitArea = create('rect', { width: '100%', height: '100%', fill: 'transparent', 'pointer-events': 'inherit' });
+        layer.replaceChildren(definitions, ink, laserLayer, hitArea);
+        const clamp = (value, lower, upper) => Math.min(upper, Math.max(lower, value));
+        const readPacket = value => {
+            try {
+                const packet = JSON.parse(value);
+                if (!packet || packet.version !== 1 || !Array.isArray(packet.strokes)) return null;
+                const valid = packet.strokes.filter(stroke =>
+                    stroke && ['pen', 'eraser'].includes(stroke.type) && anchorIds.has(stroke.anchor) &&
+                    /^#[0-9a-f]{6}$/i.test(stroke.color) && Number.isFinite(stroke.width) && stroke.width > 0 && stroke.width <= 96 &&
+                    Array.isArray(stroke.points) && stroke.points.length && stroke.points.length <= 20000 &&
+                    stroke.points.every(point => Array.isArray(point) && point.length === 2 && point.every(Number.isFinite) && Math.abs(point[0]) <= 2 && Math.abs(point[1]) <= 10000)
+                );
+                if (valid.length !== packet.strokes.length) return null;
+                return { version: 1, updatedAt: Number.isFinite(packet.updatedAt) ? packet.updatedAt : 0, strokes: valid };
+            } catch { return null; }
+        };
+        const embedded = readPacket(document.getElementById('annotation-data').textContent);
+        let cached = null;
+        try { cached = readPacket(localStorage.getItem(storageKey)); }
+        catch { storageAvailable = false; }
+        strokes = (cached && (!embedded || cached.updatedAt >= embedded.updatedAt) ? cached : embedded)?.strokes || [];
+        const setStatus = message => { status.textContent = message; };
+        const packet = () => ({ version: 1, updatedAt: Date.now(), strokes });
+        const persist = () => {
+            clearTimeout(saveTimer);
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(packet()));
+                storageAvailable = true;
+                setStatus('محفوظ في المتصفح');
+            } catch {
+                storageAvailable = false;
+                setStatus('استخدم حفظ نسخة');
+            }
+        };
+        const scheduleSave = () => {
+            clearTimeout(saveTimer);
+            setStatus('جارٍ الحفظ');
+            saveTimer = setTimeout(persist, 200);
+        };
+        const updateButtons = () => {
+            undoButton.disabled = !strokes.length;
+            redoButton.disabled = !redoStack.length;
+            toolButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.annotationTool === tool)));
+            const color = tool === 'laser' ? laserColor : penColor;
+            colorButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.annotationColor === color)));
+            layer.dataset.tool = tool;
+        };
+        const measure = () => {
+            const rect = main.getBoundingClientRect();
+            const left = rect.left + main.clientLeft;
+            const top = rect.top + main.clientTop;
+            const width = Math.max(1, main.clientWidth);
+            const height = Math.max(1, main.clientHeight);
+            const byId = new Map();
+            anchors.forEach(anchor => {
+                const box = anchor.getBoundingClientRect();
+                byId.set(anchor.id, anchor === main ? { top: 0, height } : { top: box.top - top, height: Math.max(1, box.height) });
+            });
+            metrics = { left, top, width, height, byId };
+            layer.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            layer.setAttribute('preserveAspectRatio', 'none');
+        };
+        const pointsFor = stroke => {
+            const anchor = metrics.byId.get(stroke.anchor) || metrics.byId.get(main.id);
+            return stroke.points.map(([x, y]) => [x * metrics.width, anchor.top + y * anchor.height]);
+        };
+        const pathFor = points => {
+            const number = value => Number(value.toFixed(2));
+            if (points.length === 1) return `M${number(points[0][0])},${number(points[0][1])}l0.01,0`;
+            let path = `M${number(points[0][0])},${number(points[0][1])}`;
+            for (let i = 1; i < points.length - 1; i++) {
+                const next = points[i + 1];
+                path += `Q${number(points[i][0])},${number(points[i][1])} ${number((points[i][0] + next[0]) / 2)},${number((points[i][1] + next[1]) / 2)}`;
+            }
+            const last = points[points.length - 1];
+            return path + `L${number(last[0])},${number(last[1])}`;
+        };
+        const boundsFor = (points, width) => {
+            let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+            points.forEach(([x, y]) => { left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y); });
+            const padding = width / 2 + 2;
+            return { left: left - padding, top: top - padding, right: right + padding, bottom: bottom + padding };
+        };
+        const overlaps = (a, b) => a.left <= b.right && a.right >= b.left && a.top <= b.bottom && a.bottom >= b.top;
+        const strokePath = (d, color, width) => create('path', { d, fill: 'none', stroke: color, 'stroke-width': width, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+        const renderInk = () => {
+            frame = null;
+            if (!metrics) measure();
+            const operations = active && active.stroke.type !== 'laser' ? [...strokes, active.stroke] : strokes;
+            const geometry = operations.map(stroke => {
+                const points = pointsFor(stroke);
+                return { stroke, path: pathFor(points), bounds: boundsFor(points, stroke.width) };
+            });
+            const eraserEntries = geometry.map((entry, index) => ({ ...entry, index })).filter(entry => entry.stroke.type === 'eraser');
+            const nextDefinitions = document.createDocumentFragment();
+            const nextInk = document.createDocumentFragment();
+            geometry.forEach((entry, i) => {
+                if (entry.stroke.type !== 'pen') return;
+                const path = strokePath(entry.path, entry.stroke.color, entry.stroke.width);
+                const erasers = eraserEntries.filter(other => other.index > i && overlaps(entry.bounds, other.bounds));
+                if (erasers.length) {
+                    const box = entry.bounds;
+                    const maskId = `annotation-mask-${i}`;
+                    const mask = create('mask', { id: maskId, maskUnits: 'userSpaceOnUse', maskContentUnits: 'userSpaceOnUse', x: box.left, y: box.top, width: box.right - box.left, height: box.bottom - box.top, style: 'mask-type: luminance' });
+                    mask.append(create('rect', { x: box.left, y: box.top, width: box.right - box.left, height: box.bottom - box.top, fill: '#ffffff' }));
+                    erasers.forEach(eraser => mask.append(strokePath(eraser.path, '#000000', eraser.stroke.width)));
+                    nextDefinitions.append(mask);
+                    path.setAttribute('mask', `url(#${maskId})`);
+                }
+                nextInk.append(path);
+            });
+            definitions.replaceChildren(nextDefinitions);
+            ink.replaceChildren(nextInk);
+        };
+        const scheduleRender = () => { if (frame === null) frame = requestAnimationFrame(renderInk); };
+        const refreshLasers = () => {
+            lasers.forEach(laser => laser.path.setAttribute('d', pathFor(pointsFor(laser.stroke))));
+        };
+        const pointFrom = (event, anchorId) => {
+            const rect = main.getBoundingClientRect();
+            const anchor = metrics.byId.get(anchorId);
+            const x = clamp((event.clientX - rect.left - main.clientLeft) / metrics.width, 0, 1);
+            const documentY = clamp(event.clientY - rect.top - main.clientTop, 0, metrics.height);
+            return [x, (documentY - anchor.top) / anchor.height];
+        };
+        const addPoint = event => {
+            if (!active) return;
+            const point = pointFrom(event, active.stroke.anchor);
+            const previous = active.stroke.points.at(-1);
+            const anchor = metrics.byId.get(active.stroke.anchor);
+            if (previous && Math.hypot((point[0] - previous[0]) * metrics.width, (point[1] - previous[1]) * anchor.height) < .6) return;
+            if (active.stroke.points.length >= 20000) return;
+            active.stroke.points.push(point);
+        };
+        const finish = () => {
+            if (!active) return;
+            const finished = active;
+            active = null;
+            if (layer.hasPointerCapture(finished.pointerId)) layer.releasePointerCapture(finished.pointerId);
+            if (finished.stroke.type === 'laser') {
+                finished.laser.path.classList.add('is-fading');
+                setTimeout(() => { finished.laser.path.remove(); lasers.delete(finished.laser); }, 1400);
+            } else {
+                strokes.push(finished.stroke);
+                redoStack = [];
+                renderInk();
+                updateButtons();
+                scheduleSave();
+            }
+        };
+        const chooseTool = value => { finish(); tool = value; updateButtons(); };
+        const start = event => {
+            if (tool === 'browse' || active || event.isPrimary === false || (event.pointerType === 'mouse' && event.button !== 0)) return;
+            event.preventDefault();
+            measure();
+            const type = event.pointerType === 'pen' && event.button === 5 ? 'eraser' : tool;
+            if (type === 'eraser' && !strokes.length) return;
+            const relativeY = event.clientY - metrics.top;
+            const anchor = anchors.find(item => item !== main && relativeY >= metrics.byId.get(item.id).top && relativeY <= metrics.byId.get(item.id).top + metrics.byId.get(item.id).height) || main;
+            const stroke = { id: `${Date.now().toString(36)}-${sequence++}`, type, anchor: anchor.id, color: type === 'laser' ? laserColor : penColor, width: type === 'eraser' ? Math.max(18, penWidth * 6) : type === 'laser' ? Math.max(3, penWidth) : penWidth, points: [] };
+            active = { pointerId: event.pointerId, stroke, laser: null };
+            addPoint(event);
+            layer.setPointerCapture(event.pointerId);
+            if (type === 'laser') {
+                const path = strokePath(pathFor(pointsFor(stroke)), stroke.color, stroke.width);
+                path.setAttribute('class', 'annotation-laser');
+                path.style.filter = `drop-shadow(0 0 3px ${stroke.color})`;
+                const laser = { path, stroke };
+                lasers.add(laser);
+                active.laser = laser;
+                laserLayer.append(path);
+            } else scheduleRender();
+        };
+        layer.addEventListener('pointerdown', start);
+        layer.addEventListener('pointermove', event => {
+            if (!active || event.pointerId !== active.pointerId) return;
+            event.preventDefault();
+            const samples = event.getCoalescedEvents?.() || [];
+            (samples.length ? samples : [event]).forEach(addPoint);
+            if (active.stroke.type === 'laser') active.laser.path.setAttribute('d', pathFor(pointsFor(active.stroke)));
+            else scheduleRender();
+        });
+        layer.addEventListener('pointerup', event => {
+            if (active && event.pointerId === active.pointerId) { addPoint(event); finish(); }
+        });
+        layer.addEventListener('pointercancel', event => { if (active && event.pointerId === active.pointerId) finish(); });
+        layer.addEventListener('lostpointercapture', event => { if (active && event.pointerId === active.pointerId) finish(); });
+        toolButtons.forEach(button => button.addEventListener('click', () => chooseTool(button.dataset.annotationTool)));
+        colorButtons.forEach(button => button.addEventListener('click', () => {
+            finish();
+            if (tool === 'laser') laserColor = button.dataset.annotationColor;
+            else { penColor = button.dataset.annotationColor; if (tool === 'browse' || tool === 'eraser') tool = 'pen'; }
+            updateButtons();
+        }));
+        widthControl.addEventListener('change', () => { finish(); penWidth = Number(widthControl.value); });
+        const undo = () => {
+            finish();
+            if (!strokes.length) return;
+            redoStack.push(strokes.pop()); renderInk(); updateButtons(); scheduleSave();
+        };
+        const redo = () => {
+            finish();
+            if (!redoStack.length) return;
+            strokes.push(redoStack.pop()); renderInk(); updateButtons(); scheduleSave();
+        };
+        undoButton.addEventListener('click', undo);
+        redoButton.addEventListener('click', redo);
+        document.getElementById('annotation-save').addEventListener('click', () => {
+            finish();
+            persist();
+            const clone = document.documentElement.cloneNode(true);
+            const clonedLayer = clone.querySelector('#annotation-layer');
+            clonedLayer.replaceChildren();
+            clonedLayer.dataset.tool = 'browse';
+            clone.querySelector('#annotation-data').textContent = JSON.stringify(packet()).replace(/</g, '\u003c');
+            clone.querySelector('#annotation-tools').hidden = true;
+            clone.querySelector('#annotation-status').textContent = 'جاهز';
+            clone.querySelectorAll('[data-annotation-tool]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.annotationTool === 'browse')));
+            const file = new Blob(['<!doctype html>\n' + clone.outerHTML], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(file);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'EduCenterOS - Agreed Features - Annotated.html';
+            document.body.append(link); link.click(); link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 15000);
+            setStatus('تم حفظ نسخة');
+        });
+        document.addEventListener('keydown', event => {
+            if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+            if (event.key === 'Escape') chooseTool('browse');
+            if ((event.ctrlKey || event.metaKey) && !event.altKey) {
+                if (event.code === 'KeyZ') { event.preventDefault(); event.shiftKey ? redo() : undo(); }
+                else if (event.code === 'KeyY') { event.preventDefault(); redo(); }
+            }
+        });
+        window.addEventListener('blur', () => { finish(); persist(); });
+        window.addEventListener('pagehide', () => { finish(); persist(); });
+        const refresh = () => { finish(); measure(); renderInk(); refreshLasers(); };
+        if ('ResizeObserver' in window) new ResizeObserver(refresh).observe(main);
+        window.addEventListener('resize', refresh);
+        window.addEventListener('pageshow', refresh);
+        if (document.fonts?.ready) document.fonts.ready.then(refresh);
+        measure(); renderInk(); updateButtons();
+        toolbar.hidden = false;
+        setStatus(storageAvailable ? (strokes.length ? 'تم استعادة الكتابة' : 'جاهز للكتابة') : 'استخدم حفظ نسخة');
+    })();
+    </script>
+</body>
+
+</html>

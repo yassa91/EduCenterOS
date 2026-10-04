@@ -3,6 +3,7 @@
     <ProjectReference Include="../EduCenterOS.Modules.IdentityAccess/EduCenterOS.Modules.IdentityAccess.csproj" />
     <PackageReference Include="Microsoft.OpenApi" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
     <PackageReference Include="Npgsql" />
   </ItemGroup>
 </Project>

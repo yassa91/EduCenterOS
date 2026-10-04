@@ -1,12 +1,15 @@
 using EduCenterOS.Api.Runtime;
 using EduCenterOS.Api.ErrorHandling;
 using EduCenterOS.Modules.IdentityAccess;
+
 namespace EduCenterOS.Api.Configuration;
 
 internal static class ApplicationModuleRegistration
 {
     internal static void MapApplicationModules(this WebApplication app)
-        => app.MapIdentityAccess(ApiProblems.FromError, ApiProblems.FromStatus);
+    {
+        app.MapIdentityAccess(ApiProblems.FromError, ApiProblems.FromStatus);
+    }
 
     internal static void AddApplicationModules(this WebApplicationBuilder builder)
     {

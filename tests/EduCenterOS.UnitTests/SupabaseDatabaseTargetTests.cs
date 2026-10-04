@@ -1,25 +1,34 @@
 using EduCenterOS.Modules.IdentityAccess.Contracts;
 using Npgsql;
 using Xunit;
+
 namespace EduCenterOS.UnitTests;
 
 public sealed class SupabaseDatabaseTargetTests
 {
     private static SupabaseDatabaseTarget Target(string environment = "Testing", bool pooled = false) => new()
     {
-        ProjectReference = "abcdefghijklmnopqrst", Environment = environment, ServerMajor = 17,
+        ProjectReference = "abcdefghijklmnopqrst",
+        Environment = environment,
+        ServerMajor = 17,
         Host = pooled ? "aws-0-eu-west-1.pooler.supabase.com" : "db.abcdefghijklmnopqrst.supabase.co"
     };
+
     private static string Connection(SupabaseDatabaseTarget target) => new NpgsqlConnectionStringBuilder
     {
-        Host = target.Host, Database = "postgres", Port = 5432, SslMode = SslMode.VerifyFull,
+        Host = target.Host,
+        Database = "postgres",
+        Port = 5432,
+        SslMode = SslMode.VerifyFull,
         Username = target.Role("runtime") + (target.Host.StartsWith("aws-", StringComparison.Ordinal) ? "." + target.ProjectReference : ""),
         Password = "synthetic-test-marker"
     }.ConnectionString;
 
     [Theory]
-    [InlineData("Testing", false)] [InlineData("Testing", true)]
-    [InlineData("Development", false)] [InlineData("Development", true)]
+    [InlineData("Testing", false)]
+    [InlineData("Testing", true)]
+    [InlineData("Development", false)]
+    [InlineData("Development", true)]
     public void ReviewedDirectAndSessionTargets_AcceptVerifiedTlsAndRestrictedRole(string environment, bool pooled)
     {
         var target = Target(environment, pooled);
@@ -27,13 +36,23 @@ public sealed class SupabaseDatabaseTargetTests
     }
 
     [Theory]
-    [InlineData("local")] [InlineData("wrong-project")] [InlineData("transaction-pooler")]
-    [InlineData("plaintext")] [InlineData("require-without-verification")] [InlineData("admin")]
-    [InlineData("other-environment")] [InlineData("wrong-database")] [InlineData("include-error-detail")]
-    [InlineData("log-parameters")] [InlineData("prepared-statements")] [InlineData("multiplexing")] [InlineData("options")]
+    [InlineData("local")]
+    [InlineData("wrong-project")]
+    [InlineData("transaction-pooler")]
+    [InlineData("plaintext")]
+    [InlineData("require-without-verification")]
+    [InlineData("admin")]
+    [InlineData("other-environment")]
+    [InlineData("wrong-database")]
+    [InlineData("include-error-detail")]
+    [InlineData("log-parameters")]
+    [InlineData("prepared-statements")]
+    [InlineData("multiplexing")]
+    [InlineData("options")]
     public void UnreviewedDestinationsAndTlsDowngrades_FailBeforeConnection(string fault)
     {
-        var target = Target(); var connection = new NpgsqlConnectionStringBuilder(Connection(target));
+        var target = Target();
+        var connection = new NpgsqlConnectionStringBuilder(Connection(target));
         switch (fault)
         {
             case "local": connection.Host = "127.0.0.1"; break;

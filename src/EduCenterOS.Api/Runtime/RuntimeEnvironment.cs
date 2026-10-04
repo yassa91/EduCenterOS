@@ -11,6 +11,7 @@ internal static class RuntimeEnvironment
             throw new InvalidOperationException("Environment.Conflict: runtime environment selectors must agree.");
 
         var selected = dotnet ?? aspnet;
+
         if (selected is not ("Development" or "Testing" or "Staging" or "Production"))
             throw new InvalidOperationException("Environment.Invalid: an explicit canonical environment is required.");
 

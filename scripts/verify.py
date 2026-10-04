@@ -63,6 +63,8 @@ def main():
         ("report-guard", [sys.executable, "-m", "unittest", "discover", "-s", "tests/verification"], 30),
         ("restore", ["dotnet", "restore", "EduCenterOS.sln", "--locked-mode"], 300),
         ("build", ["dotnet", "build", "EduCenterOS.sln", "-c", "Release", "--no-restore"], 180),
+        ("formatter-tests", ["dotnet", "run", "--project", "tools/EduCenterOS.Formatting", "-c", "Release", "--no-build", "--", "--self-test"], 30),
+        ("formatting", ["dotnet", "run", "--project", "tools/EduCenterOS.Formatting", "-c", "Release", "--no-build", "--", "--check"], 30),
     ):
         if not command(args, stage + ".log", timeout):
             print(f"Verification failed during {stage}. Private diagnostics: {run.relative_to(ROOT)}")
