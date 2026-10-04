@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using EduCenterOS.Modules.IdentityAccess.Features.Login;
 using EduCenterOS.Modules.IdentityAccess.Contracts;
 using EduCenterOS.Modules.IdentityAccess.Features.RegisterAccount;
 using EduCenterOS.Modules.IdentityAccess.Features.RequestPhoneVerification;
@@ -19,7 +20,21 @@ public static partial class ModuleRegistration
         {
             var type = context.JsonTypeInfo.Type;
 
-            if (type == typeof(PhoneVerificationRequest))
+            if (type == typeof(LoginRequest))
+            {
+                Strict(schema);
+                schema.Properties!["phoneNumber"] = Text(1, 32, "Verified Egyptian mobile number; S02 normalization.");
+                var password = Text(1, 128, "No trim; 1–128 UTF-16 units without controls. Historical passwords do not use the registration minimum.");
+                password.Format = "password";
+                password.WriteOnly = true;
+                Utf16Bounds(password, 1, 128);
+                schema.Properties!["password"] = password;
+            }
+            else if (type == typeof(AccessResponse))
+            {
+                schema.Properties!["accessToken"].Description = "Short-lived access JWT; browser memory only; never persist or log.";
+            }
+            else if (type == typeof(PhoneVerificationRequest))
             {
                 Strict(schema);
                 schema.Properties!["phoneNumber"] = Text(1, 32, "Egyptian mobile number: trim then normalize local/0020/+20 ASCII forms.");
@@ -68,6 +83,17 @@ public static partial class ModuleRegistration
             operation.Extensions["x-rate-limit-policy"] = new JsonNodeExtension(JsonValue.Create(metadata.PolicyName));
             operation.Security = [];
 
+            if (metadata.BrowserProtected)
+            {
+                operation.Parameters ??= [];
+                operation.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "X-EduCenterOS-Auth", In = ParameterLocation.Header, Required = true,
+                    Description = "Browser CSRF marker; value 1. HTTPS and exact automatic browser Origin are required.",
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.String, Pattern = "^1$", Default = JsonValue.Create("1") }
+                });
+            }
+
             if (context.Description.RelativePath?.Contains("{challengeId}", StringComparison.Ordinal) == true)
             {
                 operation.Parameters ??= [];
@@ -89,6 +115,12 @@ public static partial class ModuleRegistration
                 response.Headers["X-Correlation-Id"] = new OpenApiHeader { Description = "Server-generated correlation identifier.", Schema = Text(32, 32, "Correlation identifier.") };
                 response.Headers["Cache-Control"] = new OpenApiHeader { Description = "Sensitive responses use no-store.", Schema = new OpenApiSchema { Type = JsonSchemaType.String, Pattern = "^no-store$" } };
             }
+
+            if (metadata.BrowserProtected && operation.Responses.TryGetValue("200", out var success) && success is OpenApiResponse cookieResponse)
+                cookieResponse.Headers!["Set-Cookie"] = new OpenApiHeader { Description = "Secure HttpOnly SameSite=Strict refresh cookie; Path=/api/v1/auth; no Domain. Never returned in JSON.", Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
+
+            if (operation.Responses.TryGetValue("401", out var unauthorized) && unauthorized is OpenApiResponse unauthorizedResponse)
+                unauthorizedResponse.Headers!["WWW-Authenticate"] = new OpenApiHeader { Description = "Bearer challenge without account details.", Schema = new OpenApiSchema { Type = JsonSchemaType.String, Pattern = "^Bearer$" } };
 
             foreach (var status in new[] { "429", "503" })
                 if (operation.Responses.TryGetValue(status, out var response) && response is OpenApiResponse concrete)

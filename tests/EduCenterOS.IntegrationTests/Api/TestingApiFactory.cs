@@ -17,7 +17,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace EduCenterOS.IntegrationTests.Api;
 
-internal sealed class TestingApiFactory(OwnedPostgresFixture database, ControlledClock? clock = null, IInterceptor? interceptor = null) : WebApplicationFactory<Program>
+internal sealed class TestingApiFactory(OwnedPostgresFixture database, ControlledClock? clock = null, IInterceptor? interceptor = null, Action<IServiceCollection>? configureServices = null, Action<JsonObject>? authenticationPolicy = null) : WebApplicationFactory<Program>
 {
     internal const string AuthenticationOrigin = "https://localhost:5443";
     internal SafeLogCapture Logs { get; } = new();
@@ -40,7 +40,7 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<IRuntimeSnapshotSource>();
-            services.AddSingleton<IRuntimeSnapshotSource>(new CloudTestSnapshotSource(database));
+            services.AddSingleton<IRuntimeSnapshotSource>(new CloudTestSnapshotSource(database, authenticationPolicy));
             services.AddSingleton<ILoggerProvider>(Logs);
             services.RemoveAll<IOtpSender>();
             services.AddSingleton<IOtpSender>(Sender);
@@ -48,10 +48,12 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
             services.AddSingleton<IClock>(Clock);
 
             if (interceptor is not null) services.AddSingleton<IInterceptor>(interceptor);
+
+            configureServices?.Invoke(services);
         });
     }
 
-    private sealed class CloudTestSnapshotSource(OwnedPostgresFixture database) : IRuntimeSnapshotSource
+    private sealed class CloudTestSnapshotSource(OwnedPostgresFixture database, Action<JsonObject>? customizePolicy) : IRuntimeSnapshotSource
     {
         private static readonly RSA SigningKey = RSA.Create(2048);
         private readonly RuntimeSnapshot snapshot = RuntimeSnapshot.Parse(
@@ -62,7 +64,7 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
                 databaseTarget = new { projectReference = database.Target.ProjectReference, host = database.Target.Host, environment = database.Target.Environment, serverMajor = database.Target.ServerMajor },
                 source = "CloudTestFixture",
                 securityPolicy = System.Text.Json.JsonSerializer.Deserialize<object>(File.ReadAllText(Path.Combine(OwnedPostgresFixture.FindRoot(), "infra/registration-policy.json"))),
-                authenticationPolicy = TestAuthenticationPolicy(),
+                authenticationPolicy = TestAuthenticationPolicy(customizePolicy),
                 developmentMailboxDirectory = (string?)null,
                 secrets = new Dictionary<string, string>
                 {
@@ -79,11 +81,12 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
             "Testing"
         );
 
-        private static JsonObject TestAuthenticationPolicy()
+        private static JsonObject TestAuthenticationPolicy(Action<JsonObject>? customize)
         {
             var policy = JsonNode.Parse(File.ReadAllText(Path.Combine(OwnedPostgresFixture.FindRoot(), "infra/authentication-policy.json")))!.AsObject();
             policy["issuer"] = "https://educenteros.testing.invalid";
             policy["browserOrigin"] = AuthenticationOrigin;
+            customize?.Invoke(policy);
 
             return policy;
         }

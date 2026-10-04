@@ -25,10 +25,12 @@ public sealed class RegistrationContractTests(OwnedPostgresFixture database) : I
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         var paths = doc.RootElement.GetProperty("paths");
-        Assert.Equal(4, paths.EnumerateObject().Count());
+        string[] registrationRoutes = ["/api/v1/accounts", "/api/v1/phone-verifications", "/api/v1/phone-verifications/{challengeId}/resend", "/api/v1/phone-verifications/{challengeId}/verify"];
+        var registrationPaths = paths.EnumerateObject().Where(path => registrationRoutes.Contains(path.Name, StringComparer.Ordinal)).ToArray();
+        Assert.Equal(4, registrationPaths.Length);
         var ids = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var path in paths.EnumerateObject())
+        foreach (var path in registrationPaths)
         {
             Assert.StartsWith("/api/v1/", path.Name);
             var operation = path.Value.GetProperty("post");
@@ -90,7 +92,7 @@ public sealed class RegistrationContractTests(OwnedPostgresFixture database) : I
         var issues = problem.GetProperty("errors").GetProperty("additionalProperties");
         Assert.Equal("array", issues.GetProperty("type").GetString());
         Assert.Equal(new[] { "code", "description" }, issues.GetProperty("items").GetProperty("required").EnumerateArray().Select(value => value.GetString()).ToArray());
-        var endpoints = factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>().Where(endpoint => endpoint.RoutePattern.RawText?.StartsWith("/api/v1/", StringComparison.Ordinal) == true).ToArray();
+        var endpoints = factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>().Where(endpoint => registrationRoutes.Contains(endpoint.RoutePattern.RawText?.TrimEnd('/'), StringComparer.Ordinal)).ToArray();
         Assert.Equal(4, endpoints.Length);
 
         foreach (var endpoint in endpoints)

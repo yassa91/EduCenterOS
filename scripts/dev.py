@@ -334,7 +334,9 @@ def main():
         os.chmod(temporary, 0o600); os.replace(temporary, DATABASE_TRUST)
         print("Reviewed cloud target trusted outside repository.")
     elif args.action == "provision-cloud": provision(args.environment)
-    elif args.action == "provision-auth": provision_authentication()
+    elif args.action == "provision-auth":
+        if args.environment != "Development": raise RuntimeError("AuthenticationProvisionIsDevelopmentOnly")
+        provision_authentication()
     elif args.action == "identity-migrate": migrate_identity()
     else: run()
 

@@ -32,6 +32,8 @@ internal sealed class RegistrationCryptography(IdentityAccessRuntimeSettings set
 
     internal byte[] TargetDigest(string phone) => HMACSHA256.HashData(settings.PartitionKey, Encoding.UTF8.GetBytes("target\0" + phone));
 
+    internal byte[] LoginDigest(string phone) => HMACSHA256.HashData(settings.PartitionKey, Encoding.UTF8.GetBytes("login-target\0" + phone));
+
     internal long TargetLock(string phone) => BinaryPrimitives.ReadInt64BigEndian(TargetDigest(phone));
 
     internal int Bucket(string signal) => (int)(BinaryPrimitives.ReadUInt32BigEndian(HMACSHA256.HashData(settings.PartitionKey, Encoding.UTF8.GetBytes("ip\0" + signal))) % settings.Policy.BucketCount);
