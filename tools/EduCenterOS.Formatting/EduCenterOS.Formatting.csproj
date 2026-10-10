@@ -4,6 +4,11 @@
     <RoslynDirectory>$(MSBuildSDKsPath)/../Roslyn/bincore</RoslynDirectory>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../.agents/skills/educenteros-formatting/scripts/formatter/Program.cs" Link="Program.cs" />
+    <Compile Include="../../.agents/skills/educenteros-formatting/scripts/formatter/CodeFormatter.cs" Link="CodeFormatter.cs" />
+    <Compile Include="../../.agents/skills/educenteros-formatting/scripts/formatter/FormatterTests.cs" Link="FormatterTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis">
       <HintPath>$(RoslynDirectory)/Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>

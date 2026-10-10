@@ -65,10 +65,12 @@ The default generated app is `.local/mac-launcher/EduCenterOS.app`; an explicit 
 
 ## Verify
 
-The agreed C# style is defined in [.editorconfig](.editorconfig), [AGENTS.md](AGENTS.md),
-and [T42 - Code Formatting](docs/technical/T42%20-%20Code%20Formatting.md).
-The gate checks formatting, including one argument per line for every `Error` construction.
-Apply the checked whitespace rules before delivery:
+For a guide to the implemented features, shared code, and tests, see the
+[code map](docs/technical/Code%20Map.md).
+
+The sole formatting authority is
+[educenteros-formatting](.agents/skills/educenteros-formatting/SKILL.md).
+Its formatter is exposed through the existing project commands:
 
 ```sh
 dotnet run --project tools/EduCenterOS.Formatting -c Release -- --fix

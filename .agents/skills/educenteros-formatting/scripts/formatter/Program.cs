@@ -22,7 +22,7 @@ if (root is null) throw new InvalidOperationException("Formatting.RepositoryRoot
 
 var changed = 0;
 
-foreach (var folder in new[] { "src", "tests", "tools" })
+foreach (var folder in new[] { "src", "tests", "tools", ".agents/skills/educenteros-formatting/scripts/formatter" })
 {
     foreach (var path in Directory.EnumerateFiles(Path.Combine(root.FullName, folder), "*.cs", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
     {

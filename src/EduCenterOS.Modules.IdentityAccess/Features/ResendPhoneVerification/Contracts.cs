@@ -1,0 +1,3 @@
+namespace EduCenterOS.Modules.IdentityAccess.Features.ResendPhoneVerification;
+
+internal sealed class ResendPhoneVerificationRequest;

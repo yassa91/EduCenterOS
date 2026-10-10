@@ -1,23 +1,13 @@
 using EduCenterOS.BuildingBlocks.Results;
 using EduCenterOS.Modules.IdentityAccess.Contracts;
 using EduCenterOS.Modules.IdentityAccess.Domain;
+using EduCenterOS.Modules.IdentityAccess.Features.Shared.PhoneVerification;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Delivery;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Persistence;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduCenterOS.Modules.IdentityAccess.Features.VerifyPhone;
-
-internal sealed class VerifyPhoneRequest
-{
-    public required string? Code { get; init; }
-}
-
-internal sealed class VerifyPhoneResponse(string verificationProof, DateTimeOffset expiresAtUtc)
-{
-    public string VerificationProof { get; } = verificationProof;
-    public DateTimeOffset ExpiresAtUtc { get; } = expiresAtUtc;
-}
 
 internal sealed class VerifyPhoneHandler(
     RegistrationTransactions transactions,
@@ -32,13 +22,13 @@ internal sealed class VerifyPhoneHandler(
         if (code is not { Length: 6 } || !code.All(char.IsAsciiDigit)) return Result<VerifyPhoneResponse>.Failure(RegistrationErrors.Field("code"));
 
         await using var lookup = await factory.CreateDbContextAsync(cancellationToken);
-        var source = await lookup.Challenges.AsNoTracking().SingleOrDefaultAsync(value => value.Id == id, cancellationToken);
+        var phone = await ChallengeQueries.TargetFor(lookup, id).SingleOrDefaultAsync(cancellationToken);
 
-        if (source is null) return Result<VerifyPhoneResponse>.Failure(RegistrationErrors.VerificationRejected);
+        if (phone is null) return Result<VerifyPhoneResponse>.Failure(RegistrationErrors.VerificationRejected);
 
-        var result = await transactions.RunAsync(RegistrationOperation.Verify, source.NormalizedTarget, async (context, now, token) =>
+        var result = await transactions.RunAsync(RegistrationOperation.Verify, phone, async (context, now, token) =>
         {
-            var target = await RegistrationTransactions.TargetAsync(context, crypto.TargetDigest(source.NormalizedTarget), token);
+            var target = await RegistrationTransactions.TargetAsync(context, crypto.TargetDigest(phone), token);
             var quota = target.ReserveVerification(now, settings.Policy.RollingWindowSeconds, settings.Policy.TargetVerifyPermits);
 
             if (!quota.IsSuccess) return Result<VerifyPhoneResponse>.Failure(quota.Error);

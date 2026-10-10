@@ -41,14 +41,11 @@ internal sealed class UserSession
     public string AssuranceLevel { get; private set; } = "PrimaryAuthenticated";
     public long Version { get; private set; } = 1;
 
-    internal DateTimeOffset EffectiveExpiration => IdleExpiresAtUtc < AbsoluteExpiresAtUtc ? IdleExpiresAtUtc : AbsoluteExpiresAtUtc;
+    internal SessionLifetime Lifetime => new(CreatedAtUtc, IdleExpiresAtUtc, AbsoluteExpiresAtUtc, RevokedAtUtc);
 
-    internal bool IsActive(DateTimeOffset now)
-    {
-        RegistrationErrors.RequireUtc(now);
+    internal DateTimeOffset EffectiveExpiration => Lifetime.EffectiveExpiration;
 
-        return RevokedAtUtc is null && now >= CreatedAtUtc && now < EffectiveExpiration;
-    }
+    internal bool IsActive(DateTimeOffset now) => Lifetime.IsActive(now);
 
     internal void RefreshActivity(DateTimeOffset now, int idleSeconds)
     {

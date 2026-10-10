@@ -108,7 +108,8 @@ internal sealed class AuthenticationTokens : IDisposable
 
             var claims = payload.RootElement;
 
-            if (header.RootElement.GetProperty("alg").GetString() != SecurityAlgorithms.RsaSha256 ||
+            if (
+                header.RootElement.GetProperty("alg").GetString() != SecurityAlgorithms.RsaSha256 ||
                 header.RootElement.GetProperty("typ").GetString() != "educenteros-access+jwt" ||
                 !validationKeys.ContainsKey(header.RootElement.GetProperty("kid").GetString()!) ||
                 claims.GetProperty("iss").GetString() != settings.Policy.Issuer ||
@@ -120,7 +121,8 @@ internal sealed class AuthenticationTokens : IDisposable
                 !claims.GetProperty("exp").TryGetInt64(out var expires) ||
                 !claims.GetProperty("sv").TryGetInt64(out var version) || version < 1 || issued < 0 || expires <= issued || expires > 253402300799 ||
                 issued > clock.UtcNow.AddSeconds(settings.Policy.ClockSkewSeconds).ToUnixTimeSeconds() ||
-                expires - issued > settings.Policy.AccessLifetimeSeconds)
+                expires - issued > settings.Policy.AccessLifetimeSeconds
+            )
                 return false;
 
             actor = new AuthenticatedActor(accountId, sessionId, version);

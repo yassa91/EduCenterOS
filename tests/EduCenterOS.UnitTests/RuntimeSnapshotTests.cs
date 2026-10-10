@@ -1,5 +1,5 @@
+using EduCenterOS.UnitTests.Infrastructure;
 using System.Text.Json.Nodes;
-using System.Security.Cryptography;
 using EduCenterOS.Api.Runtime;
 using Npgsql;
 using Xunit;
@@ -11,7 +11,7 @@ public sealed class RuntimeSnapshotTests
     private const string SecretKey = "ConnectionStrings__RuntimeProbeDatabase";
     private const string Marker = "diagnostic-sensitive-marker";
 
-    private static readonly RSA SigningKey = RSA.Create(2048);
+    private static readonly TestRsaKey SigningKey = new();
 
     private static JsonObject Snapshot(string environment = "Testing") => new()
     {
@@ -31,9 +31,9 @@ public sealed class RuntimeSnapshotTests
         ["secrets"] = new JsonObject
         {
             ["ConnectionStrings__IdentityAccessDatabase"] = $"Host=db.abcdefghijklmnopqrst.supabase.co;Port=5432;Database=postgres;Username=educenteros_{(environment == "Testing" ? "test" : "dev")}_runtime;Password={Marker};SSL Mode=VerifyFull",
-            ["IdentityAccess__Jwt__PrivateKeyPem"] = SigningKey.ExportPkcs8PrivateKeyPem(),
+            ["IdentityAccess__Jwt__PrivateKeyPem"] = SigningKey.PrivatePem,
             ["IdentityAccess__Jwt__CurrentKeyId"] = "s03-test",
-            ["IdentityAccess__Jwt__ValidationPublicKeys__s03-test"] = SigningKey.ExportSubjectPublicKeyInfoPem(),
+            ["IdentityAccess__Jwt__ValidationPublicKeys__s03-test"] = SigningKey.PublicPem,
             ["IdentityAccess__Otp__HashKeys__v1"] = Convert.ToBase64String(new byte[32]),
             ["IdentityAccess__Otp__CurrentHashKeyVersion"] = "v1",
             ["Platform__RateLimiting__PartitionDigestKey"] = Convert.ToBase64String(Enumerable.Repeat((byte)1, 32).ToArray()),

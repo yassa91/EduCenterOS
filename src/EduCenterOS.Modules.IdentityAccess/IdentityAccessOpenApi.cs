@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using EduCenterOS.Modules.IdentityAccess.Features.Login;
 using EduCenterOS.Modules.IdentityAccess.Features.Refresh;
+using EduCenterOS.Modules.IdentityAccess.Features.Shared.Authentication;
 using EduCenterOS.Modules.IdentityAccess.Contracts;
 using EduCenterOS.Modules.IdentityAccess.Features.RegisterAccount;
 using EduCenterOS.Modules.IdentityAccess.Features.RequestPhoneVerification;

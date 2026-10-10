@@ -298,6 +298,40 @@ def run():
     raise SystemExit(result.returncode)
 
 
+def save_trusted_locator(path, data):
+    with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False) as output:
+        json.dump(data, output, indent=2)
+        output.write("\n")
+        temporary = output.name
+    os.chmod(temporary, 0o600)
+    os.replace(temporary, path)
+
+
+def trust_infisical(args, parser):
+    if not args.endpoint or not args.project_id: parser.error("trust requires endpoint and project ID")
+    if TRUST.is_symlink(): raise RuntimeError("InvalidTrustedLocator")
+    data = {"endpoint": args.endpoint, "projectId": args.project_id, "environment": "dev", "path": "/backend-api/shared"}
+    if TRUST.exists() and json.loads(TRUST.read_text()) != data: raise RuntimeError("ExistingTrustMismatch")
+    TRUST.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    save_trusted_locator(TRUST, data)
+    trusted_settings()
+    print("Infisical target trusted outside repository.")
+
+
+def trust_database(args):
+    target = validate_target({"environment": args.environment, "projectReference": args.project_reference,
+        "host": args.host, "serverMajor": args.server_major, "rootCertificate": args.root_certificate}, args.environment)
+    if DATABASE_TRUST.is_symlink(): raise RuntimeError("InvalidSupabaseLocator")
+    DATABASE_TRUST.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    targets = json.loads(DATABASE_TRUST.read_text()) if DATABASE_TRUST.exists() else {}
+    if args.environment in targets and targets[args.environment] != target: raise RuntimeError("ExistingSupabaseTrustMismatch")
+    if any(t["projectReference"] == target["projectReference"] and name != args.environment for name, t in targets.items()):
+        raise RuntimeError("DevelopmentAndTestingMustUseDistinctProjects")
+    targets[args.environment] = target
+    save_trusted_locator(DATABASE_TRUST, targets)
+    print("Reviewed cloud target trusted outside repository.")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["trust", "trust-database", "provision-cloud", "provision-auth", "identity-migrate", "run"])
@@ -310,39 +344,24 @@ def main():
     parser.add_argument("--root-certificate", default="")
     args = parser.parse_args()
     if args.action == "trust":
-        if not args.endpoint or not args.project_id: parser.error("trust requires endpoint and project ID")
-        if TRUST.is_symlink(): raise RuntimeError("InvalidTrustedLocator")
-        data = {"endpoint": args.endpoint, "projectId": args.project_id, "environment": "dev", "path": "/backend-api/shared"}
-        if TRUST.exists() and json.loads(TRUST.read_text()) != data: raise RuntimeError("ExistingTrustMismatch")
-        TRUST.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-        with tempfile.NamedTemporaryFile(mode="w", dir=TRUST.parent, delete=False) as output:
-            json.dump(data, output, indent=2); output.write("\n"); temporary = output.name
-        os.chmod(temporary, 0o600); os.replace(temporary, TRUST)
-        trusted_settings(); print("Infisical target trusted outside repository.")
+        trust_infisical(args, parser)
     elif args.action == "trust-database":
-        target = validate_target({"environment": args.environment, "projectReference": args.project_reference,
-            "host": args.host, "serverMajor": args.server_major, "rootCertificate": args.root_certificate}, args.environment)
-        if DATABASE_TRUST.is_symlink(): raise RuntimeError("InvalidSupabaseLocator")
-        DATABASE_TRUST.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-        targets = json.loads(DATABASE_TRUST.read_text()) if DATABASE_TRUST.exists() else {}
-        if args.environment in targets and targets[args.environment] != target: raise RuntimeError("ExistingSupabaseTrustMismatch")
-        if any(t["projectReference"] == target["projectReference"] and name != args.environment for name, t in targets.items()):
-            raise RuntimeError("DevelopmentAndTestingMustUseDistinctProjects")
-        targets[args.environment] = target
-        with tempfile.NamedTemporaryFile(mode="w", dir=DATABASE_TRUST.parent, delete=False) as output:
-            json.dump(targets, output, indent=2); output.write("\n"); temporary = output.name
-        os.chmod(temporary, 0o600); os.replace(temporary, DATABASE_TRUST)
-        print("Reviewed cloud target trusted outside repository.")
-    elif args.action == "provision-cloud": provision(args.environment)
+        trust_database(args)
+    elif args.action == "provision-cloud":
+        provision(args.environment)
     elif args.action == "provision-auth":
-        if args.environment != "Development": raise RuntimeError("AuthenticationProvisionIsDevelopmentOnly")
+        if args.environment != "Development":
+            raise RuntimeError("AuthenticationProvisionIsDevelopmentOnly")
         provision_authentication()
-    elif args.action == "identity-migrate": migrate_identity()
-    else: run()
+    elif args.action == "identity-migrate":
+        migrate_identity()
+    else:
+        run()
 
 
 if __name__ == "__main__":
-    try: main()
+    try:
+        main()
     except (RuntimeError, ValueError, KeyError, TypeError, OSError) as error:
         print(str(error) if isinstance(error, RuntimeError) else "InvalidBootstrapData", file=sys.stderr)
         raise SystemExit(1)

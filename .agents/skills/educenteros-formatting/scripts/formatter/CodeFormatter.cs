@@ -25,8 +25,10 @@ internal static class CodeFormatter
             {
                 var result = CSharpSyntaxTree.ParseText(formatted).GetRoot();
 
-                if (!original.DescendantTokens().Select(token => (token.RawKind, token.Text))
-                    .SequenceEqual(result.DescendantTokens().Select(token => (token.RawKind, token.Text))))
+                if (
+                    !original.DescendantTokens().Select(token => (token.RawKind, token.Text))
+                    .SequenceEqual(result.DescendantTokens().Select(token => (token.RawKind, token.Text)))
+                )
                     throw new InvalidOperationException("Formatting.SyntaxChanged");
 
                 if (!ContentTrivia(original).SequenceEqual(ContentTrivia(result)))
@@ -119,8 +121,20 @@ internal static class CodeFormatter
                 Gap(attributes.CloseBracketToken, attributes.CloseBracketToken.GetNextToken(), 1, indent);
             }
 
-            if (node is BaseObjectCreationExpressionSyntax creation && IsErrorConstruction(creation)
-                && creation.ArgumentList is { Arguments.Count: > 0 } arguments)
+            if (
+                node is IfStatementSyntax condition &&
+                source[condition.OpenParenToken.SpanStart..condition.CloseParenToken.Span.End].Contains('\n')
+            )
+            {
+                var indent = Indent(condition.IfKeyword);
+                Gap(condition.OpenParenToken, condition.Condition.GetFirstToken(), 1, indent + "    ", exact: true);
+                Gap(condition.Condition.GetLastToken(), condition.CloseParenToken, 1, indent, exact: true);
+            }
+
+            if (
+                node is BaseObjectCreationExpressionSyntax creation && IsErrorConstruction(creation)
+                && creation.ArgumentList is { Arguments.Count: > 0 } arguments
+            )
             {
                 var indent = Indent(creation.GetFirstToken());
                 Gap(arguments.OpenParenToken, arguments.Arguments[0].GetFirstToken(), 1, indent + "    ", exact: true);
@@ -159,8 +173,10 @@ internal static class CodeFormatter
         if (creation is ObjectCreationExpressionSyntax explicitNew)
             return explicitNew.Type.ToString() is "Error" or "EduCenterOS.BuildingBlocks.Results.Error";
 
-        if (creation.ArgumentList is { Arguments.Count: >= 3 } arguments
-            && arguments.Arguments[1].DescendantTokens().Any(token => token.ValueText == "ErrorCategory")) return true;
+        if (
+            creation.ArgumentList is { Arguments.Count: >= 3 } arguments
+            && arguments.Arguments[1].DescendantTokens().Any(token => token.ValueText == "ErrorCategory")
+        ) return true;
 
         return creation.Parent is ArrowExpressionClauseSyntax arrow && arrow.Parent switch
         {
