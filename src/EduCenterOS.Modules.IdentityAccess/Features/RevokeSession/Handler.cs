@@ -21,11 +21,13 @@ internal sealed class RevokeSessionHandler(ICurrentAccountActor current, Authent
             if (account is null) return Result<bool>.Failure(AuthenticationErrors.Rejected);
 
             var ids = new[] { actor.SessionId, target }.Distinct().ToArray();
-            var sessions = await context.Sessions.FromSqlInterpolated($"SELECT * FROM identity_access.user_sessions WHERE user_account_id={actor.AccountId} AND id=ANY({ids}) ORDER BY id FOR UPDATE").ToListAsync(token);
+            var sessions = await context.Sessions.FromSqlInterpolated(
+                $"SELECT * FROM identity_access.user_sessions WHERE user_account_id={actor.AccountId} AND id=ANY({ids}) ORDER BY id FOR UPDATE"
+            ).ToListAsync(token);
             var now = clock.UtcNow;
             var own = sessions.SingleOrDefault(session => session.Id == actor.SessionId);
 
-            if (own is null || !AuthenticationState.AcceptsActor(account, own, actor, now))
+            if (own is null || !SessionAccessState.From(account, own).AcceptsActor(actor, now))
                 return Result<bool>.Failure(AuthenticationErrors.Rejected);
 
             var selected = sessions.SingleOrDefault(session => session.Id == target);
@@ -38,7 +40,10 @@ internal sealed class RevokeSessionHandler(ICurrentAccountActor current, Authent
             if (RegistrationCryptography.IsProof(presentedRefresh))
             {
                 var hash = AuthenticationTokens.HashRefresh(presentedRefresh!);
-                presentedBelongsToTarget = await context.RefreshTokens.AsNoTracking().AnyAsync(credential => credential.UserSessionId == selected.Id && credential.TokenHash == hash, token);
+                presentedBelongsToTarget = await context.RefreshTokens.AsNoTracking().AnyAsync(
+                    credential => credential.UserSessionId == selected.Id && credential.TokenHash == hash,
+                    token
+                );
             }
 
             return Result<bool>.Success(presentedBelongsToTarget);

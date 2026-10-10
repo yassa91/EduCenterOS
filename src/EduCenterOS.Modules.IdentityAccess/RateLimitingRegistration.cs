@@ -18,6 +18,7 @@ public static partial class ModuleRegistration
         services.AddRateLimiter(_ =>
         {
         });
+
         services.AddOptions<RateLimiterOptions>().Configure<IdentityAccessRuntimeSettings, RegistrationCryptography>((options, settings, crypto) =>
         {
             options.OnRejected = async (context, cancellation) =>

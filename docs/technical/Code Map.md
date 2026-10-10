@@ -1,6 +1,6 @@
 # خريطة الكود الحالي
 
-هذا الدليل يصف الكود المنفذ حاليًا: التسجيل، التحقق من الهاتف، الدخول، قراءة الحساب، وتجديد الجلسة. الموديولات المستقبلية الموثقة في قرارات المشروع لم تنفذ بعد.
+هذا الدليل يصف الكود المنفذ حاليًا: التسجيل، التحقق من الهاتف، الدخول، قراءة الحساب، تجديد الجلسة، إدارة الجلسات، وتسجيل الخروج. الموديولات المستقبلية الموثقة في قرارات المشروع لم تنفذ بعد.
 
 ## ابدأ من هنا
 
@@ -14,6 +14,8 @@
 | إصدار OTP وإعادة إرساله | `Features/Shared/PhoneVerification/PhoneVerificationIssuance.cs` |
 | استجابة الدخول والتجديد المشتركة | `Features/Shared/Authentication/Contracts.cs` |
 | قراءة حقائق الأمان للجلسة | `Infrastructure/Persistence/SessionAccessQueries.cs` |
+| صفحة سجل الجلسات | `Features/ListSessions/SessionHistoryQueries.cs` |
+| تحديد صفوف refresh/logout قبل القفل | `Infrastructure/Persistence/RefreshCredentialQueries.cs` |
 | التحقق من حقائق الجلسة | `Infrastructure/Security/SessionAccessState.cs` و`Domain/SessionLifetime.cs` |
 | حدود المعاملات والأقفال | `Infrastructure/Persistence/RegistrationTransactions.cs` و`AuthenticationTransactions.cs` |
 | تحويل الفشل بعد Rollback مؤكدة | `Infrastructure/Persistence/TransactionFailures.cs` |

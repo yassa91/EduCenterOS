@@ -2,7 +2,9 @@ using System.Data.Common;
 using EduCenterOS.IntegrationTests.Api;
 using EduCenterOS.IntegrationTests.Infrastructure;
 using EduCenterOS.Modules.IdentityAccess.Domain;
+using EduCenterOS.Modules.IdentityAccess.Features.ListSessions;
 using EduCenterOS.Modules.IdentityAccess.Features.Shared.PhoneVerification;
+using EduCenterOS.Modules.IdentityAccess.Infrastructure.Http;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Persistence;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
@@ -91,6 +93,40 @@ public sealed class QueryProjectionTests(OwnedPostgresFixture database) : IClass
             Assert.DoesNotContain(forbidden, query.Sql, StringComparison.Ordinal);
 
         Assert.Null(await SessionAccessQueries.ForSession(context, Guid.NewGuid()).SingleOrDefaultAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task SessionHistory_ProjectsOnlyResponseFieldsAndPreservesOwnerOrderingAndLargeOffset()
+    {
+        await AuthenticationTestSupport.PrepareAsync(database);
+        await using var factory = new TestingApiFactory(database, new ControlledClock(AuthenticationTestSupport.Now));
+        var accountId = await AuthenticationTestSupport.SeedAsync(database, factory);
+        var foreignId = await AuthenticationTestSupport.SeedAsync(database, factory, "01112345678");
+        var now = AuthenticationTestSupport.Now;
+        var older = new UserSession(Guid.NewGuid(), accountId, 1, now, 60, 90);
+        var newer = new UserSession(Guid.NewGuid(), accountId, 1, now.AddSeconds(1), 60, 90);
+        var foreign = new UserSession(Guid.NewGuid(), foreignId, 1, now.AddSeconds(2), 60, 90);
+        await using (var seed = AuthenticationTestSupport.Context(database))
+        {
+            seed.Sessions.AddRange(older, newer, foreign);
+            await seed.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        var capture = new QueryCapture();
+        await using var context = Context(capture);
+        var actor = new AuthenticatedActor(accountId, newer.Id, 1);
+        var items = await SessionHistoryQueries.PageFor(context, actor, new SessionPage(1, 20)).ToArrayAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(new[] { newer.Id, older.Id }, items.Select(item => item.SessionId));
+        Assert.True(items[0].IsCurrent);
+        Assert.False(items[1].IsCurrent);
+        Assert.DoesNotContain(items, item => item.SessionId == foreign.Id);
+        Assert.Empty(context.ChangeTracker.Entries());
+        Assert.Equal(8, Assert.Single(capture.Reads).Columns.Length);
+
+        var distant = await SessionHistoryQueries.PageFor(context, actor, new SessionPage(int.MaxValue, 100))
+            .ToArrayAsync(TestContext.Current.CancellationToken);
+        Assert.Empty(distant);
     }
 
     private IdentityAccessDbContext Context(QueryCapture capture) => new(

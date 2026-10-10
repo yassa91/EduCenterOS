@@ -15,9 +15,7 @@ internal sealed class LogoutHandler(AuthenticationTransactions transactions, IDb
 
         var hash = AuthenticationTokens.HashRefresh(raw!);
         await using var lookup = await factory.CreateDbContextAsync(cancellationToken);
-        var candidate = await lookup.RefreshTokens.AsNoTracking().Where(credential => credential.TokenHash == hash)
-            .Join(lookup.Sessions.AsNoTracking(), credential => credential.UserSessionId, session => session.Id,
-                (credential, session) => new { CredentialId = credential.Id, SessionId = session.Id, AccountId = session.UserAccountId })
+        var candidate = await RefreshCredentialQueries.OwnerForHash(lookup, hash)
             .SingleOrDefaultAsync(cancellationToken);
 
         if (candidate is null) return Result<bool>.Success(true);

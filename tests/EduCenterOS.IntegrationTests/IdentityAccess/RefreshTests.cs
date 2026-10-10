@@ -57,7 +57,7 @@ public sealed class RefreshTests(OwnedPostgresFixture database) : IClassFixture<
         clock.UtcNow = Now.AddSeconds(25);
         using var again = await RefreshAsync(client, replacement.Refresh);
         var descendant = await ReadGrantAsync(again);
-        using var current = await CurrentAccountTests.MeAsync(client, descendant.Access);
+        using var current = await MeAsync(client, descendant.Access);
         Assert.Equal(HttpStatusCode.OK, current.StatusCode);
         await using var final = Context(database);
         Assert.Equal(3, await final.RefreshTokens.CountAsync(TestContext.Current.CancellationToken));
@@ -85,11 +85,11 @@ public sealed class RefreshTests(OwnedPostgresFixture database) : IClassFixture<
         using var rotated = await RefreshAsync(client, original.Refresh);
         var descendant = await ReadGrantAsync(rotated);
         clock.UtcNow = Now.AddSeconds(301);
-        using var before = await CurrentAccountTests.MeAsync(client, descendant.Access);
+        using var before = await MeAsync(client, descendant.Access);
         Assert.Equal(HttpStatusCode.OK, before.StatusCode);
         using var replay = await RefreshAsync(client, original.Refresh);
         await AssertRejectedAsync(replay);
-        using var after = await CurrentAccountTests.MeAsync(client, descendant.Access);
+        using var after = await MeAsync(client, descendant.Access);
         await AssertRejectedAsync(after);
         using var next = await RefreshAsync(client, descendant.Refresh);
         await AssertRejectedAsync(next);
@@ -254,12 +254,12 @@ public sealed class RefreshTests(OwnedPostgresFixture database) : IClassFixture<
             Assert.Equal(afterCommit ? clock.UtcNow : (DateTimeOffset?)null, (await observed.RefreshTokens.SingleAsync(value => value.TokenHash == AuthenticationTokens.HashRefresh(original.Refresh), TestContext.Current.CancellationToken)).ConsumedAtUtc);
         }
         fault.Enabled = false;
-        using var beforeReplay = await CurrentAccountTests.MeAsync(client, original.Access);
+        using var beforeReplay = await MeAsync(client, original.Access);
         Assert.Equal(HttpStatusCode.OK, beforeReplay.StatusCode);
         using var retry = await RefreshAsync(client, original.Refresh);
         if (afterCommit) await AssertRejectedAsync(retry);
         else await ReadGrantAsync(retry);
-        using var afterReplay = await CurrentAccountTests.MeAsync(client, original.Access);
+        using var afterReplay = await MeAsync(client, original.Access);
         if (afterCommit) await AssertRejectedAsync(afterReplay);
         else Assert.Equal(HttpStatusCode.OK, afterReplay.StatusCode);
         await using var final = Context(database);
@@ -417,7 +417,7 @@ public sealed class RefreshTests(OwnedPostgresFixture database) : IClassFixture<
         }
         Assert.Equal(2, probe.Contexts.Distinct().Count());
         Assert.NotNull(rotated);
-        using var bearer = await CurrentAccountTests.MeAsync(client, rotated.Access);
+        using var bearer = await MeAsync(client, rotated.Access);
         await AssertRejectedAsync(bearer);
         using var descendant = await RefreshAsync(client, rotated.Refresh);
         await AssertRejectedAsync(descendant);
@@ -452,13 +452,4 @@ public sealed class RefreshTests(OwnedPostgresFixture database) : IClassFixture<
         Assert.Equal(1, await final.RefreshTokens.CountAsync(TestContext.Current.CancellationToken));
     }
 
-    internal static async Task<HttpResponseMessage> RefreshAsync(HttpClient client, string? raw, string body = "{}", string? access = null, string route = "/api/v1/auth/refresh", CancellationToken? cancellation = null)
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Post, route);
-        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
-        if (raw is not null) request.Headers.TryAddWithoutValidation("Cookie", "__Secure-educenteros-refresh=" + raw);
-        if (access is not null) request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + access);
-
-        return await client.SendAsync(request, cancellation ?? TestContext.Current.CancellationToken);
-    }
 }
