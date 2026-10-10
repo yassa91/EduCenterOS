@@ -83,14 +83,19 @@ internal static class ApiProblems
 
         if (error?.ValidationIssues.Count > 0)
         {
-            var members = new[] { "phoneNumber", "code", "verificationProof", "challengeId", "fullName", "password", "emailAddress" };
+            var members = new[] { "phoneNumber", "code", "verificationProof", "challengeId", "fullName", "password", "emailAddress", "page", "pageSize", "sessionId" };
 
             if (
                 error.ValidationIssues.Any(issue => !members.Contains(issue.MemberPath, StringComparer.Ordinal) || issue.Code != "IdentityAccess.Input.Invalid")
             )
                 return WriteStatusAsync(context, 500);
 
-            problem.Extensions["errors"] = error.ValidationIssues.GroupBy(issue => "body." + issue.MemberPath, StringComparer.Ordinal)
+            problem.Extensions["errors"] = error.ValidationIssues.GroupBy(issue => (issue.MemberPath switch
+                {
+                    "page" or "pageSize" => "query.",
+                    "sessionId" => "route.",
+                    _ => "body."
+                }) + issue.MemberPath, StringComparer.Ordinal)
                 .ToDictionary(group => group.Key, group => group.Select(issue => new { code = issue.Code, description = issue.Description }).ToArray(), StringComparer.Ordinal);
             problem.Extensions["errorsTruncated"] = error.ValidationIssuesTruncated;
         }

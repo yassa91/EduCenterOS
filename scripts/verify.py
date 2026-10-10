@@ -55,7 +55,12 @@ def main():
         target = run / filename
         descriptor = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(descriptor, "w") as output:
-            result = subprocess.run(args, cwd=ROOT, env=env, stdout=output, stderr=subprocess.STDOUT, timeout=timeout)
+            try:
+                result = subprocess.run(args, cwd=ROOT, env=env, stdout=output, stderr=subprocess.STDOUT, timeout=timeout)
+            except subprocess.TimeoutExpired:
+                # Only the internal stage label and deadline are public; command output stays private.
+                print(f"Execution deadline reached during {filename.removesuffix('.log')} ({timeout}s); no automatic retry or skip.", flush=True)
+                raise
         return result.returncode == 0
 
     for stage, args, timeout in (
@@ -92,9 +97,9 @@ def main():
         else: env.pop("EDUCENTEROS_TEST_DATABASE_SNAPSHOT", None)
         project = f"tests/EduCenterOS.{suite}Tests/EduCenterOS.{suite}Tests.csproj"
         destination = run / suite
-        # Real cloud integration coverage exceeded the former ten-minute bound in S03.
-        # Preserve the complete mandatory suite and a finite execution deadline.
-        suite_timeout = 1200 if suite == "Integration" else 600
+        # The expanded S03 cloud suite exhausted its former twenty-minute deadline.
+        # Preserve every mandatory case and a finite thirty-minute allowance.
+        suite_timeout = 1800 if suite == "Integration" else 600
         completed = command(["dotnet", "test", project, "-c", "Release", "--no-build", "--no-restore",
                              "--logger", "trx;LogFileName=results.trx", "--results-directory", str(destination)], suite + ".log", suite_timeout)
         try:
