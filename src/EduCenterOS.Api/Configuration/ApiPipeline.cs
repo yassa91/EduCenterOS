@@ -17,7 +17,8 @@ internal static class ApiPipeline
             {
                 options.SwaggerEndpoint("/openapi/v1.json", "EduCenterOS API v1");
                 options.DocumentTitle = "EduCenterOS API";
-                options.UseRequestInterceptor("request => { if (request.method === 'POST' && new URL(request.url, window.location.origin).pathname.startsWith('/api/v1/auth/')) { request.headers['X-EduCenterOS-Auth'] = '1'; } return request; }");
+                // Swagger's parseFunction extracts parameters from parentheses in a function declaration.
+                options.UseRequestInterceptor("function (request) { if (request.method === 'POST' && new URL(request.url, window.location.origin).pathname.startsWith('/api/v1/auth/')) { request.headers['X-EduCenterOS-Auth'] = '1'; } return request; }");
             });
         }
 

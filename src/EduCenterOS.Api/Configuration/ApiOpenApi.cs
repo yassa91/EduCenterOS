@@ -14,7 +14,7 @@ internal static class ApiOpenApi
         {
             document.Info.Title = "EduCenterOS API";
             document.Info.Version = "v1";
-            document.Info.Description = "Local Development/Testing account registration. Anonymous security commands; registration grants no login or institution access.";
+            document.Info.Description = "Local Development/Testing phone verification, account registration, authentication and session management. Registration creates no session or institution access; use Login for access tokens and a secure refresh cookie.";
 
             return Task.CompletedTask;
         });
