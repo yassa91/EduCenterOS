@@ -8,6 +8,7 @@ namespace EduCenterOS.Modules.IdentityAccess.Infrastructure.Http;
 internal static class StrictJsonBody
 {
     private const int MaximumBytes = 16384;
+    private static readonly MediaTypeHeaderValue JsonRepresentation = MediaTypeHeaderValue.Parse("application/json; charset=utf-8").CopyAsReadOnly();
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -74,13 +75,23 @@ internal static class StrictJsonBody
     {
         try
         {
-            var accepted = context.Request.GetTypedHeaders().Accept;
+            var accepted = MediaTypeHeaderValue.ParseStrictList(context.Request.Headers.Accept);
 
-            if (
-                accepted is { Count: > 0 } &&
-                !accepted.Any(media => media.Quality != 0 && media.MediaType.Value is "application/json" or "application/*" or "*/*")
-            )
-                return 406;
+            if (accepted.Count == 0) return null;
+
+            // Charset tokens are case-insensitive and may be quoted.
+            foreach (var media in accepted)
+                if (string.Equals(media.Charset.Value?.Trim('"'), "utf-8", StringComparison.OrdinalIgnoreCase))
+                    media.Charset = "utf-8";
+
+            // A specific q=0 excludes JSON even if a broader wildcard permits it.
+            var match = accepted.Where(media => JsonRepresentation.IsSubsetOf(media))
+                .OrderByDescending(media => media.MatchesAllTypes ? 0 : media.MatchesAllSubTypes ? 1 : 2)
+                .ThenByDescending(media => media.Parameters.Count(parameter => !parameter.Name.Equals("q", StringComparison.OrdinalIgnoreCase)))
+                .ThenByDescending(media => media.Quality ?? 1)
+                .FirstOrDefault();
+
+            if (match is null || match.Quality == 0) return 406;
         }
         catch (FormatException)
         {
