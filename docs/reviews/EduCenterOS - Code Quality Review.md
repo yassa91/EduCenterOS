@@ -96,7 +96,7 @@ Integrated base: f5a5c5e — S03-T07
 
 قبول HTTPS فعلي بمتصفح نجح في 10 حالات على Supabase Testing مع fixture الملكية والأدوار المعتمدة ومفاتيح RSA صناعية: Request/Verify/Register، Login/Me، منع Cookie-only business access، Refresh من cookie المتصفح، List/Revoke، Logout وLogoutAll ورفض JWT السابقة. الـOTP نقل عبر ملف محلي owner-only، دون OTP-read API أو عرض credentials/browser storage. أوقف المضيف وأكمل fixture cleanup؛ فحص read-only أكد عدم وجود lease holder قبل بدء CI التالية. لا توجد اختبارات cloud محلية متزامنة مع CI.
 
-CI للـhead `9cc921f` [38107324551](https://github.com/yassa91/EduCenterOS/actions/runs/38107324551) نجحت فعليًا: artifacts الآمنة أكدت 176 Unit و162 Integration و7 Architecture؛ صفر failures/skips، و26 Python guards ناجحة. اكتملت مراجعة النسخة النهائية ودمجت [PR #24](https://github.com/yassa91/EduCenterOS/pull/24) بـSquash `a11dda841604e134e8a731227a355bb5a701f0c6`. [merged-main CI](https://github.com/yassa91/EduCenterOS/actions/runs/38108755814) قيد التنفيذ وقت تحديث هذا السجل؛ لا يوصف نجاح head بأنه نجاح main قبل ظهور نتيجتها.
+CI للـhead `9cc921f` [38107324551](https://github.com/yassa91/EduCenterOS/actions/runs/38107324551) و[merged-main CI](https://github.com/yassa91/EduCenterOS/actions/runs/38108755814) نجحتا فعليًا: artifacts الآمنة أكدت 176 Unit و162 Integration و7 Architecture؛ صفر failures/skips، و26 Python guards ناجحة. اكتملت مراجعة النسخة النهائية ودمجت [PR #24](https://github.com/yassa91/EduCenterOS/pull/24) بـSquash `a11dda841604e134e8a731227a355bb5a701f0c6`؛ شروط التسليم مستوفاة.
 
 ## حدود النتيجة
 
