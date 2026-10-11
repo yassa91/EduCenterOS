@@ -1,5 +1,6 @@
 using EduCenterOS.BuildingBlocks.Results;
 using EduCenterOS.BuildingBlocks.Time;
+using EduCenterOS.Modules.IdentityAccess.Features.Shared.Authentication;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;

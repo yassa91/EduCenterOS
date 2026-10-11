@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Release gate: isolated cloud integration tests and allowlisted result evidence."""
 import json
+from collections import Counter
 import os
 from pathlib import Path
 import re
@@ -14,6 +15,29 @@ SUITES = ("Unit", "Integration", "Architecture")
 NS = {"t": "http://microsoft.com/schemas/VisualStudio/TeamTest/2010"}
 
 
+def failure_category(item):
+    # Match only fixed exception identities/codes; never publish their messages or values.
+    message = item.findtext("t:Output/t:ErrorInfo/t:Message", default="", namespaces=NS)
+    safety_codes = (
+        "TestSafety.CloudProjectAlreadyInUse", "TestSafety.TrustedCloudSnapshotRequired",
+        "TestSafety.ActualIdentityMismatch", "TestSafety.TargetNotOwned",
+        "TestSafety.LeaseSessionLost", "TestSafety.LeaseMismatch"
+    )
+    for code in safety_codes:
+        if re.search(r"\bSystem\.InvalidOperationException\s*:\s*" + re.escape(code) + r"(?![A-Za-z0-9_.])", message):
+            return code
+    exception_categories = (
+        ("System.Net.Sockets.SocketException", "Network.SocketFailure"),
+        ("System.TimeoutException", "Execution.Timeout"),
+        ("Npgsql.PostgresException", "Database.ServerFailure"),
+        ("Npgsql.NpgsqlException", "Database.TransportFailure")
+    )
+    for exception_type, category in exception_categories:
+        if re.search(r"\b" + re.escape(exception_type) + r"\s*:", message):
+            return category
+    return "Unclassified"
+
+
 def safe_report(report, suite):
     document = ET.parse(report).getroot()
     counters = document.find("t:ResultSummary/t:Counters", NS)
@@ -25,14 +49,16 @@ def safe_report(report, suite):
         raise ValueError("Verification.InconsistentReport")
     tests = []
     for item in results:
-        # Dynamic theory inputs, error text, stdout, paths and attachments never enter published evidence.
+        # Dynamic theory inputs, raw error text, stdout, paths and attachments never enter published evidence.
         name = item.attrib["testName"].split("(", 1)[0]
         if not re.fullmatch(r"EduCenterOS\.[A-Za-z0-9_.]+", name):
             raise ValueError("Verification.UnsafeTestName")
         outcome = item.attrib["outcome"]
         if outcome not in ("Passed", "Failed", "NotExecuted"):
             raise ValueError("Verification.UnexpectedOutcome")
-        tests.append({"test": name, "outcome": outcome})
+        entry = {"test": name, "outcome": outcome}
+        if outcome == "Failed": entry["failureCategory"] = failure_category(item)
+        tests.append(entry)
     for counter, outcome in (("passed", "Passed"), ("failed", "Failed"), ("notExecuted", "NotExecuted")):
         if totals[counter] != sum(item["outcome"] == outcome for item in tests):
             raise ValueError("Verification.InconsistentOutcomes")
@@ -111,6 +137,9 @@ def main():
         (safe / (suite + ".json")).write_text(json.dumps(report, indent=2) + "\n")
         counts = report["counts"]
         print(f"{suite}: total={counts['total']} passed={counts['passed']} failed={counts['failed']} skipped={counts['notExecuted']}", flush=True)
+        if counts["failed"]:
+            categories = Counter(item["failureCategory"] for item in report["tests"] if item["outcome"] == "Failed")
+            print(suite + " failure categories: " + ", ".join(f"{category}={count}" for category, count in sorted(categories.items())), flush=True)
         success = success and completed and report["gatePassed"]
     print(f"Safe evidence: {safe.relative_to(ROOT)}")
     return 0 if success else 1

@@ -1,3 +1,4 @@
+using EduCenterOS.UnitTests.Infrastructure;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using System.Text;
@@ -14,14 +15,14 @@ namespace EduCenterOS.UnitTests.IdentityAccess;
 
 public sealed class AuthenticationTokenTests
 {
-    private static readonly RSA OldKey = RSA.Create(2048);
-    private static readonly RSA NewKey = RSA.Create(2048);
+    private static readonly TestRsaKey OldKey = new();
+    private static readonly TestRsaKey NewKey = new();
     private static readonly DateTimeOffset Now = new(2026, 10, 4, 12, 0, 0, TimeSpan.Zero);
 
     [Fact]
     public void Issue_UsesStrictSignedProfileAndBoundedSessionExpiry()
     {
-        using var tokens = Service(OldKey, "old", new() { ["old"] = OldKey.ExportSubjectPublicKeyInfoPem() });
+        using var tokens = Service(OldKey, "old", new() { ["old"] = OldKey.PublicPem });
         var session = new UserSession(Guid.NewGuid(), Guid.NewGuid(), 7, Now, 300, 900);
         var issued = tokens.Issue(session, Now);
         new JwtSecurityTokenHandler().ValidateToken(issued.Value, tokens.ValidationParameters(), out _);
@@ -36,8 +37,8 @@ public sealed class AuthenticationTokenTests
     [Fact]
     public void Rotation_RetainedPublicKeyValidatesOldTokensAndNewKeySignsNewTokens()
     {
-        using var old = Service(OldKey, "old", new() { ["old"] = OldKey.ExportSubjectPublicKeyInfoPem() });
-        using var rotated = Service(NewKey, "new", new() { ["old"] = OldKey.ExportSubjectPublicKeyInfoPem(), ["new"] = NewKey.ExportSubjectPublicKeyInfoPem() });
+        using var old = Service(OldKey, "old", new() { ["old"] = OldKey.PublicPem });
+        using var rotated = Service(NewKey, "new", new() { ["old"] = OldKey.PublicPem, ["new"] = NewKey.PublicPem });
         var session = new UserSession(Guid.NewGuid(), Guid.NewGuid(), 1, Now, 600, 900);
         var issuedOld = old.Issue(session, Now);
         new JwtSecurityTokenHandler().ValidateToken(issuedOld.Value, rotated.ValidationParameters(), out _);
@@ -66,7 +67,7 @@ public sealed class AuthenticationTokenTests
     [InlineData("oversizedLifetime")]
     public void Validation_RejectsForgedOrMalformedProfile(string fault)
     {
-        using var tokens = Service(OldKey, "old", new() { ["old"] = OldKey.ExportSubjectPublicKeyInfoPem() });
+        using var tokens = Service(OldKey, "old", new() { ["old"] = OldKey.PublicPem });
         var header = new Dictionary<string, object> { ["alg"] = "RS256", ["kid"] = "old", ["typ"] = "educenteros-access+jwt" };
         var claims = new Dictionary<string, object>
         {
@@ -90,7 +91,7 @@ public sealed class AuthenticationTokenTests
         var payload = JsonSerializer.Serialize(claims);
         if (fault == "duplicateClaim") payload = payload[..^1] + ",\"sv\":1}";
         var signingInput = Base64UrlEncoder.Encode(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(header))) + "." + Base64UrlEncoder.Encode(Encoding.UTF8.GetBytes(payload));
-        var signature = (fault == "wrongSignature" ? NewKey : OldKey).SignData(Encoding.ASCII.GetBytes(signingInput), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var signature = (fault == "wrongSignature" ? NewKey : OldKey).Sign(Encoding.ASCII.GetBytes(signingInput));
         var encoded = signingInput + "." + Base64UrlEncoder.Encode(signature);
         var accepted = false;
         try
@@ -113,12 +114,12 @@ public sealed class AuthenticationTokenTests
     [InlineData("badPolicy")]
     public void RuntimeSettings_RejectInvalidKeysOrPolicyWithoutDisclosure(string fault)
     {
-        var privateKey = OldKey.ExportPkcs8PrivateKeyPem();
-        var ring = new Dictionary<string, string> { ["old"] = OldKey.ExportSubjectPublicKeyInfoPem() };
+        var privateKey = OldKey.PrivatePem;
+        var ring = new Dictionary<string, string> { ["old"] = OldKey.PublicPem };
         var policy = Policy();
         var kid = "old";
         if (fault == "missingCurrent") kid = "absent";
-        if (fault == "mismatchedKey") ring["old"] = NewKey.ExportSubjectPublicKeyInfoPem();
+        if (fault == "mismatchedKey") ring["old"] = NewKey.PublicPem;
         if (fault == "privateInPublicRing") ring["old"] = privateKey;
         if (fault == "invalidKid")
         {
@@ -139,8 +140,8 @@ public sealed class AuthenticationTokenTests
         Assert.DoesNotContain("BEGIN", exception.ToString(), StringComparison.Ordinal);
     }
 
-    private static AuthenticationTokens Service(RSA key, string kid, Dictionary<string, string> ring) =>
-        new(AuthenticationRuntimeSettings.FromSnapshot(Policy(), key.ExportPkcs8PrivateKeyPem(), kid, ring), new FixedClock());
+    private static AuthenticationTokens Service(TestRsaKey key, string kid, Dictionary<string, string> ring) =>
+        new(AuthenticationRuntimeSettings.FromSnapshot(Policy(), key.PrivatePem, kid, ring), new FixedClock());
 
     private static string Policy() => JsonSerializer.Serialize(new AuthenticationPolicy(), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 

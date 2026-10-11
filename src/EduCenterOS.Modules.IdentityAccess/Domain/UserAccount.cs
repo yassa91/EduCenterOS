@@ -32,7 +32,7 @@ internal sealed class UserAccount
             personId == Guid.Empty ||
             !normalized.IsSuccess ||
             normalized.Value != phone ||
-            (email is not null && (!RegistrationInputs.Email(email).IsSuccess || RegistrationInputs.Email(email).Value != email)) ||
+            !IsNormalizedEmail(email) ||
             string.IsNullOrWhiteSpace(passwordHash) ||
             passwordHash.Length > 1024 ||
             phoneVerifiedAt > now
@@ -105,5 +105,14 @@ internal sealed class UserAccount
         LockoutEndUtc = null;
         PasswordHash = passwordHash;
         Version++;
+    }
+
+    private static bool IsNormalizedEmail(string? email)
+    {
+        if (email is null) return true;
+
+        var normalized = RegistrationInputs.Email(email);
+
+        return normalized.IsSuccess && normalized.Value == email;
     }
 }

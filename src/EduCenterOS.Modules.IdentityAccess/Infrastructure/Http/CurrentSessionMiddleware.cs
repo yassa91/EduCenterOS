@@ -27,12 +27,11 @@ internal sealed class CurrentSessionMiddleware(RequestDelegate next, Func<HttpCo
             }
 
             await using var database = await factory.CreateDbContextAsync(context.RequestAborted);
-            var state = await database.Sessions.AsNoTracking().Where(session => session.Id == actor.SessionId)
-                .Join(database.Accounts.AsNoTracking(), session => session.UserAccountId, account => account.Id, (session, account) => new { Session = session, Account = account })
+            var state = await SessionAccessQueries.ForSession(database, actor.SessionId)
                 .SingleOrDefaultAsync(context.RequestAborted);
 
             // Infrastructure failures deliberately propagate to the outer safe error boundary.
-            if (state is null || !AuthenticationState.AcceptsActor(state.Account, state.Session, actor, clock.UtcNow))
+            if (state is null || !state.AcceptsActor(actor, clock.UtcNow))
             {
                 await writeError(context, AuthenticationErrors.Rejected);
 

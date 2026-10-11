@@ -6,10 +6,6 @@ using Microsoft.AspNetCore.Routing;
 
 namespace EduCenterOS.Modules.IdentityAccess.Features.LogoutAll;
 
-internal sealed class LogoutAllRequest
-{
-}
-
 internal static class Endpoint
 {
     internal static void Map(IEndpointRouteBuilder routes, Func<Error, IResult> errorResult, Func<int, IResult> transportError)

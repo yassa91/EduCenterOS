@@ -127,8 +127,8 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
         Assert.True(tokens.TryReadActor(other.Access, out var otherActor));
         using (var revoke = await CommandAsync(client, RevokeRoute(firstActor.SessionId), second.Access, second.Refresh))
             await AssertNoContentAsync(revoke, false);
-        using (var original = await CurrentAccountTests.MeAsync(client, first.Access)) await AssertRejectedAsync(original);
-        using (var active = await CurrentAccountTests.MeAsync(client, second.Access)) Assert.Equal(HttpStatusCode.OK, active.StatusCode);
+        using (var original = await MeAsync(client, first.Access)) await AssertRejectedAsync(original);
+        using (var active = await MeAsync(client, second.Access)) Assert.Equal(HttpStatusCode.OK, active.StatusCode);
         long version;
         await using (var before = Context(database)) version = (await before.Sessions.SingleAsync(session => session.Id == firstActor.SessionId, TestContext.Current.CancellationToken)).Version;
         using (var repeat = await CommandAsync(client, RevokeRoute(firstActor.SessionId), second.Access, first.Refresh))
@@ -152,9 +152,9 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
         }
         using (var current = await CommandAsync(client, RevokeRoute(secondActor.SessionId), second.Access, second.Refresh))
             await AssertNoContentAsync(current, true);
-        using (var revoked = await CurrentAccountTests.MeAsync(client, second.Access)) await AssertRejectedAsync(revoked);
-        using (var refresh = await RefreshTests.RefreshAsync(client, second.Refresh)) await AssertRejectedAsync(refresh);
-        using var untouched = await CurrentAccountTests.MeAsync(client, other.Access);
+        using (var revoked = await MeAsync(client, second.Access)) await AssertRejectedAsync(revoked);
+        using (var refresh = await RefreshAsync(client, second.Refresh)) await AssertRejectedAsync(refresh);
+        using var untouched = await MeAsync(client, other.Access);
         Assert.Equal(HttpStatusCode.OK, untouched.StatusCode);
         await using var final = Context(database);
         Assert.All(await final.Accounts.ToListAsync(TestContext.Current.CancellationToken), account => Assert.Equal(1, account.SecurityVersion));
@@ -176,14 +176,14 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
         using var login = await LoginAsync(client);
         var original = await ReadGrantAsync(login);
         clock.UtcNow = Now.AddSeconds(250);
-        using var renewed = await RefreshTests.RefreshAsync(client, original.Refresh);
+        using var renewed = await RefreshAsync(client, original.Refresh);
         var newer = await ReadGrantAsync(renewed);
         clock.UtcNow = Now.AddSeconds(306);
-        using (var live = await CurrentAccountTests.MeAsync(client, newer.Access)) Assert.Equal(HttpStatusCode.OK, live.StatusCode);
+        using (var live = await MeAsync(client, newer.Access)) Assert.Equal(HttpStatusCode.OK, live.StatusCode);
         using (var logout = await CommandAsync(client, "/api/v1/auth/logout", original.Access, original.Refresh))
             await AssertNoContentAsync(logout, true);
-        using (var revoked = await CurrentAccountTests.MeAsync(client, newer.Access)) await AssertRejectedAsync(revoked);
-        using (var refresh = await RefreshTests.RefreshAsync(client, newer.Refresh)) await AssertRejectedAsync(refresh);
+        using (var revoked = await MeAsync(client, newer.Access)) await AssertRejectedAsync(revoked);
+        using (var refresh = await RefreshAsync(client, newer.Refresh)) await AssertRejectedAsync(refresh);
         foreach (var cookie in new[] { null, "invalid", AuthenticationTokens.NewRefresh(), original.Refresh })
         {
             using var noop = await CommandAsync(client, "/api/v1/auth/logout", "invalid-optional-access", cookie);
@@ -216,10 +216,10 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
             await AssertNoContentAsync(logout, true);
         foreach (var grant in grants)
         {
-            using var revoked = await CurrentAccountTests.MeAsync(client, grant.Access);
+            using var revoked = await MeAsync(client, grant.Access);
             await AssertRejectedAsync(revoked);
         }
-        using (var untouched = await CurrentAccountTests.MeAsync(client, other.Access)) Assert.Equal(HttpStatusCode.OK, untouched.StatusCode);
+        using (var untouched = await MeAsync(client, other.Access)) Assert.Equal(HttpStatusCode.OK, untouched.StatusCode);
         await using (var observed = Context(database))
         {
             var account = await observed.Accounts.SingleAsync(value => value.Id == id, TestContext.Current.CancellationToken);
@@ -229,7 +229,7 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
         }
         using var laterLogin = await LoginAsync(client);
         var later = await ReadGrantAsync(laterLogin);
-        using var accepted = await CurrentAccountTests.MeAsync(client, later.Access);
+        using var accepted = await MeAsync(client, later.Access);
         Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
         await using var final = Context(database);
         Assert.Equal(1, await final.Sessions.CountAsync(session => session.UserAccountId == id && session.RevokedAtUtc == null, TestContext.Current.CancellationToken));
@@ -309,7 +309,7 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
         await using var final = Context(database);
         Assert.Equal(afterCommit ? 3 : 0, await final.Sessions.CountAsync(session => session.RevokedAtUtc != null, TestContext.Current.CancellationToken));
         Assert.Equal(1, (await final.Accounts.SingleAsync(TestContext.Current.CancellationToken)).SecurityVersion);
-        using var next = await CurrentAccountTests.MeAsync(client, grants[0].Access);
+        using var next = await MeAsync(client, grants[0].Access);
         if (afterCommit) await AssertRejectedAsync(next);
         else Assert.Equal(HttpStatusCode.OK, next.StatusCode);
     }
@@ -340,7 +340,7 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
         Assert.Equal(afterCommit, session.RevokedAtUtc is not null);
         if (afterCommit) Assert.Equal(revoke ? "UserRequest" : "LogoutCurrent", session.RevocationReason);
         Assert.Equal(1, (await final.Accounts.SingleAsync(TestContext.Current.CancellationToken)).SecurityVersion);
-        using var next = await CurrentAccountTests.MeAsync(client, grant.Access);
+        using var next = await MeAsync(client, grant.Access);
         if (afterCommit) await AssertRejectedAsync(next);
         else Assert.Equal(HttpStatusCode.OK, next.StatusCode);
     }
@@ -375,14 +375,14 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
         await observer.OpenAsync(TestContext.Current.CancellationToken);
         probe.Enabled = true;
         gate.Enabled = true;
-        var first = refreshFirst ? RefreshTests.RefreshAsync(client, original.Refresh) : CommandAsync(client, route, original.Access, original.Refresh);
+        var first = refreshFirst ? RefreshAsync(client, original.Refresh) : CommandAsync(client, route, original.Access, original.Refresh);
         Task<HttpResponseMessage>? second = null;
         HttpResponseMessage[] responses = [];
         var observedOverlap = false;
         try
         {
             await gate.Reached.Task.WaitAsync(TimeSpan.FromSeconds(20), TestContext.Current.CancellationToken);
-            second = refreshFirst ? CommandAsync(client, route, original.Access, original.Refresh) : RefreshTests.RefreshAsync(client, original.Refresh);
+            second = refreshFirst ? CommandAsync(client, route, original.Access, original.Refresh) : RefreshAsync(client, original.Refresh);
             var backend = await probe.SecondBackendPid.Task.WaitAsync(TimeSpan.FromSeconds(20), TestContext.Current.CancellationToken);
             await AssertBlockedAsync(observer, backend);
             clock.UtcNow = Now.AddSeconds(40);
@@ -414,11 +414,11 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
             foreach (var response in responses) response.Dispose();
         }
         Assert.Equal(2, probe.Contexts.Distinct().Count());
-        using var denied = await CurrentAccountTests.MeAsync(client, original.Access);
+        using var denied = await MeAsync(client, original.Access);
         await AssertRejectedAsync(denied);
         if (replacement is not null)
         {
-            using var next = await RefreshTests.RefreshAsync(client, replacement.Refresh);
+            using var next = await RefreshAsync(client, replacement.Refresh);
             await AssertRejectedAsync(next);
         }
         await using var final = Context(database);
@@ -481,9 +481,9 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
         }
         Assert.Equal(2, probe.Contexts.Distinct().Count());
         Assert.NotNull(created);
-        using var previous = await CurrentAccountTests.MeAsync(client, original.Access);
+        using var previous = await MeAsync(client, original.Access);
         await AssertRejectedAsync(previous);
-        using var latest = await CurrentAccountTests.MeAsync(client, created.Access);
+        using var latest = await MeAsync(client, created.Access);
         if (logoutFirst) Assert.Equal(HttpStatusCode.OK, latest.StatusCode);
         else await AssertRejectedAsync(latest);
         await using var final = Context(database);
@@ -542,19 +542,7 @@ public sealed class SessionManagementTests(OwnedPostgresFixture database) : ICla
 
     private static string RevokeRoute(Guid id) => "/api/v1/auth/sessions/" + id.ToString("D") + "/revoke";
 
-    private static Task<HttpResponseMessage> GetAsync(HttpClient client, string access, string route) => CurrentAccountTests.MeAsync(client, access, route);
-
-    internal static async Task<HttpResponseMessage> CommandAsync(HttpClient client, string route, string? access, string? refresh, string body = "{}", bool marker = true)
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Post, route);
-        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
-        request.Headers.TryAddWithoutValidation("Origin", TestingApiFactory.AuthenticationOrigin);
-        if (marker) request.Headers.Add("X-EduCenterOS-Auth", "1");
-        if (access is not null) request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + access);
-        if (refresh is not null) request.Headers.TryAddWithoutValidation("Cookie", "__Secure-educenteros-refresh=" + refresh);
-
-        return await client.SendAsync(request, TestContext.Current.CancellationToken);
-    }
+    private static Task<HttpResponseMessage> GetAsync(HttpClient client, string access, string route) => MeAsync(client, access, route);
 
     internal static async Task AssertNoContentAsync(HttpResponseMessage response, bool cookieDeleted)
     {

@@ -53,9 +53,22 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
         });
     }
 
+    private sealed class TestSigningMaterial
+    {
+        internal string PrivatePem { get; }
+        internal string PublicPem { get; }
+
+        internal TestSigningMaterial()
+        {
+            using var key = RSA.Create(2048);
+            PrivatePem = key.ExportPkcs8PrivateKeyPem();
+            PublicPem = key.ExportSubjectPublicKeyInfoPem();
+        }
+    }
+
     private sealed class CloudTestSnapshotSource(OwnedPostgresFixture database, Action<JsonObject>? customizePolicy) : IRuntimeSnapshotSource
     {
-        private static readonly RSA SigningKey = RSA.Create(2048);
+        private static readonly TestSigningMaterial SigningKey = new();
         private readonly RuntimeSnapshot snapshot = RuntimeSnapshot.Parse(
             JsonSerializer.Serialize(new
             {
@@ -70,9 +83,9 @@ internal sealed class TestingApiFactory(OwnedPostgresFixture database, Controlle
                 {
                     ["ConnectionStrings__RuntimeProbeDatabase"] = database.RuntimeConnectionString,
                     ["ConnectionStrings__IdentityAccessDatabase"] = database.ModuleConnectionString,
-                    ["IdentityAccess__Jwt__PrivateKeyPem"] = SigningKey.ExportPkcs8PrivateKeyPem(),
+                    ["IdentityAccess__Jwt__PrivateKeyPem"] = SigningKey.PrivatePem,
                     ["IdentityAccess__Jwt__CurrentKeyId"] = "s03-test",
-                    ["IdentityAccess__Jwt__ValidationPublicKeys__s03-test"] = SigningKey.ExportSubjectPublicKeyInfoPem(),
+                    ["IdentityAccess__Jwt__ValidationPublicKeys__s03-test"] = SigningKey.PublicPem,
                     ["IdentityAccess__Otp__HashKeys__v1"] = Convert.ToBase64String(database.OtpKey),
                     ["IdentityAccess__Otp__CurrentHashKeyVersion"] = "v1",
                     ["Platform__RateLimiting__PartitionDigestKey"] = Convert.ToBase64String(database.PartitionKey)

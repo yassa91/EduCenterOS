@@ -48,16 +48,7 @@ internal sealed class RegistrationTransactions(IDbContextFactory<IdentityAccessD
         {
             if (transaction is null || commitStarted) throw;
 
-            using var rollbackTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-
-            try
-            {
-                await transaction.RollbackAsync(rollbackTimeout.Token);
-            }
-            catch (Exception)
-            {
-                throw new InvalidOperationException("Infrastructure.TransactionOutcomeUnknown");
-            }
+            await TransactionFailures.RollbackAsync(transaction);
 
             if (cancellationToken.IsCancellationRequested) throw;
 
@@ -70,25 +61,9 @@ internal sealed class RegistrationTransactions(IDbContextFactory<IdentityAccessD
             )
                 return Result<T>.Failure(RegistrationErrors.RegistrationRejected);
 
-            if (postgres?.SqlState is "55P03" or "40P01" or "40001")
-                return Result<T>.Failure(new Error(
-                    "Infrastructure.Busy",
-                    ErrorCategory.ServiceUnavailable,
-                    "The service is temporarily busy.",
-                    1
-                ));
+            var failure = TransactionFailures.Classify(exception);
 
-            if (
-                postgres?.SqlState is "57014" or "25P04" ||
-                exception is TimeoutException ||
-                exception.InnerException is TimeoutException
-            )
-                return Result<T>.Failure(new Error(
-                    "Infrastructure.Timeout",
-                    ErrorCategory.ServiceUnavailable,
-                    "The service is temporarily unavailable.",
-                    1
-                ));
+            if (failure is not null) return Result<T>.Failure(failure);
 
             throw;
         }

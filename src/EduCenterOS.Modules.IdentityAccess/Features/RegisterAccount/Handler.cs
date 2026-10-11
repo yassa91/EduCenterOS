@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using EduCenterOS.BuildingBlocks.Results;
 using EduCenterOS.Modules.IdentityAccess.Domain;
+using EduCenterOS.Modules.IdentityAccess.Features.Shared.PhoneVerification;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Persistence;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Security;
 using EduCenterOS.Modules.IdentityAccess.Contracts;
@@ -40,11 +41,11 @@ internal sealed class RegisterAccountHandler(
 
         var normalizedEmail = email?.Value;
         await using var lookup = await factory.CreateDbContextAsync(cancellationToken);
-        var source = await lookup.Challenges.AsNoTracking().SingleOrDefaultAsync(value => value.Id == request.ChallengeId, cancellationToken);
+        var phone = await ChallengeQueries.TargetFor(lookup, request.ChallengeId).SingleOrDefaultAsync(cancellationToken);
 
-        if (source is null) return Result<RegisterAccountResponse>.Failure(RegistrationErrors.VerificationRejected);
+        if (phone is null) return Result<RegisterAccountResponse>.Failure(RegistrationErrors.VerificationRejected);
 
-        return await transactions.RunAsync(RegistrationOperation.Register, source.NormalizedTarget, async (context, now, token) =>
+        return await transactions.RunAsync(RegistrationOperation.Register, phone, async (context, now, token) =>
         {
             var challenge = await context.Challenges.SingleOrDefaultAsync(value => value.Id == request.ChallengeId, token);
 
@@ -56,17 +57,21 @@ internal sealed class RegisterAccountHandler(
                 return Result<RegisterAccountResponse>.Failure(RegistrationErrors.VerificationRejected);
 
             if (
-                await context.Accounts.AnyAsync(value => value.NormalizedPhoneNumber == challenge.NormalizedTarget
-                    || (normalizedEmail != null && value.NormalizedEmailAddress == normalizedEmail), token)
+                await context.Accounts.AnyAsync(value => value.NormalizedPhoneNumber == challenge.NormalizedTarget ||
+                    (normalizedEmail != null && value.NormalizedEmailAddress == normalizedEmail), token)
             )
                 return Result<RegisterAccountResponse>.Failure(RegistrationErrors.RegistrationRejected);
 
             // PasswordHasher's Identity V3 primitive does not use its user parameter. Raw password never enters the domain model.
             var hash = hasher.HashPassword(null!, request.Password!);
             var person = new PersonIdentity(Guid.CreateVersion7(now), name.Value, now);
-            var account = new UserAccount(Guid.CreateVersion7(now), person.Id, challenge.NormalizedTarget, normalizedEmail, hash, challenge.VerifiedAtUtc!.Value, now);
+            var account = new UserAccount(
+                Guid.CreateVersion7(now), person.Id, challenge.NormalizedTarget,
+                normalizedEmail, hash, challenge.VerifiedAtUtc!.Value, now
+            );
             context.People.Add(person);
             context.Accounts.Add(account);
+
             var consumed = challenge.Consume(now);
 
             if (!consumed.IsSuccess) throw new InvalidOperationException("IdentityAccess.AuthoritativeProofChanged");

@@ -261,14 +261,6 @@ public sealed class CurrentAccountTests(OwnedPostgresFixture database) : IClassF
         Assert.Equal(HttpStatusCode.OK, recovered.StatusCode);
     }
 
-    internal static async Task<HttpResponseMessage> MeAsync(HttpClient client, string access, string route = Route)
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Get, route);
-        request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + access);
-
-        return await client.SendAsync(request, TestContext.Current.CancellationToken);
-    }
-
     private static string FaultToken(AuthenticationRuntimeSettings settings, Guid account, Guid session, string fault)
     {
         var header = new Dictionary<string, object> { ["alg"] = "RS256", ["kid"] = settings.CurrentKeyId, ["typ"] = "educenteros-access+jwt" };

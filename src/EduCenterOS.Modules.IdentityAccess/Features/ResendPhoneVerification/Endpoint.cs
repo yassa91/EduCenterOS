@@ -1,5 +1,5 @@
 using EduCenterOS.BuildingBlocks.Results;
-using EduCenterOS.Modules.IdentityAccess.Features.RequestPhoneVerification;
+using EduCenterOS.Modules.IdentityAccess.Features.Shared.PhoneVerification;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;

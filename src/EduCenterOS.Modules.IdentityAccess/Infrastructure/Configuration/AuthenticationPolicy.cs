@@ -30,8 +30,10 @@ internal sealed class AuthenticationPolicy
                 "loginIdentifierPermits", "sourceWindowSeconds", "sourcePermits", "refreshSourcePermits"];
             var fields = document.RootElement.EnumerateObject().Select(value => value.Name).ToArray();
 
-            if (fields.Length != expected.Length || fields.Distinct(StringComparer.OrdinalIgnoreCase).Count() != fields.Length ||
-                fields.Except(expected, StringComparer.Ordinal).Any())
+            if (
+                fields.Length != expected.Length || fields.Distinct(StringComparer.OrdinalIgnoreCase).Count() != fields.Length ||
+                fields.Except(expected, StringComparer.Ordinal).Any()
+            )
                 throw new InvalidOperationException();
 
             var policy = JsonSerializer.Deserialize<AuthenticationPolicy>(json, new JsonSerializerOptions

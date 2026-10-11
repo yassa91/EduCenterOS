@@ -1,3 +1,4 @@
+using System.Text;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -60,6 +61,36 @@ internal static class AuthenticationTestSupport
 
     internal static Task<HttpResponseMessage> LoginAsync(HttpClient client, string phone = "01012345678", string password = Password) =>
         client.PostAsJsonAsync("/api/v1/auth/login", new { phoneNumber = phone, password }, TestContext.Current.CancellationToken);
+
+    internal static async Task<HttpResponseMessage> MeAsync(HttpClient client, string access, string route = "/api/v1/accounts/me")
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, route);
+        request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + access);
+
+        return await client.SendAsync(request, TestContext.Current.CancellationToken);
+    }
+
+    internal static async Task<HttpResponseMessage> RefreshAsync(HttpClient client, string? raw, string body = "{}", string? access = null, string route = "/api/v1/auth/refresh", CancellationToken? cancellation = null)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, route);
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+        if (raw is not null) request.Headers.TryAddWithoutValidation("Cookie", "__Secure-educenteros-refresh=" + raw);
+        if (access is not null) request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + access);
+
+        return await client.SendAsync(request, cancellation ?? TestContext.Current.CancellationToken);
+    }
+
+    internal static async Task<HttpResponseMessage> CommandAsync(HttpClient client, string route, string? access, string? refresh, string body = "{}", bool marker = true)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, route);
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+        request.Headers.TryAddWithoutValidation("Origin", TestingApiFactory.AuthenticationOrigin);
+        if (marker) request.Headers.Add("X-EduCenterOS-Auth", "1");
+        if (access is not null) request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + access);
+        if (refresh is not null) request.Headers.TryAddWithoutValidation("Cookie", "__Secure-educenteros-refresh=" + refresh);
+
+        return await client.SendAsync(request, TestContext.Current.CancellationToken);
+    }
 
     internal static async Task<TestAuthenticationGrant> ReadGrantAsync(HttpResponseMessage response)
     {

@@ -28,6 +28,11 @@ internal static class FormatterTests
         Require(formatted.Contains("if (second > 1) return;", StringComparison.Ordinal));
         Require(CodeFormatter.Format(formatted) == formatted);
 
+        var condition = "class Example\n{\n    void Run(bool first, bool second)\n    {\n        if (first &&\n            second) return;\n    }\n}\n";
+        var wrapped = CodeFormatter.Format(condition);
+        Require(wrapped.Contains("if (\n            first &&\n            second\n        ) return;", StringComparison.Ordinal));
+        Require(CodeFormatter.Format(wrapped) == wrapped);
+
         var literal = "class Example\n{\n    string Text = \"\"\"\n        private data;   \n        \"\"\";\n    // Keep this comment.\n    void Run() { return; }\n}\n";
         var preserved = CodeFormatter.Format(literal);
         Require(preserved.Contains("private data;   \n", StringComparison.Ordinal));

@@ -144,9 +144,11 @@ public sealed class RuntimeSecurityTests(OwnedPostgresFixture database) : IClass
     public async Task UnregisteredOrMismatchedErrorCodes_FailClosedToSanitized500()
     {
         var context = new DefaultHttpContext();
-        context.Response.Body = new MemoryStream();
+        using var body = new MemoryStream();
+        context.Response.Body = body;
         context.Items[CorrelationMiddleware.ItemKey] = "fixture-correlation";
-        context.RequestServices = new ServiceCollection().AddLogging().BuildServiceProvider();
+        using var provider = new ServiceCollection().AddLogging().BuildServiceProvider();
+        context.RequestServices = provider;
         await ApiProblems.WriteErrorAsync(context, new Error(
             "Unknown.Code",
             ErrorCategory.Conflict,
@@ -154,7 +156,8 @@ public sealed class RuntimeSecurityTests(OwnedPostgresFixture database) : IClass
         ));
         Assert.Equal(500, context.Response.StatusCode);
         context.Response.Body.Position = 0;
-        var text = await new StreamReader(context.Response.Body).ReadToEndAsync(TestContext.Current.CancellationToken);
+        using var reader = new StreamReader(context.Response.Body);
+        var text = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
         Assert.DoesNotContain("diagnostic-sensitive-marker", text, StringComparison.Ordinal);
         Assert.Contains("General.UnexpectedError", text, StringComparison.Ordinal);
     }

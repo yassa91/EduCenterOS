@@ -5,6 +5,7 @@ using EduCenterOS.Modules.IdentityAccess.Features.Logout;
 using EduCenterOS.Modules.IdentityAccess.Features.LogoutAll;
 using EduCenterOS.Modules.IdentityAccess.Features.RevokeSession;
 using EduCenterOS.Modules.IdentityAccess.Features.Refresh;
+using EduCenterOS.Modules.IdentityAccess.Features.Shared.Authentication;
 using EduCenterOS.Modules.IdentityAccess.Contracts;
 using EduCenterOS.Modules.IdentityAccess.Features.RegisterAccount;
 using EduCenterOS.Modules.IdentityAccess.Features.RequestPhoneVerification;

@@ -1,16 +1,12 @@
 using EduCenterOS.BuildingBlocks.Results;
 using EduCenterOS.BuildingBlocks.Time;
-using EduCenterOS.Modules.IdentityAccess.Features.Login;
+using EduCenterOS.Modules.IdentityAccess.Features.Shared.Authentication;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace EduCenterOS.Modules.IdentityAccess.Features.Refresh;
-
-internal sealed class RefreshRequest
-{
-}
 
 internal static class Endpoint
 {

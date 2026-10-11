@@ -3,7 +3,7 @@ using EduCenterOS.BuildingBlocks.Results;
 using EduCenterOS.BuildingBlocks.Time;
 using EduCenterOS.Modules.IdentityAccess.Contracts;
 using EduCenterOS.Modules.IdentityAccess.Domain;
-using EduCenterOS.Modules.IdentityAccess.Features.Login;
+using EduCenterOS.Modules.IdentityAccess.Features.Shared.Authentication;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Persistence;
 using EduCenterOS.Modules.IdentityAccess.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
@@ -24,9 +24,7 @@ internal sealed class RefreshHandler(
 
         var hash = AuthenticationTokens.HashRefresh(raw!);
         await using var lookup = await factory.CreateDbContextAsync(cancellationToken);
-        var candidate = await lookup.RefreshTokens.AsNoTracking().Where(credential => credential.TokenHash == hash)
-            .Join(lookup.Sessions.AsNoTracking(), credential => credential.UserSessionId, session => session.Id,
-                (credential, session) => new { CredentialId = credential.Id, SessionId = session.Id, AccountId = session.UserAccountId })
+        var candidate = await RefreshCredentialQueries.OwnerForHash(lookup, hash)
             .SingleOrDefaultAsync(cancellationToken);
 
         if (candidate is null) return Result<AuthenticationGrant>.Failure(AuthenticationErrors.Rejected);
@@ -60,7 +58,7 @@ internal sealed class RefreshHandler(
             }
 
             if (
-                !AuthenticationState.OwnsLiveSession(account, session, now) ||
+                !SessionAccessState.From(account, session).OwnsLiveSession(now) ||
                 !credential.CanConsume(now) ||
                 now < session.LastSeenAtUtc ||
                 (DateTimeOffset.FromUnixTimeSeconds(session.AbsoluteExpiresAtUtc.ToUnixTimeSeconds()) - now).TotalSeconds < 1

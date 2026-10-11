@@ -1,0 +1,6 @@
+interface:
+  display_name: "EduCenterOS Formatting"
+  short_description: "Apply the project's C# layout and formatting checks"
+
+policy:
+  allow_implicit_invocation: true
