@@ -87,6 +87,16 @@ Integrated base: f5a5c5e — S03-T07
 
 أثناء تشخيص SQL اصطناعية حدث build متزامن تنافس على ملف build output؛ build البوابة نجح، وأعيد التشخيص بعد اكتماله ونجح. لم تغير شروط البوابة أو تضف retries تلقائية. الدمج ينتظر نجاح التحقق على النسخة النهائية.
 
+### متابعة القبول — 2026-10-11
+
+بوابة لاحقة على نفس binaries الخاصة بـCQ01 عند `9b73858` نجحت محليًا: 176 Unit و162 Integration و7 Architecture، مع صفر failures/skips، و23 Python guards وlocked restore/Release build/formatter/hygiene ناجحة. الدليل الآمن: `artifacts/test-results/44a4511e4d5247f2b8dc62b2996ae9c4/safe`. هذه نتيجة جديدة؛ لا تمحو المحاولة الفاشلة أعلاه.
+
+فحص GitHub السابق [38063156690](https://github.com/yassa91/EduCenterOS/actions/runs/38063156690) فشل بـ16/162 Integration؛ جميع الحالات التي تحتاج قاعدة البيانات فشلت، بينما Unit/Architecture والحالات المستقلة عن DB نجحت. artifacts القديمة لا تحتوي failure details، فلا يمكن تعيين السبب الدقيق من counts وحدها. أضيف `failureCategory` allowlisted للحالات الفاشلة لدعم التشخيص التالي دون نشر messages أو credentials أو raw TRX. بقي gate failure كما هو؛ 26 Python guards نجحت، بينها ثلاثة فحوص جديدة لعزل التصنيفات والقيم والحالات الناجحة. تحليل TRX المحلية التاريخية بالتصنيف الجديد أكد 38 lease conflicts و2 timeout و2 socket failures؛ لم يتجاوز حارس الملكية أو ينه backend مجهولة.
+
+قبول HTTPS فعلي بمتصفح نجح في 10 حالات على Supabase Testing مع fixture الملكية والأدوار المعتمدة ومفاتيح RSA صناعية: Request/Verify/Register، Login/Me، منع Cookie-only business access، Refresh من cookie المتصفح، List/Revoke، Logout وLogoutAll ورفض JWT السابقة. الـOTP نقل عبر ملف محلي owner-only، دون OTP-read API أو عرض credentials/browser storage. أوقف المضيف وأكمل fixture cleanup؛ فحص read-only أكد عدم وجود lease holder قبل بدء CI التالية. لا توجد اختبارات cloud محلية متزامنة مع CI.
+
+CI للـhead التشخيصية الجديدة مطلوب قبل الدمج؛ نجاح الفحوص المحلية لا يوصف بأنه نجاح GitHub.
+
 ## حدود النتيجة
 
 المراجعة والاختبارات تؤكد السلوك الذي فحصته؛ لا تقدم ضمانًا أن أي مشروع خالٍ من كل خطأ محتمل. لا توجد ترقيات SDK/packages أو تغييرات في عقود الأعمال أو deployment ضمن هذا الطلب. نتائج الاختبارات الآمنة فقط تصلح للمشاركة؛ السجلات الخام والمدخلات المحلية تبقى ignored.
